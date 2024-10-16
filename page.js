@@ -150,7 +150,7 @@ function styleText(type) {
                     openingTag = `<${tag}>`;
                     closingTag = `</${tag}>`;
                 }
-                const newText = closingTag ? openingTag + selectedText + closingTag : openingTag;
+                const newText = closingTag ? openingTag + selectedText + closingTag : openingTag ;
                 const fragment = range.createContextualFragment(newText);
                 
                 range.deleteContents();
@@ -632,7 +632,7 @@ function moveCell(row, currentCell, type) {
         const previousCell = cells.find(el => el.id === previousIndex);
         
         const currentPosition = currentCell.position;
-        currentCell.position = previousSection.position;
+        currentCell.position = previousCell.position;
         previousCell.position = currentPosition;
     
         row.parentNode.insertBefore(row, previousRow);
