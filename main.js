@@ -124,12 +124,13 @@ function deleteSection(wrapper, section) {
         const pageData = event.target.result;
         
         if (pages) {
-            wrapper.remove();
-            pages = pages.filter(page => page.pageId !== section.id);
-            sections.splice(sections.indexOf(section), 1);
-            pageStore.delete(pageData.pageId);
-            
-            saveState();
+            if (confirm('Are you sure?')) {
+                wrapper.remove();
+                pages = pages.filter(page => page.pageId !== section.id);
+                sections.splice(sections.indexOf(section), 1);
+                pageStore.delete(pageData.pageId);
+                saveState();
+            }
         } else {
             if (confirm('Are you sure you want to delete this page?')) {
                 wrapper.remove();
