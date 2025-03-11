@@ -371,14 +371,15 @@ function editInfoBox(editMode) {
                 } else {
                     cell1.style.backgroundColor = '#F1e7dd';
                     cell2.style.backgroundColor = '#F1e7dd';
-                    infoTitle.style.display = 'inline';
-                    valueCell.style.display = 'inline';
                     infoTitle.innerHTML = cell.text1;
                     valueCell.innerHTML = cell.text2;
                 }
             }
             inputWrapper.forEach(input => {
                 input.style.display = 'none';
+            });
+            textWrapper.forEach(text => {
+                text.style.display = 'block';
             });
         }
     });
