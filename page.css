@@ -46,7 +46,7 @@ body {
   box-sizing: border-box;
 }
 
-#edit-infobox, #delete-page-btn, #enable-preset1, #enable-preset2, #settings-btn {
+#edit-infobox, #delete-page-btn, #local-file-btn, #enable-preset1, #enable-preset2, #settings-btn {
   border-radius: 4px;
 }
 
