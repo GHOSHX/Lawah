@@ -46,7 +46,7 @@ body {
   box-sizing: border-box;
 }
 
-#edit-infobox, #delete-page-btn, #enable-preset1, #enable-preset2, #settings-btn {
+#edit-infobox, #delete-page-btn, #local-file-btn, #enable-preset1, #enable-preset2, #settings-btn {
   border-radius: 4px;
 }
 
@@ -67,8 +67,12 @@ body {
   text-align: center;
 }
 
-#bold-text-btn, #italic-text-btn, #img-text-btn {
+.toolbar-btn {
   padding: 2px 8px;
+}
+
+.header-text-btn {
+  display: none;
 }
 
 #intro-wrapper {
@@ -107,7 +111,6 @@ th, td {
 }
 
 .info-title, .value-cell {
-
   font-size: 15px;
 }
 
