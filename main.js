@@ -58,12 +58,12 @@ function generateSection() {
     sections.push(newSection);
     
     updateSection(template, newSection);
-    generatePage(newSection.id);
+    generateArticle(newSection.id);
     document.getElementById('page-list').appendChild(template);
     saveState();
 }
 
-function generatePage(newId) {
+function generateArticle(newId) {
     const newPage = {
         pageId: newId,
         data: {},
@@ -87,7 +87,7 @@ function handleSectionClick (event) {
     if (target.classList.contains('page-open-btn') || target.classList.contains('title')) {
         const title = wrapper.querySelector('.title').textContent;
         const sectionsParam = encodeURIComponent(JSON.stringify(sections));
-        window.location.href = `page.html?pageId=${index}&pageTitle=${encodeURIComponent(title)}`;
+        window.location.href = `article.html?pageId=${index}&pageTitle=${encodeURIComponent(title)}`;
     } else if (target.classList.contains('edit-section-btn')) {
         editSection(section, wrapper, target);
     } else if (target.classList.contains('delete-section-btn')) {
