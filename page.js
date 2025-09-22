@@ -39,6 +39,8 @@ let editSynopsisBtn;
 let addRowBtn;
 let addCell1Btn;
 let editButton;
+let fileUploadBtn;
+let downloadBtn;
 let settingsBtn;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -54,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleSynopsisBtn = document.getElementById('toggle-synopsis-btn');
     toggleCharacterBtn = document.getElementById('toggle-character-btn');
     editButton = document.getElementById('edit-infobox');
+    fileUploadBtn = document.getElementById('local-file-btn');
+    downloadBtn = document.getElementById('download-btn');
     settingsBtn = document.getElementById('settings-btn');
     editSynopsisBtn = document.getElementById('edit-synopsis-btn');
     addRowBtn = document.getElementById('add-character-btn');
@@ -92,6 +96,43 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('img-text-btn').addEventListener('click', () => styleText('img'));
     document.getElementById('bullet-list-btn').addEventListener('click', () => styleText('ul'));
     editButton.addEventListener('click', editPage);
+    fileUploadBtn.addEventListener('click', () => {
+      console.log('Check');
+    });
+    downloadBtn.addEventListener('click', async () => {
+      try {
+          // Open a "Save As" dialog
+          const handle = await window.showSaveFilePicker({
+              suggestedName: `${pageName || 'gameData'}.json`,
+              types: [{
+                  description: 'JSON file',
+                  accept: { 'application/json': ['.json'] },
+              }],
+          });
+  
+          // Create a writable stream
+          const writable = await handle.createWritable();
+  
+          // Prepare page data
+          const pageData = {
+              pageId: currentPageId,
+              data: data,
+              characters: characters,
+              cells: cells,
+              synopses: synopses
+          };
+  
+          // Write JSON to file
+          await writable.write(JSON.stringify(pageData, null, 2));
+  
+          // Close the file
+          await writable.close();
+  
+          alert('File saved successfully ✅');
+      } catch (err) {
+          console.error('File save cancelled or failed:', err);
+      }
+    });
     document.getElementById('change-poster').addEventListener('click', () => {
       if (editButton.textContent === '✔️') {
           inputPoster.click();
@@ -540,7 +581,6 @@ function handleTableClick(event) {
     } else if (target.classList.contains('add-section-btn')) {
         generateSection(row, character, null);
     } else if (target.classList.contains('generate-preset-btn')) {
-        console.log('fuck');
         presetGenerateSection(row, character);
     }
 }
@@ -995,4 +1035,4 @@ function presetGenerateSection(row, character) {
             generateSection(row, character, `<b>${cell.text}</b>`);
         }, index * 100);
     });
-}
+            }
