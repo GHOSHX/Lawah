@@ -132,36 +132,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     downloadBtn.addEventListener('click', async () => {
       try {
-          // Open a "Save As" dialog
+        const pageData = {
+          pageId: currentPageId,
+          data: data,
+          characters: characters,
+          cells: cells,
+          synopses: synopses
+        };
+        const jsonContent = JSON.stringify(pageData, null, 2);
+    
+        // ✅ Check if File System Access API is available
+        if (window.showSaveFilePicker) {
           const handle = await window.showSaveFilePicker({
-              suggestedName: `${pageName || 'gameData'}.json`,
-              types: [{
-                  description: 'JSON file',
-                  accept: { 'application/json': ['.json'] },
-              }],
+            suggestedName: `${pageName || 'gameData'}.json`,
+            types: [{
+              description: 'JSON file',
+              accept: { 'application/json': ['.json'] },
+            }],
           });
-  
-          // Create a writable stream
+    
           const writable = await handle.createWritable();
-  
-          // Prepare page data
-          const pageData = {
-              pageId: currentPageId,
-              data: data,
-              characters: characters,
-              cells: cells,
-              synopses: synopses
-          };
-  
-          // Write JSON to file
-          await writable.write(JSON.stringify(pageData, null, 2));
-  
-          // Close the file
+          await writable.write(jsonContent);
           await writable.close();
-  
+    
           alert('File saved successfully ✅');
+        } else {
+          // ✅ Fallback for Firefox, Safari, etc.
+          const blob = new Blob([jsonContent], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+    
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${pageName || 'gameData'}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+    
+          URL.revokeObjectURL(url);
+          alert('File downloaded ✅');
+        }
       } catch (err) {
-          console.error('File save cancelled or failed:', err);
+        console.error('File save cancelled or failed:', err);
       }
     });
     document.getElementById('change-poster').addEventListener('click', () => {
@@ -196,6 +207,7 @@ function toggleTable(tableId, button) {
     }
 }
 
+// Styling texts
 function styleText(type) {
     const selection = window.getSelection();
     
@@ -281,6 +293,7 @@ function toggleSettings() {
     }
 }
 
+// Generates rows for the Infobox
 function generateInfoRow(templateId, text) {
     const template = document.getElementById(templateId).content.cloneNode(true);
     const newId = Date.now();
@@ -1002,6 +1015,7 @@ function deleteElement(row, element, type) {
     }
 }
 
+// Generates premade rows for the Infobox
 function presetGenerateInfoRow(type) {
     editButton.click();
     settingsBtn.click();
@@ -1044,6 +1058,7 @@ function presetGenerateInfoRow(type) {
     });
 }
 
+// Generates premade rows for the characters
 function presetGenerateSection(row, character) {
     let presetSectionCells = [];
     
@@ -1066,4 +1081,4 @@ function presetGenerateSection(row, character) {
             generateSection(row, character, `<b>${cell.text}</b>`);
         }, index * 100);
     });
-                               }
+                          }
