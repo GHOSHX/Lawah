@@ -119,8 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
           updateData(data);
           document.getElementById('table-body').innerHTML = '';
           document.getElementById('info-list').innerHTML = '';
-          loadState(); // reload saved structures
           saveState(); // persist back to IndexedDB
+          loadState(); // reload saved structures
     
           alert('File uploaded and data restored ✅');
         } catch (err) {
@@ -1066,4 +1066,4 @@ function presetGenerateSection(row, character) {
             generateSection(row, character, `<b>${cell.text}</b>`);
         }, index * 100);
     });
-        }
+                               }
