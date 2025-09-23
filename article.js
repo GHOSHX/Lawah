@@ -109,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const uploadedData = JSON.parse(e.target.result);
     
           // Restore data
-          currentPageId = uploadedData.pageId;
           data = uploadedData.data;
           characters = uploadedData.characters;
           cells = uploadedData.cells;
@@ -1081,4 +1080,4 @@ function presetGenerateSection(row, character) {
             generateSection(row, character, `<b>${cell.text}</b>`);
         }, index * 100);
     });
-                          }
+}
