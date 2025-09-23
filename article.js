@@ -97,7 +97,38 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('bullet-list-btn').addEventListener('click', () => styleText('ul'));
     editButton.addEventListener('click', editPage);
     fileUploadBtn.addEventListener('click', () => {
-      console.log('Check');
+      document.getElementById('upload-input').click();
+    });
+    document.getElementById('upload-input').addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+    
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const uploadedData = JSON.parse(e.target.result);
+    
+          // Restore data
+          currentPageId = uploadedData.pageId;
+          data = uploadedData.data;
+          characters = uploadedData.characters;
+          cells = uploadedData.cells;
+          synopses = uploadedData.synopses;
+    
+          // Update UI
+          updateData(data);
+          document.getElementById('table-body').innerHTML = '';
+          document.getElementById('info-list').innerHTML = '';
+          loadState(); // reload saved structures
+          saveState(); // persist back to IndexedDB
+    
+          alert('File uploaded and data restored ✅');
+        } catch (err) {
+          alert('Invalid JSON file ❌');
+          console.error(err);
+        }
+      };
+      reader.readAsText(file);
     });
     downloadBtn.addEventListener('click', async () => {
       try {
@@ -1035,4 +1066,4 @@ function presetGenerateSection(row, character) {
             generateSection(row, character, `<b>${cell.text}</b>`);
         }, index * 100);
     });
-            }
+        }
