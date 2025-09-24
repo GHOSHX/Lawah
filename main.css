@@ -1,9 +1,14 @@
-img {
+#home-pic2 {
   border: 1px solid black;
 }
 
 #create-section-btn, #clear-all-btn {
   padding: 7px;
+}
+
+.edit-section-btn, .delete-section-btn {
+  background-color: #ffe19c;
+  padding: 10px;
 }
 
 .section-wrapper {
@@ -15,7 +20,7 @@ img {
   border: 1px solid black;
 }
 
-.page-open-btn {
+.article-open-btn {
   width: 70%;
   text-align: center;
 }
@@ -23,4 +28,7 @@ img {
 .btn-wrapper {
   width: 30%;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
