@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('home-pic2').style.display = 'none';
         document.getElementById('home-pic1').style.display = 'block';
     });
-    document.getElementById('create-section-btn').addEventListener('click', generateSection);
+    document.getElementById('create-section-btn').addEventListener('click', () => generateSection(null, null));
     document.getElementById('article-list').addEventListener('click', handleSectionClick);
     document.getElementById('upload-file-btn').addEventListener('click', () => {
       document.getElementById('upload-input').click();
@@ -78,6 +78,7 @@ function generateSection(id, title) {
     const template = document.getElementById('section-template').content.cloneNode(true);
     const newId = Date.now();
     const articleNum = sections.length + 1;
+    console.log(id);
     
     const newSection = {
         id: id ? id : newId,
@@ -178,21 +179,25 @@ function loadState() {
     const transaction = db.transaction(['articles'], 'readonly');
     const articleStore = transaction.objectStore('articles');
     
-    if (savedSections) {
-        savedSections.forEach(section => {
-            const template = document.getElementById('section-template').content.cloneNode(true);
-            updateSection(template, section);
-            console.log('Section: ' + section.id);
-            document.getElementById('article-list').appendChild(template);
-        });
-        sections.push(...savedSections);
-    }
-    
     articleStore.getAll().onsuccess = function(event) {
         articles = event.target.result;
         articles.forEach(article => {
           console.log('Article: ' + article.articleId);
         });
+        
+        if (savedSections) {
+            savedSections.forEach(section => {
+                const article = articles.find(a => a.articleId == section.id)
+                
+                if (article) {
+                  const template = document.getElementById('section-template').content.cloneNode(true);
+                  updateSection(template, section);
+                  console.log('Section: ' + section.id);
+                  document.getElementById('article-list').appendChild(template);
+                  sections.push(section);
+                }
+            });
+        }
     };
 }
 
