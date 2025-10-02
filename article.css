@@ -1,4 +1,4 @@
-html, body { height: 100%; margin: 0; }
+html, body { margin: 0; }
 
 body {
   background-image:url('https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTEyL3Jhd3BpeGVsb2ZmaWNlM19hYnN0cmFjdF9nZW9tZXRyaWNfZmx1aWRfYmxhY2tfY29sb3JfZ3JhZGllbnRfYl9mNWYxMTRjMC01MTVlLTRkZTctYjAxMi05ZDFkODljYzEyODBfMS5qcGc.jpg');
@@ -79,11 +79,11 @@ body {
 }
 
 #intro-wrapper {
-  margin-top: 37px;
+  margin-top: 44px;
 }
 
 #control-room2 {
-  margin-bottom: 37px;
+  margin-bottom: 39px;
 }
 
 table, th, td {
