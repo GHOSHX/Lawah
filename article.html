@@ -81,6 +81,7 @@
     <div id="control-room2" class="control-room" style="display: none;">
       <button id="add-infobox-btn">➕️ Infobox</button>
       <button id="add-category-btn">➕️ Category</button>
+      <button id="add-text-btn">➕️ Text Area</button>
     </div>
     <template id="info-template">
       <tr class="info-wrapper">
@@ -145,7 +146,6 @@
     <template id="category-template">
       <tr class="character-wrapper">
         <td class="category">
-          <button class="generate-preset-btn" style="display: none; font-weight: bold;">Preset</button>
           <div class="infobox-profile">
             <div class="infobox-controls">
               <h3 class="infobox-name" style="display: none;">New Category</h3>
@@ -158,6 +158,26 @@
               <button class="delete-btn">❌️</button>
               <button class="add-infobox-btn2">➕️</button>
             </div>
+          </div>
+        </td>
+      </tr>
+    </template>
+    <template id="text-template">
+      <tr class="character-wrapper">
+        <td class="text-area">
+          <div class="infobox-profile">
+            <div class="infobox-name-controls">
+              <button class="move-up-btn">⬆️</button>
+              <button class="move-down-btn">⬇️</button>
+              <button class="delete-btn">❌️</button>
+            </div>
+          </div>
+          <div class="infobox-bio">
+            <p class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</p>
+            <div class="bio-input" contenteditable="true">Write a bio</div>
+          </div>
+          <div class="see-more text-center">
+            <span class="see-more-btn">show more</span>
           </div>
         </td>
       </tr>

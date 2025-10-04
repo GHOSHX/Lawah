@@ -29,6 +29,7 @@ let toggleInfoboxBtn;
 let editSynopsisBtn;
 let addRow1Btn;
 let addRow2Btn;
+let addRow3Btn;
 let addCell1Btn;
 let addCell2Btn;
 let editButton;
@@ -55,12 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
     editSynopsisBtn = document.getElementById('edit-synopsis-btn');
     addRow1Btn = document.getElementById('add-infobox-btn');
     addRow2Btn = document.getElementById('add-category-btn');
+    addRow3Btn = document.getElementById('add-text-btn');
     addCell1Btn = document.getElementById('add-info-btn1');
     addCell2Btn = document.getElementById('add-info-btn2');
     addCell1Btn.addEventListener('click', () => generateCell('info-template', null));
     addCell2Btn.addEventListener('click', () => generateCell('info-template2', null));
-    addRow1Btn.addEventListener('click', generateInfobox);
+    addRow1Btn.addEventListener('click', () => generateInfobox(null, null));
     addRow2Btn.addEventListener('click', generateCategory);
+    addRow3Btn.addEventListener('click', generateTextArea);
     toggleSynopsisBtn.addEventListener('click', () => toggleTable('table1', toggleSynopsisBtn));
     toggleInfoboxBtn.addEventListener('click', () => toggleTable('table2', toggleInfoboxBtn));
     document.getElementById('delete-article-btn').addEventListener('click', () => {
@@ -446,7 +449,7 @@ function assignCategoriesToInfoboxes() {
   infoboxes.forEach(infobox => {
     if (infobox.type === "category") {
       currentCategoryId = infobox.id;
-    } else if (infobox.type === "infobox" || infobox.type !== 'category') {
+    } else {
       infobox.category = currentCategoryId; // assign nearest category above
     }
   });
@@ -456,27 +459,48 @@ function editInfobox(editMode) {
     const infoboxTemplate = document.querySelectorAll('.character-wrapper');
     
     infoboxTemplate.forEach(template => {
-        let infoboxName = template.querySelector('.infobox-name');
-        let infoboxNameInput = template.querySelector('.name-input');
-        let charControls = template.querySelector('.infobox-name-controls');
-        
+        const infoboxName = template.querySelector('.infobox-name');
+        const infoboxNameInput = template.querySelector('.name-input');
+        const charControls = template.querySelector('.infobox-name-controls');
+        const infoboxBio = template.querySelector('.infobox-bio-text');
+        const infoboxBioInput = template.querySelector('.bio-input');
+        const presetBtn = template.querySelector('.generate-preset-btn');
+        console.l
         const index = template.getAttribute('data-index');
         const infobox = infoboxes.find(char => char.id == index);
-        if (infobox.type === 'category') {
-            const toggleCategoryBtn = template.querySelector('.toggle-category-btn');
-            const isCategoryVisible = toggleCategoryBtn.textContent === '⛔️';
-            
-            if (editMode) { 
+        const toggleCategoryBtn = template.querySelector('.toggle-category-btn');
+        const isCategoryVisible = toggleCategoryBtn ? toggleCategoryBtn.textContent === '⛔️' : null;
+          
+        if (editMode) {
+            if (infobox.type === 'category') {
                 if (!isCategoryVisible) {
-                  toggleCategoryBtn.click();
+                    toggleCategoryBtn.click();
                 }
-                infoboxName.style.display = 'none';
-                charControls.style.display = 'block';
-                infoboxNameInput.value = infoboxName.textContent;
-                infoboxNameInput.style.display = 'inline';
-            } else {
+            }
+            charControls.style.display = 'block';
+            if (infoboxName) {
+              infoboxName.style.display = 'none';
+              infoboxNameInput.value = infoboxName.textContent;
+              infoboxNameInput.style.display = 'inline';
+            }
+            
+            if (infoboxBio) {
+              infoboxBio.style.display = 'none';
+              infoboxBioInput.innerHTML = infoboxBio.innerHTML;
+              infoboxBioInput.style.display = 'block';
+            }
+            if (presetBtn) {
+                presetBtn.style.display = 'block';
+            }
+        } else {
+            charControls.style.display = 'none';
+            
+            if (presetBtn) {
+                presetBtn.style.display = 'none';
+            }
+            
+            if (infoboxName) {
                 infoboxNameInput.style.display = 'none';
-                charControls.style.display = 'none';
                 
                 if (infoboxNameInput.value.trim()) {
                     infobox.name = infoboxNameInput.value;
@@ -485,41 +509,21 @@ function editInfobox(editMode) {
                 
                 infoboxName.style.display = 'block';
             }
-        } else {
-          let infoboxBio = template.querySelector('.infobox-bio-text');
-          let infoboxBioInput = template.querySelector('.bio-input');
-          let presetBtn = template.querySelector('.generate-preset-btn');
-          
-          if (editMode) {
-              infoboxName.style.display = 'none';
-              charControls.style.display = 'block';
-              infoboxNameInput.value = infoboxName.textContent;
-              infoboxNameInput.style.display = 'inline';
-              infoboxBio.style.display = 'none';
-              infoboxBioInput.innerHTML = infoboxBio.innerHTML;
-              infoboxBioInput.style.display = 'block';
-              presetBtn.style.display = 'block';
-          } else {
-              infoboxNameInput.style.display = 'none';
-              charControls.style.display = 'none';
-              infoboxBioInput.style.display = 'none';
-              presetBtn.style.display = 'none';
-              
-              if (infoboxNameInput.value.trim()) {
-                  infobox.name = infoboxNameInput.value;
-                  infoboxName.textContent = infoboxNameInput.value;
-              }
-              
-              if (infoboxBioInput.innerHTML.trim()) {
-                  infobox.bio = infoboxBioInput.innerHTML;
-                  infoboxBio.innerHTML = infoboxBioInput.innerHTML;
-              }
-              
-              infoboxName.style.display = 'block';
-              infoboxBio.style.display = 'block';
-          }
-          
-          editSection(template, infobox, editMode);
+            
+            if (infoboxBio) {
+                infoboxBioInput.style.display = 'none';
+                
+                if (infoboxBioInput.innerHTML.trim()) {
+                    infobox.bio = infoboxBioInput.innerHTML;
+                    infoboxBio.innerHTML = infoboxBioInput.innerHTML;
+                }
+                
+                infoboxBio.style.display = 'block'
+            }
+        }
+        
+        if (presetBtn) {
+            editSection(template, infobox, editMode);
         }
     });
 }
@@ -781,13 +785,11 @@ function generateInfobox(catTemplate, category) {
     let newPosition = null;
     if (category) {
         let previousPosition = category.position + 1;
-        console.log(category.position)
           
         infoboxes.forEach(infobox => {
             if (infobox.position > category.position) {
               infobox.position = previousPosition + 1;
               previousPosition = infobox.position;
-              console.log(infobox.position)
             }
         });
     } else {
@@ -796,13 +798,13 @@ function generateInfobox(catTemplate, category) {
 
     const newInfobox = {
         id: newId,
-        name: 'Infobox No.' + (newPosition || category.position + 1),
+        name: 'Infobox No.' + (category ? category.position + 1 : newPosition + 1),
         bio: 'Write description about the subject here...',
         imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
         type: 'infobox',
-        category: null,
+        category: category ? category.id : null,
         sections: [],
-        position: newPosition ? newPosition: category.position + 1,
+        position: category ? category.position + 1 : newPosition,
     };
     infoboxes.push(newInfobox);
     
@@ -829,6 +831,30 @@ function updateRow(row, infobox) {
             row.querySelector('.section-lists').appendChild(template);
         });
     }
+}
+
+function generateTextArea() {
+    const template = document.getElementById('text-template').content.cloneNode(true);
+    const newId = Date.now();
+    const newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
+
+    const newInfobox = {
+        id: newId,
+        bio: 'Category No.' + (newPosition + 1),
+        type: 'text area',
+        category: null,
+        position: newPosition,
+    };
+    infoboxes.push(newInfobox);
+
+    updateTextArea(template, newInfobox);
+    document.getElementById('table-body').appendChild(template);
+    saveState();
+}
+
+function updateTextArea(row, textArea) {
+    row.querySelector('.character-wrapper').setAttribute('data-index', textArea.id);
+    row.querySelector('.infobox-bio-text').innerHTML = textArea.bio;
 }
 
 function loadImage(event, element) {
@@ -1045,6 +1071,16 @@ function loadState() {
                   editorWrapper.style.display = 'none';
                   nameInput.style.display = 'none';
                   name.style.display = 'block';
+                } else if (infobox.type === 'text area') {
+                  template = document.getElementById('text-template').content.cloneNode(true);
+                  updateTextArea(template, infobox);
+                  const editorWrapper = template.querySelector('.infobox-name-controls');
+                  const bio = template.querySelector('.infobox-bio-text');
+                  const bioInput = template.querySelector('.bio-input');
+                  editorWrapper.style.display = 'none';
+                  bioInput.style.display = 'none';
+                  bio.style.display = 'block';
+                  console.log('fff');
                 } else {
                   template = document.getElementById('infobox-template').content.cloneNode(true);
                   updateRow(template, infobox);
