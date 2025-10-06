@@ -145,10 +145,14 @@ th, td {
   background-color: white;
 }
 
-.cell3 {
+.cell3, .category {
   width: 100%;
   padding: 5px;
   box-sizing: border-box;
+}
+
+.text-area {
+  width: 500px;
 }
 
 #info-list {

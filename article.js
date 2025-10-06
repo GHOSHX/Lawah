@@ -19,7 +19,6 @@ function openDB() {
 
 let data = {};
 let infoboxes = [];
-let synopses = [];
 let cells = [];
 let articleName;
 let currentArticleId;
@@ -63,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addCell2Btn.addEventListener('click', () => generateCell('info-template2', null));
     addRow1Btn.addEventListener('click', () => generateInfobox(null, null));
     addRow2Btn.addEventListener('click', generateCategory);
-    addRow3Btn.addEventListener('click', generateTextArea);
+    addRow3Btn.addEventListener('click', () => generateTextArea(null, null));
     toggleSynopsisBtn.addEventListener('click', () => toggleTable('table1', toggleSynopsisBtn));
     toggleInfoboxBtn.addEventListener('click', () => toggleTable('table2', toggleInfoboxBtn));
     document.getElementById('delete-article-btn').addEventListener('click', () => {
@@ -125,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
           data = uploadedData.data;
           infoboxes = uploadedData.characters || uploadedData.infoboxes;
           cells = uploadedData.cells;
-          synopses = uploadedData.synopses;
     
           // Update UI
           updateData(data);
@@ -148,8 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
           articleId: currentArticleId,
           data: data,
           infoboxes: infoboxes,
-          cells: cells,
-          synopses: synopses
+          cells: cells
         };
         const jsonContent = JSON.stringify(articleData, null, 2);
     
@@ -181,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.body.removeChild(a);
     
           URL.revokeObjectURL(url);
-          alert('File downloaded ✅');
+          alert('File backup downloaded ✅');
         }
       } catch (err) {
         console.error('File save cancelled or failed:', err);
@@ -711,6 +708,8 @@ function handleTableClick(event) {
         toggleCategory(row, infobox);
     } else if (target.classList.contains('add-infobox-btn2')) {
         generateInfobox(row, infobox);
+    } else if (target.classList.contains('add-text-btn2')) {
+        generateTextArea(row, infobox);
     }
 }
 
@@ -762,7 +761,7 @@ function generateCategory() {
         id: newId,
         name: 'Category No.' + (newPosition + 1),
         type: 'category',
-        position: newPosition,
+        position: newPosition
     };
     infoboxes.push(newInfobox);
 
@@ -804,7 +803,7 @@ function generateInfobox(catTemplate, category) {
         type: 'infobox',
         category: category ? category.id : null,
         sections: [],
-        position: category ? category.position + 1 : newPosition,
+        position: category ? category.position + 1 : newPosition
     };
     infoboxes.push(newInfobox);
     
@@ -833,22 +832,38 @@ function updateRow(row, infobox) {
     }
 }
 
-function generateTextArea() {
+function generateTextArea(catTemplate, category) {
     const template = document.getElementById('text-template').content.cloneNode(true);
     const newId = Date.now();
-    const newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
+    let newPosition = null;
+    if (category) {
+        let previousPosition = category.position + 1;
+          
+        infoboxes.forEach(infobox => {
+            if (infobox.position > category.position) {
+              infobox.position = previousPosition + 1;
+              previousPosition = infobox.position;
+            }
+        });
+    } else {
+        newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
+    }
 
     const newInfobox = {
         id: newId,
-        bio: 'Category No.' + (newPosition + 1),
+        bio: 'Write description about the subject here...',
         type: 'text area',
-        category: null,
-        position: newPosition,
+        category: category ? category.id : null,
+        position: category ? category.position + 1 : newPosition
     };
     infoboxes.push(newInfobox);
 
     updateTextArea(template, newInfobox);
-    document.getElementById('table-body').appendChild(template);
+    if (category) {
+        catTemplate.parentNode.insertBefore(template, catTemplate.nextElementSibling);
+    } else {
+        document.getElementById('table-body').appendChild(template);
+    }
     saveState();
 }
 
@@ -1049,7 +1064,6 @@ function loadState() {
             data = articleData.data;
             infoboxes = articleData.characters;
             cells = articleData.cells;
-            synopses = articleData.synopses;
             
             if (data.id) {
                 updateData(data);
@@ -1112,18 +1126,6 @@ function loadState() {
                 
                 document.getElementById('info-list').appendChild(template);
             });
-            
-            synopses.forEach(element => {
-                const template = element.text ? document.getElementById('Synopsis-text-template').content.cloneNode(true) : null;
-  
-                if (element.text) {
-                    updateText(template, element);
-                    const synopsisWrapper = template.querySelector('.synopsis-wrapper');
-                    synopsisWrapper.querySelector('.synopsis-text').style.display = 'block';
-                    synopsisWrapper.querySelector('.synopsis-text-input').style.display = 'none';
-                    document.getElementById('table1').appendChild(template);
-                }
-            });
         }
     };
 }
@@ -1138,7 +1140,6 @@ function saveState() {
         data: data,
         characters: infoboxes,
         cells: cells,
-        synopses: synopses
     };
     articleStore.put(articleData);
 
