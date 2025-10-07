@@ -713,6 +713,19 @@ function handleTableClick(event) {
     }
 }
 
+function allignRows() {
+    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    let previousPosition = -1;
+          
+    infoboxTemplate.forEach(template => {
+        const index = template.getAttribute('data-index');
+        const infobox = infoboxes.find(box => box.id == index);
+        
+        infobox.position = previousPosition + 1;
+        previousPosition = infobox.position;
+    });
+}
+
 function handleTableChange(event) {
     const target = event.target;
     const row = target.closest('tr');
@@ -731,6 +744,7 @@ function toggleCategory(row, category) {
     let toggleButton = row.querySelector('.toggle-category-btn');
     let isVisible = toggleButton.textContent === '⛔️';
     const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    let previousRow = row;
     
     infoboxTemplate.forEach(template => {
         const index = template.getAttribute('data-index');
@@ -741,14 +755,19 @@ function toggleCategory(row, category) {
                 template.style.display = 'none';
             } else {
                 template.style.display = 'block';
+                template.parentNode.insertBefore(template, previousRow.nextElementSibling);
+                previousRow = template;
             }
         }
     });
+    allignRows();
+    
     if (isVisible) {
         toggleButton.textContent = '️👁';
     } else {
         toggleButton.textContent = '⛔️';
     }
+    saveState();
 }
 
 // generates category rows
