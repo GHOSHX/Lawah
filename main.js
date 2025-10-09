@@ -59,9 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const newArticle = {
               articleId: newId,
               data: uploadedData.data,
-              characters: uploadedData.characters,
-              cells: uploadedData.cells,
-              synopses: uploadedData.synopses
+              characters: uploadedData.characters || uploadedData.infoboxes,
+              cells: uploadedData.cells
           };
           articles.push(newArticle);
           generateSection(newId, uploadedData.data.title);
@@ -110,8 +109,7 @@ function generateArticle(newId, newTitle) {
         articleId: newId,
         data: newData,
         characters: [],
-        cells: [],
-        synopses: []
+        cells: []
     };
     articles.push(newArticle);
 }
