@@ -982,29 +982,73 @@ function moveCell(row, currentCell, type) {
 
 // moves infobox rows up and down
 function moveInfobox(row, infobox, type) {
-    const previousRow = row.previousElementSibling;
-    const nextRow = row.nextElementSibling;
+    let previousInfobox;
+    let nextInfobox;
+    let previousRow;
+    let nextRow;
+    if (infobox.type === 'category') {
+        const categories = infoboxes.filter(box => box.type == 'category');
+        categories.sort((a, b) => a.position - b.position);
+        previousInfobox = categories[categories.indexOf(infobox) - 1];
+        nextInfobox = categories[categories.indexOf(infobox) + 1];
+        previousRow = previousInfobox ? document.querySelector(`tr[data-index="${previousInfobox.id}"]`) : null;
+        nextRow = nextInfobox ? document.querySelector(`tr[data-index="${nextInfobox.id}"]`) : null;
+    } else {
+        previousRow = row.previousElementSibling;
+        nextRow = row.nextElementSibling;
+        if (previousRow) {
+            const previousIndex = Number(previousRow.dataset.index);
+            previousInfobox = infoboxes.find(char => char.id === previousIndex);
+        }
+        if (nextRow) {
+            const nextIndex = Number(nextRow.dataset.index);
+            nextInfobox = infoboxes.find(char => char.id === nextIndex);
+        }
+    }
+    
     if (type === 'up' && previousRow) {
-        const previousIndex = Number(previousRow.dataset.index);
-        const previousInfobox = infoboxes.find(char => char.id === previousIndex);
-        
-        const currentPosition = infobox.position;
-        infobox.position = previousInfobox.position;
-        previousInfobox.position = currentPosition;
-        console.log(infobox.position + ': ' + previousInfobox.position);
-    
         row.parentNode.insertBefore(row, previousRow);
-    } else if (type === 'down' && nextRow) {
-        const nextIndex = Number(nextRow.dataset.index);
-        const nextInfobox = infoboxes.find(char => char.id === nextIndex);
         
-        const currentPosition = infobox.position;
-        infobox.position = nextInfobox.position;
-        nextInfobox.position = currentPosition;
-    
+        if (infobox.type === 'category') {
+            allignCategory(row, infobox);
+        } else {
+            const currentPosition = infobox.position;
+            infobox.position = previousInfobox.position;
+            previousInfobox.position = currentPosition;
+            
+            console.log(infobox.position + ': ' + previousInfobox.position);
+        }
+    } else if (type === 'down' && nextRow) {
         row.parentNode.insertBefore(nextRow, row);
+        
+        if (infobox.type === 'category') {
+            allignCategory(nextRow, nextInfobox);
+            allignCategory(row, infobox);
+        } else {
+            const currentPosition = infobox.position;
+            infobox.position = nextInfobox.position;
+            nextInfobox.position = currentPosition;
+        }
     }
     saveState();
+}
+
+function allignCategory(row, category) {
+    let id = category.id;
+    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    let previousRow = row;
+    
+    infoboxTemplate.forEach(template => {
+        const index = template.getAttribute('data-index');
+        const infobox = infoboxes.find(box => box.id == index);
+        
+        if (infobox.category === id) {
+            template.style.display = 'block';
+            template.parentNode.insertBefore(template, previousRow.nextElementSibling);
+            previousRow = template;
+        }
+    });
+    allignRows();
 }
 
 function toggleBio(row) {
