@@ -15,9 +15,23 @@ body {
   background-color: #fe9821;
   padding: 7px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start; /* Changed from center */
   align-items: center;
   border-top: 2px solid black;
+
+  overflow-x: auto; /* Enables horizontal scroll */
+  overflow-y: hidden; /* Prevents vertical scroll */
+  white-space: nowrap; /* Prevents wrapping */
+  scrollbar-width: thin; /* For Firefox */
+}
+
+#toolbar::-webkit-scrollbar {
+  height: 6px; /* Small scrollbar height */
+}
+
+#toolbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
 }
 
 #header-wrapper {
@@ -75,6 +89,14 @@ body {
 }
 
 .header-text-btn {
+  display: none;
+}
+
+.infobox-img-btn {
+  display: none;
+}
+
+.img-btn {
   display: none;
 }
 

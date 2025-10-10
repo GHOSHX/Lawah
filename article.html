@@ -17,7 +17,9 @@
       <button id="bold-text-btn" class="toolbar-btn"><b>B</b></button>
       <button id="italic-text-btn" class="toolbar-btn"><i>I</i></button>
       <button id="link-text-btn" class="toolbar-btn">🔗</button>
-      <button id="img-text-btn" class="toolbar-btn">📷</button>
+      <button id="img-toggle-btn" class="toolbar-btn">📷</button>
+      <button id="img-file-btn" class="toolbar-btn img-btn">📷📁</button>
+      <button id="img-link-btn" class="toolbar-btn img-btn">📷🔗</button>
       <button id="bullet-list-btn" class="toolbar-btn">(•)</button>
     </div>
     <div id="header-wrapper">
@@ -52,7 +54,7 @@
             <br>
             <input type="file" id="poster-input" accept="image/*" style="display: none;">
             <a id="change-poster">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="Game Poster" id="poster" width="100%">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="Article Poster" id="poster" width="100%">
             </a>
           </td>
         </tr>
@@ -123,11 +125,13 @@
             <div class="infobox-name-controls">
               <input type="file" class="upload-img" style="display: none;" accept="image/*">
               <button class="upload-img-btn">📷</button>
+              <button class="infobox-img-btn img-file-btn">📷📁</button>
+              <button class="infobox-img-btn img-link-btn">📷🔗</button>
               <button class="move-up-btn">⬆️</button>
               <button class="move-down-btn">⬇️</button>
               <button class="delete-btn">❌️</button>
             </div>
-            <img class="infobox-img" src="https://via.placeholder.com/100" alt="New Infobox">
+            <img class="infobox-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="New Infobox">
           </div>
           <div class="infobox-bio">
             <p class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</p>

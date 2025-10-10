@@ -74,14 +74,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('enable-preset2').addEventListener('click', () => presetGenerateCell(2));
     document.getElementById('header-toggle-btn').addEventListener('click', () => {
         const headerTextBtn = document.querySelectorAll('.header-text-btn');
-        
-          headerTextBtn.forEach(button => {
-              if (button.style.display === 'none'||button.style.display === '') {
-                button.style.display = 'inline-block';
-              } else {
-                button.style.display = 'none';
-              }
-          });
+      
+        headerTextBtn.forEach(button => {
+            if (button.style.display === 'none'||button.style.display === '') {
+              button.style.display = 'inline-block';
+            } else {
+              button.style.display = 'none';
+            }
+        });
     });
     document.getElementById('header1-text-btn').addEventListener('click', () => styleText('h1'));
     document.getElementById('header2-text-btn').addEventListener('click', () => styleText('h2'));
@@ -90,12 +90,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('italic-text-btn').addEventListener('click', () => styleText('i'));
     document.getElementById('link-text-btn').addEventListener('click', () => styleText('a'));
     settingsBtn.addEventListener('click', toggleSettings);
-    document.getElementById('img-text-btn').addEventListener('click', () => { 
-      if (confirm('Select image from gallery?')){
+    document.getElementById('img-toggle-btn').addEventListener('click', () => { 
+        const imgBtn = document.querySelectorAll('.img-btn');
+      
+        imgBtn.forEach(button => {
+            if (button.style.display === 'none'||button.style.display === '') {
+              button.style.display = 'inline-block';
+            } else {
+              button.style.display = 'none';
+            }
+        });
+    });
+    document.getElementById('img-file-btn').addEventListener('click', () => {
         document.getElementById('upload-img2').click();
-      } else {
+    });
+    document.getElementById('img-link-btn').addEventListener('click', () => {
         styleText('img');
-      }
     });
     document.getElementById('upload-img2').addEventListener('change', function() {
         const file = this.files[0];
@@ -681,11 +691,19 @@ function handleTableClick(event) {
     const infobox = infoboxes.find(char => char.id == index);
 
     if (target.classList.contains('upload-img-btn')) {
-        if (confirm('Select image from gallery?')) {
-            row.querySelector('.upload-img').click();
-        } else {
-            loadImage(null, infobox);
-        }
+        const imgBtn = row.querySelectorAll('.infobox-img-btn');
+      
+        imgBtn.forEach(button => {
+            if (button.style.display === 'none'||button.style.display === '') {
+              button.style.display = 'inline-block';
+            } else {
+              button.style.display = 'none';
+            }
+        });
+    } else if (target.classList.contains('img-file-btn')) {
+        row.querySelector('.upload-img').click();
+    } else if (target.classList.contains('img-link-btn')) {
+        loadImage(null, infobox);
     } else if (target.classList.contains('move-up-btn')) {
         moveInfobox(row, infobox, 'up');
     } else if (target.classList.contains('move-down-btn')) {
