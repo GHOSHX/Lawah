@@ -744,7 +744,6 @@ function toggleCategory(row, category) {
     let toggleButton = row.querySelector('.toggle-category-btn');
     let isVisible = toggleButton.textContent === '⛔️';
     const infoboxTemplate = document.querySelectorAll('.character-wrapper');
-    let previousRow = row;
     
     infoboxTemplate.forEach(template => {
         const index = template.getAttribute('data-index');
@@ -755,12 +754,10 @@ function toggleCategory(row, category) {
                 template.style.display = 'none';
             } else {
                 template.style.display = 'block';
-                template.parentNode.insertBefore(template, previousRow.nextElementSibling);
-                previousRow = template;
+                allignCategory(row, category);
             }
         }
     });
-    allignRows();
     
     if (isVisible) {
         toggleButton.textContent = '️👁';
@@ -909,13 +906,13 @@ function loadImage(event, element) {
 }
 
 // moves sections up and down inside infobox row
-function moveSection(row, infobox, type) {
+function moveSection(row, infobox, direction) {
     const previousRow = row.previousElementSibling;
     const nextRow = row.nextElementSibling;
     const index = row.getAttribute('data-index');
     const sections = infobox.sections;
     const currentSection = sections.find(sec => sec.id == index);
-    if (type === 'up' && previousRow) {
+    if (direction === 'up' && previousRow) {
         const previousIndex = Number(previousRow.dataset.index);
         const previousSection = sections.find(sec => sec.id === previousIndex);
         
@@ -924,7 +921,7 @@ function moveSection(row, infobox, type) {
         previousSection.position = currentPosition;
     
         row.parentNode.insertBefore(row, previousRow);
-    } else if (type === 'down' && nextRow) {
+    } else if (direction === 'down' && nextRow) {
         const nextIndex = Number(nextRow.dataset.index);
         const nextSection = sections.find(sec => sec.id === nextIndex);
         
@@ -946,10 +943,10 @@ function moveSection(row, infobox, type) {
     saveState();
 }
 
-function moveCell(row, currentCell, type) {
+function moveCell(row, currentCell, direction) {
     const previousRow = row.previousElementSibling;
     const nextRow = row.nextElementSibling;
-    if (type === 'up' && previousRow) {
+    if (direction === 'up' && previousRow) {
         const previousIndex = Number(previousRow.dataset.index);
         const previousCell = cells.find(el => el.id === previousIndex);
         
@@ -958,7 +955,7 @@ function moveCell(row, currentCell, type) {
         previousCell.position = currentPosition;
     
         row.parentNode.insertBefore(row, previousRow);
-    } else if (type === 'down' && nextRow) {
+    } else if (direction === 'down' && nextRow) {
         const nextIndex = Number(nextRow.dataset.index);
         const nextCell = cells.find(el => el.id === nextIndex);
         
@@ -981,7 +978,7 @@ function moveCell(row, currentCell, type) {
 }
 
 // moves infobox rows up and down
-function moveInfobox(row, infobox, type) {
+function moveInfobox(row, infobox, direction) {
     let previousInfobox;
     let nextInfobox;
     let previousRow;
@@ -1006,7 +1003,7 @@ function moveInfobox(row, infobox, type) {
         }
     }
     
-    if (type === 'up' && previousRow) {
+    if (direction === 'up' && previousRow) {
         row.parentNode.insertBefore(row, previousRow);
         
         if (infobox.type === 'category') {
@@ -1018,7 +1015,7 @@ function moveInfobox(row, infobox, type) {
             
             console.log(infobox.position + ': ' + previousInfobox.position);
         }
-    } else if (type === 'down' && nextRow) {
+    } else if (direction === 'down' && nextRow) {
         row.parentNode.insertBefore(nextRow, row);
         
         if (infobox.type === 'category') {
@@ -1036,18 +1033,20 @@ function moveInfobox(row, infobox, type) {
 function allignCategory(row, category) {
     let id = category.id;
     const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    const childsOfCat = infoboxes.filter(a => a.category === category.id);
+    childsOfCat.sort((a, b) => a.position - b.position);
     let previousRow = row;
     
-    infoboxTemplate.forEach(template => {
-        const index = template.getAttribute('data-index');
-        const infobox = infoboxes.find(box => box.id == index);
-        
-        if (infobox.category === id) {
-            template.style.display = 'block';
-            template.parentNode.insertBefore(template, previousRow.nextElementSibling);
-            previousRow = template;
-        }
-    });
+    if (childsOfCat.length > 0) {
+        childsOfCat.forEach(child => {
+            const index = child.id;
+            const childNode = document.querySelector(`tr[data-index="${child.id}"]`);
+            
+            childNode.style.display = 'block';
+            childNode.parentNode.insertBefore(childNode, previousRow.nextElementSibling);
+            previousRow = childNode;
+        });
+    }
     allignRows();
 }
 
