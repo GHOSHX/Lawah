@@ -746,7 +746,7 @@ function allignRows() {
 
 function handleTableChange(event) {
     const target = event.target;
-    const row = target.closest('tr');
+    const row = target.closest('.character-wrapper');
     const index = row ? row.dataset.index : null;
     const infobox = infoboxes.find(char => char.id == index);
 
@@ -1174,7 +1174,6 @@ function loadState() {
                   editorWrapper.style.display = 'none';
                   bioInput.style.display = 'none';
                   bio.style.display = 'block';
-                  console.log('fff');
                 } else {
                   template = document.getElementById('infobox-template').content.cloneNode(true);
                   updateRow(template, infobox);
