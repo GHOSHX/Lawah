@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('table-body').addEventListener('change', handleTableChange);
     document.getElementById('table-body').addEventListener('focusin', () => {
         if (chromeMode) {
-            document.getElementById('toolbar').style.marginBottom = '500px';
+            document.getElementById('toolbar').style.marginBottom = '10px';
         }
     });
     document.getElementById('table-body').addEventListener('focusout', () => {
