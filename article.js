@@ -35,6 +35,7 @@ let editButton;
 let fileUploadBtn;
 let downloadBtn;
 let settingsBtn;
+let chromeMode = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -72,6 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('enable-preset1').addEventListener('click', () => presetGenerateCell(1));
     document.getElementById('enable-preset2').addEventListener('click', () => presetGenerateCell(2));
+    document.getElementById('chrome-mode').addEventListener('click', function() {
+        if (this.textContent === 'Chrome Mode: Off') {
+            this.innerHTML = '<b>Chrome Mode: On</b>';
+            chromeMode = true;
+        } else {
+            this.innerHTML = '<b>Chrome Mode: Off</b>';
+            chromeMode = false;
+        }
+    });
     document.getElementById('header-toggle-btn').addEventListener('click', () => {
         const headerTextBtn = document.querySelectorAll('.header-text-btn');
       
@@ -213,6 +223,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('info-list').addEventListener('change', handleCellChange);
     document.getElementById('table-body').addEventListener('click', handleTableClick);
     document.getElementById('table-body').addEventListener('change', handleTableChange);
+    document.getElementById('table-body').addEventListener('focusin', () => {
+        if (chromeMode) {
+            document.getElementById('toolbar').style.marginBottom = '500px';
+        }
+    });
+    document.getElementById('table-body').addEventListener('focusout', () => {
+        if (chromeMode) {
+            document.getElementById('toolbar').style.marginBottom = '0px';
+        }
+    });
 });
 
 function toggleTable(tableId, button) {
