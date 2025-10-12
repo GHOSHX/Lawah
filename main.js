@@ -93,6 +93,7 @@ function generateSection(id, title) {
       generateArticle(newSection.id, newSection.text);
     }
     document.getElementById('article-list').appendChild(template);
+    document.getElementById('clear-all-btn').style.display = 'inline';
     saveState();
 }
 
@@ -102,7 +103,7 @@ function generateArticle(newId, newTitle) {
         title: newTitle,
         intro: 'Write intro here...',
         synopsis: 'Write synopsis here...',
-        poster: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
+        poster: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019'
     };
     
     const newArticle = {
@@ -169,6 +170,11 @@ function deleteSection(wrapper, section) {
                 articles = articles.filter(article => article.articleId !== section.id);
                 sections.splice(sections.indexOf(section), 1);
                 articleStore.delete(articleData.articleId);
+                
+                if (articles.length === 0) {
+                    document.getElementById('clear-all-btn').style.display = 'none';
+                }
+                
                 saveState();
             }
         }
@@ -186,7 +192,9 @@ function loadState() {
           console.log('Article: ' + article.articleId);
         });
         
-        if (savedSections) {
+        if (savedSections && savedSections.length > 0) {
+            document.getElementById('clear-all-btn').style.display = 'inline';
+            
             savedSections.forEach(section => {
                 const article = articles.find(a => a.articleId == section.id)
                 
