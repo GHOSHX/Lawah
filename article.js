@@ -18,21 +18,24 @@ function openDB() {
 }
 
 let data = {};
-let characters = [];
-let synopses = [];
+let infoboxes = [];
 let cells = [];
 let articleName;
 let currentArticleId;
 let currentTextArea;
 let toggleSynopsisBtn;
-let toggleCharacterBtn;
+let toggleInfoboxBtn;
 let editSynopsisBtn;
-let addRowBtn;
+let addRow1Btn;
+let addRow2Btn;
+let addRow3Btn;
 let addCell1Btn;
+let addCell2Btn;
 let editButton;
 let fileUploadBtn;
 let downloadBtn;
 let settingsBtn;
+let chromeMode = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -45,37 +48,50 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const inputPoster = document.getElementById('poster-input');
     toggleSynopsisBtn = document.getElementById('toggle-synopsis-btn');
-    toggleCharacterBtn = document.getElementById('toggle-character-btn');
+    toggleInfoboxBtn = document.getElementById('toggle-infobox-btn');
     editButton = document.getElementById('edit-infobox');
     fileUploadBtn = document.getElementById('file-upload-btn');
     downloadBtn = document.getElementById('download-btn');
     settingsBtn = document.getElementById('settings-btn');
     editSynopsisBtn = document.getElementById('edit-synopsis-btn');
-    addRowBtn = document.getElementById('add-character-btn');
+    addRow1Btn = document.getElementById('add-infobox-btn');
+    addRow2Btn = document.getElementById('add-category-btn');
+    addRow3Btn = document.getElementById('add-text-btn');
     addCell1Btn = document.getElementById('add-info-btn1');
     addCell2Btn = document.getElementById('add-info-btn2');
-    addCell1Btn.addEventListener('click', () => generateInfoRow('info-template', null));
-    addCell2Btn.addEventListener('click', () => generateInfoRow('info-template2', null));
-    addRowBtn.addEventListener('click', generateRow);
+    addCell1Btn.addEventListener('click', () => generateCell('info-template', null));
+    addCell2Btn.addEventListener('click', () => generateCell('info-template2', null));
+    addRow1Btn.addEventListener('click', () => generateInfobox(null, null));
+    addRow2Btn.addEventListener('click', generateCategory);
+    addRow3Btn.addEventListener('click', () => generateTextArea(null, null));
     toggleSynopsisBtn.addEventListener('click', () => toggleTable('table1', toggleSynopsisBtn));
-    toggleCharacterBtn.addEventListener('click', () => toggleTable('table2', toggleCharacterBtn));
+    toggleInfoboxBtn.addEventListener('click', () => toggleTable('table2', toggleInfoboxBtn));
     document.getElementById('delete-article-btn').addEventListener('click', () => {
       if (confirm('Are you sure you want to delete this saved article?')) {
           deleteElementFromArticle();
       }
     });
-    document.getElementById('enable-preset1').addEventListener('click', () => presetGenerateInfoRow(1));
-    document.getElementById('enable-preset2').addEventListener('click', () => presetGenerateInfoRow(2));
+    document.getElementById('enable-preset1').addEventListener('click', () => presetGenerateCell(1));
+    document.getElementById('enable-preset2').addEventListener('click', () => presetGenerateCell(2));
+    document.getElementById('chrome-mode').addEventListener('click', function() {
+        if (this.textContent === 'Chrome Mode: Off') {
+            this.innerHTML = '<b>Chrome Mode: On</b>';
+            chromeMode = true;
+        } else {
+            this.innerHTML = '<b>Chrome Mode: Off</b>';
+            chromeMode = false;
+        }
+    });
     document.getElementById('header-toggle-btn').addEventListener('click', () => {
         const headerTextBtn = document.querySelectorAll('.header-text-btn');
-        
-          headerTextBtn.forEach(button => {
-              if (button.style.display === 'none'||button.style.display === '') {
-                button.style.display = 'inline-block';
-              } else {
-                button.style.display = 'none';
-              }
-          });
+      
+        headerTextBtn.forEach(button => {
+            if (button.style.display === 'none'||button.style.display === '') {
+              button.style.display = 'inline-block';
+            } else {
+              button.style.display = 'none';
+            }
+        });
     });
     document.getElementById('header1-text-btn').addEventListener('click', () => styleText('h1'));
     document.getElementById('header2-text-btn').addEventListener('click', () => styleText('h2'));
@@ -84,7 +100,32 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('italic-text-btn').addEventListener('click', () => styleText('i'));
     document.getElementById('link-text-btn').addEventListener('click', () => styleText('a'));
     settingsBtn.addEventListener('click', toggleSettings);
-    document.getElementById('img-text-btn').addEventListener('click', () => styleText('img'));
+    document.getElementById('img-toggle-btn').addEventListener('click', () => { 
+        const imgBtn = document.querySelectorAll('.img-btn');
+      
+        imgBtn.forEach(button => {
+            if (button.style.display === 'none'||button.style.display === '') {
+              button.style.display = 'inline-block';
+            } else {
+              button.style.display = 'none';
+            }
+        });
+    });
+    document.getElementById('img-file-btn').addEventListener('click', () => {
+        document.getElementById('upload-img2').click();
+    });
+    document.getElementById('img-link-btn').addEventListener('click', () => {
+        styleText('img');
+    });
+    document.getElementById('upload-img2').addEventListener('change', function() {
+        const file = this.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imgSrc = e.target.result;
+            styleText('img2', imgSrc)
+        }
+        reader.readAsDataURL(file);
+    });
     document.getElementById('bullet-list-btn').addEventListener('click', () => styleText('ul'));
     editButton.addEventListener('click', editArticle);
     fileUploadBtn.addEventListener('click', () => {
@@ -101,9 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
           // Restore data
           data = uploadedData.data;
-          characters = uploadedData.characters;
+          infoboxes = uploadedData.characters || uploadedData.infoboxes;
           cells = uploadedData.cells;
-          synopses = uploadedData.synopses;
     
           // Update UI
           updateData(data);
@@ -125,9 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const articleData = {
           articleId: currentArticleId,
           data: data,
-          characters: characters,
-          cells: cells,
-          synopses: synopses
+          infoboxes: infoboxes,
+          cells: cells
         };
         const jsonContent = JSON.stringify(articleData, null, 2);
     
@@ -159,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.body.removeChild(a);
     
           URL.revokeObjectURL(url);
-          alert('File downloaded ✅');
+          alert('File backup downloaded ✅');
         }
       } catch (err) {
         console.error('File save cancelled or failed:', err);
@@ -184,13 +223,40 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('info-list').addEventListener('change', handleCellChange);
     document.getElementById('table-body').addEventListener('click', handleTableClick);
     document.getElementById('table-body').addEventListener('change', handleTableChange);
+    document.getElementById('table-body').addEventListener('focusin', () => {
+        if (chromeMode) {
+            document.getElementById('toolbar').style.marginBottom = '500px';
+        }
+    });
+    document.getElementById('table-body').addEventListener('focusin', () => {
+        if (chromeMode) {
+            document.getElementById('toolbar').style.marginBottom = '0px';
+        }
+    });
 });
 
 function toggleTable(tableId, button) {
+    let isVisible = button.textContent === '⛔️';
     var table = document.getElementById(tableId);
-    if (table.style.display === 'none') {
+    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    
+    if (!isVisible) {
         table.style.display = 'table';
         button.textContent = '⛔️';
+        let toggleCategoryBtn;
+        
+        infoboxTemplate.forEach(template => {
+            const index = template.getAttribute('data-index');
+            const infobox = infoboxes.find(char => char.id == index);
+            
+            if (infobox.type !== 'category') {
+                if (toggleCategoryBtn === '👁') {
+                    template.style.display = 'none';
+                }
+            } else {
+              toggleCategoryBtn = template.querySelector('.toggle-category-btn').textContent;
+            }
+        });
     } else {
         table.style.display = 'none';
         button.textContent = '👁';
@@ -198,7 +264,7 @@ function toggleTable(tableId, button) {
 }
 
 // Styling texts
-function styleText(type) {
+function styleText(type, imgSrc) {
     const selection = window.getSelection();
     
     if (selection.rangeCount > 0) {
@@ -246,6 +312,13 @@ function styleText(type) {
                       imgSize = '100%';
                     }
                     openingTag = `<img src="${href}" alt="${selectedText}" width="${imgSize}">`;
+                } else if (tag === 'img2') {
+                    href = imgSrc;
+                    let imgSize = prompt('Enter the image size');
+                    if (!imgSize) {
+                      imgSize = '100%';
+                    }
+                    openingTag = `<img src="${href}" alt="${selectedText}" width="${imgSize}">`;
                 } else if (tag === 'ul') {
                     const items = selectedText.split(/\r?\n|,\s*|\s+/);
                     const listItems = items.map(item => `<li>${item}</li>`).join('');
@@ -283,8 +356,8 @@ function toggleSettings() {
     }
 }
 
-// Generates rows for the Infobox
-function generateInfoRow(templateId, text) {
+// Generates rows for the main Infobox
+function generateCell(templateId, text) {
     const template = document.getElementById(templateId).content.cloneNode(true);
     const newId = Date.now();
     const newPosition = cells.length ? cells[cells.length - 1].position + 1 : 0;
@@ -352,8 +425,8 @@ function editArticle() {
             if (toggleSynopsisBtn.textContent === '👁') {
                 toggleSynopsisBtn.click();
             }
-            if (toggleCharacterBtn.textContent === '👁') {
-                toggleCharacterBtn.click();
+            if (toggleInfoboxBtn.textContent === '👁') {
+                toggleInfoboxBtn.click();
             }
             controlRoom.forEach(room => {
                 room.style.display = 'block';
@@ -387,62 +460,104 @@ function editArticle() {
             synopsisText.style.display = 'block';
             toolbar.style.display = 'none';
             editButton.textContent = '✏️';
+            assignCategoriesToInfoboxes();
         }
         
-        characterEdit(editMode);
-        editInfoBox(editMode);
+        editInfobox(editMode);
+        editMainInfobox(editMode);
     }
 }
 
-function characterEdit(editMode) {
-    const characterTemplate = document.querySelectorAll('.character-wrapper');
+function assignCategoriesToInfoboxes() {
+  let currentCategoryId = null;
+
+  infoboxes.sort((a, b) => a.position - b.position);
+
+  infoboxes.forEach(infobox => {
+    if (infobox.type === "category") {
+      currentCategoryId = infobox.id;
+    } else {
+      infobox.category = currentCategoryId; // assign nearest category above
+    }
+  });
+}
+
+function editInfobox(editMode) {
+    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
     
-    characterTemplate.forEach(template => {
-        let characterEditMode = template.querySelector('.character-name');
-        let characterName = template.querySelector('.character-name');
-        let characterBio = template.querySelector('.character-bio-text');
-        let characterNameInput = template.querySelector('.name-input');
-        let characterBioInput = template.querySelector('.bio-input');
-        let charControls = template.querySelector('.character-name-controls');
-        let presetBtn = template.querySelector('.generate-preset-btn');
+    infoboxTemplate.forEach(template => {
+        const infoboxName = template.querySelector('.infobox-name');
+        const infoboxNameInput = template.querySelector('.name-input');
+        const charControls = template.querySelector('.infobox-name-controls');
+        const infoboxBio = template.querySelector('.infobox-bio-text');
+        const infoboxBioInput = template.querySelector('.bio-input');
+        const presetBtn = template.querySelector('.generate-preset-btn');
+        console.l
         const index = template.getAttribute('data-index');
-        const character = characters.find(char => char.id == index);
-        
+        const infobox = infoboxes.find(char => char.id == index);
+        const toggleCategoryBtn = template.querySelector('.toggle-category-btn');
+        const isCategoryVisible = toggleCategoryBtn ? toggleCategoryBtn.textContent === '⛔️' : null;
+          
         if (editMode) {
-            characterName.style.display = 'none';
-            characterBio.style.display = 'none';
+            if (infobox.type === 'category') {
+                if (!isCategoryVisible) {
+                    toggleCategoryBtn.click();
+                }
+            }
             charControls.style.display = 'block';
-            characterNameInput.value = characterName.textContent;
-            characterBioInput.innerHTML = characterBio.innerHTML;
-            characterNameInput.style.display = 'inline';
-            characterBioInput.style.display = 'block';
-            presetBtn.style.display = 'block';
+            if (infoboxName) {
+              infoboxName.style.display = 'none';
+              infoboxNameInput.value = infoboxName.textContent;
+              infoboxNameInput.style.display = 'inline';
+            }
+            
+            if (infoboxBio) {
+              infoboxBio.style.display = 'none';
+              infoboxBioInput.innerHTML = infoboxBio.innerHTML;
+              infoboxBioInput.style.display = 'block';
+            }
+            if (presetBtn) {
+                presetBtn.style.display = 'block';
+            }
         } else {
-            characterNameInput.style.display = 'none';
-            characterBioInput.style.display = 'none';
             charControls.style.display = 'none';
-            presetBtn.style.display = 'none';
             
-            if (characterNameInput.value.trim()) {
-                character.name = characterNameInput.value;
-                characterName.textContent = characterNameInput.value;
+            if (presetBtn) {
+                presetBtn.style.display = 'none';
             }
             
-            if (characterBioInput.innerHTML.trim()) {
-                character.bio = characterBioInput.innerHTML;
-                characterBio.innerHTML = characterBioInput.innerHTML;
+            if (infoboxName) {
+                infoboxNameInput.style.display = 'none';
+                
+                if (infoboxNameInput.value.trim()) {
+                    infobox.name = infoboxNameInput.value;
+                    infoboxName.textContent = infoboxNameInput.value;
+                }
+                
+                infoboxName.style.display = 'block';
             }
             
-            characterName.style.display = 'block';
-            characterBio.style.display = 'block';
+            if (infoboxBio) {
+                infoboxBioInput.style.display = 'none';
+                
+                if (infoboxBioInput.innerHTML.trim()) {
+                    infobox.bio = infoboxBioInput.innerHTML;
+                    infoboxBio.innerHTML = infoboxBioInput.innerHTML;
+                }
+                
+                infoboxBio.style.display = 'block'
+            }
         }
-        editSection(template, character, editMode);
+        
+        if (presetBtn) {
+            editSection(template, infobox, editMode);
+        }
     });
 }
 
-function editSection(row, character, editMode) {
+function editSection(row, infobox, editMode) {
     const sectionWrappers = row.querySelectorAll('.section-wrapper');
-    const sections = character.sections;
+    const sections = infobox.sections;
     
     if (sectionWrappers) {
         sectionWrappers.forEach(section => {
@@ -487,7 +602,7 @@ function editSection(row, character, editMode) {
     }
 }
 
-function editInfoBox(editMode) {
+function editMainInfobox(editMode) {
     const infoWrappers = document.querySelectorAll('.info-wrapper');
     
     if (infoWrappers) {
@@ -593,84 +708,177 @@ function handleTableClick(event) {
     const target = event.target;
     const row = target.closest('tr');
     const index = row ? row.dataset.index : null;
-    const character = characters.find(char => char.id == index);
+    const infobox = infoboxes.find(char => char.id == index);
 
-    if (target.classList.contains('upload-img1-btn')) {
-        row.querySelector('.upload-img').setAttribute('data-type', 'character');
+    if (target.classList.contains('upload-img-btn')) {
+        const imgBtn = row.querySelectorAll('.infobox-img-btn');
+      
+        imgBtn.forEach(button => {
+            if (button.style.display === 'none'||button.style.display === '') {
+              button.style.display = 'inline-block';
+            } else {
+              button.style.display = 'none';
+            }
+        });
+    } else if (target.classList.contains('img-file-btn')) {
         row.querySelector('.upload-img').click();
+    } else if (target.classList.contains('img-link-btn')) {
+        loadImage(null, infobox);
     } else if (target.classList.contains('move-up-btn')) {
-        moveRow(row, character, 'up');
+        moveInfobox(row, infobox, 'up');
     } else if (target.classList.contains('move-down-btn')) {
-        moveRow(row, character, 'down');
+        moveInfobox(row, infobox, 'down');
     } else if (target.classList.contains('cell-up-btn')) {
         const section = target.closest('.section-wrapper');
-        moveSection(section, character, 'up');
+        moveSection(section, infobox, 'up');
     } else if (target.classList.contains('cell-down-btn')) {
         const section = target.closest('.section-wrapper');
-        moveSection(section, character, 'down');
+        moveSection(section, infobox, 'down');
     } else if (target.classList.contains('see-more-btn')) {
         toggleBio(row);
     } else if (target.classList.contains('delete-btn')) {
-        deleteElement(row, character, 'character');
+        deleteElement(row, infobox, 'infobox');
     } else if (target.classList.contains('add-section-btn')) {
-        generateSection(row, character, null);
+        generateSection(row, infobox, null);
     } else if (target.classList.contains('generate-preset-btn')) {
-        presetGenerateSection(row, character);
+        presetGenerateSection(row, infobox);
+    } else if (target.classList.contains('toggle-category-btn')) {
+        toggleCategory(row, infobox);
+    } else if (target.classList.contains('add-infobox-btn2')) {
+        generateInfobox(row, infobox);
+    } else if (target.classList.contains('add-text-btn2')) {
+        generateTextArea(row, infobox);
     }
+}
+
+function allignRows() {
+    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    let previousPosition = -1;
+          
+    infoboxTemplate.forEach(template => {
+        const index = template.getAttribute('data-index');
+        const infobox = infoboxes.find(box => box.id == index);
+        
+        infobox.position = previousPosition + 1;
+        previousPosition = infobox.position;
+    });
 }
 
 function handleTableChange(event) {
     const target = event.target;
-    const row = target.closest('tr');
+    const row = target.closest('.character-wrapper');
     const index = row ? row.dataset.index : null;
-    const character = characters.find(char => char.id == index);
+    const infobox = infoboxes.find(char => char.id == index);
 
     if (target.classList.contains('upload-img')) {
         const type = target.getAttribute('data-type');
-        loadImage(event, character, type);
-    } else if (target.classList.contains('role-select')) {
-        character.role = target.value;
-    } else if (target.classList.contains('playable-select')) {
-        character.playable = target.value;
+        loadImage(event, infobox);
     }
     saveState();
 }
 
-// generates character rows
-function generateRow() {
-    const template = document.getElementById('character-template').content.cloneNode(true);
+function toggleCategory(row, category) {
+    let id = category.id;
+    let toggleButton = row.querySelector('.toggle-category-btn');
+    let isVisible = toggleButton.textContent === '⛔️';
+    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    
+    infoboxTemplate.forEach(template => {
+        const index = template.getAttribute('data-index');
+        const infobox = infoboxes.find(box => box.id == index);
+        
+        if (infobox.category === id) {
+            if (isVisible) {
+                template.style.display = 'none';
+            } else {
+                template.style.display = 'block';
+                allignCategory(row, category);
+            }
+        }
+    });
+    
+    if (isVisible) {
+        toggleButton.textContent = '️👁';
+    } else {
+        toggleButton.textContent = '⛔️';
+    }
+    saveState();
+}
+
+// generates category rows
+function generateCategory() {
+    const template = document.getElementById('category-template').content.cloneNode(true);
     const newId = Date.now();
-    const newPosition = characters.length ? characters[characters.length - 1].position + 1 : 0;
+    const newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
 
-    const newCharacter = {
+    const newInfobox = {
         id: newId,
-        name: 'Character No.' + (newPosition + 1),
-        bio: 'New character bio goes here...',
-        imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
-        role: 'Unknown',
-        playable: 'Yes',
-        sections: [],
-        position: newPosition,
+        name: 'Category No.' + (newPosition + 1),
+        type: 'category',
+        position: newPosition
     };
-    characters.push(newCharacter);
+    infoboxes.push(newInfobox);
 
-    updateRow(template, newCharacter);
+    updateCategory(template, newInfobox);
+    template.querySelector('.toggle-category-btn').textContent = '⛔️';
+    
     document.getElementById('table-body').appendChild(template);
     saveState();
 }
 
-function updateRow(row, character) {
-    row.querySelector('.character-wrapper').setAttribute('data-index', character.id);
-    row.querySelector('.character-name').textContent = character.name;
-    row.querySelector('.character-bio-text').innerHTML = character.bio;
-    row.querySelector('.character-img').src = character.imgSrc;
-    row.querySelector('.role-select').value = character.role;
-    row.querySelector('.playable-select').value = character.playable;
-    const sections = character.sections;
+function updateCategory(row, category) {
+    row.querySelector('.character-wrapper').setAttribute('data-index', category.id);
+    row.querySelector('.infobox-name').textContent = category.name;
+}
+
+// generates Infobox rows
+function generateInfobox(catTemplate, category) {
+    const template = document.getElementById('infobox-template').content.cloneNode(true);
+    const newId = Date.now();
+    let newPosition = null;
+    if (category) {
+        let previousPosition = category.position + 1;
+          
+        infoboxes.forEach(infobox => {
+            if (infobox.position > category.position) {
+              infobox.position = previousPosition + 1;
+              previousPosition = infobox.position;
+            }
+        });
+    } else {
+        newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
+    }
+
+    const newInfobox = {
+        id: newId,
+        name: 'Infobox No.' + (category ? category.position + 1 : newPosition + 1),
+        bio: 'Write description about the subject here...',
+        imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
+        type: 'infobox',
+        category: category ? category.id : null,
+        sections: [],
+        position: category ? category.position + 1 : newPosition
+    };
+    infoboxes.push(newInfobox);
+    
+    updateRow(template, newInfobox);
+    if (category) {
+        catTemplate.parentNode.insertBefore(template, catTemplate.nextElementSibling);
+    } else {
+        document.getElementById('table-body').appendChild(template);
+    }
+    saveState();
+}
+
+function updateRow(row, infobox) {
+    row.querySelector('.character-wrapper').setAttribute('data-index', infobox.id);
+    row.querySelector('.infobox-name').textContent = infobox.name;
+    row.querySelector('.infobox-bio-text').innerHTML = infobox.bio;
+    row.querySelector('.infobox-img').src = infobox.imgSrc;
+    const sections = infobox.sections;
     if (sections) {
         sections.sort((a, b) => a.position - b.position);
         sections.forEach(section => {
-            console.log(section.id);
             const template = document.getElementById('section-template').content.cloneNode(true);
             updateSection(template, section);
             row.querySelector('.section-lists').appendChild(template);
@@ -678,31 +886,71 @@ function updateRow(row, character) {
     }
 }
 
-function loadImage(event, element, type) {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        if (type === 'character') {
-            element.imgSrc = e.target.result;
-            const row = document.querySelector(`tr[data-index="${element.id}"]`);
-            row.querySelector('.character-img').src = element.imgSrc;
-        } else if (type === 'synopsis') {
-            element.imgSrc = e.target.result;
-            const imgElement = document.querySelector(`img[data-index="${element.id}"]`);
-            imgElement.src = element.imgSrc;
-        }
+function generateTextArea(catTemplate, category) {
+    const template = document.getElementById('text-template').content.cloneNode(true);
+    const newId = Date.now();
+    let newPosition = null;
+    if (category) {
+        let previousPosition = category.position + 1;
+          
+        infoboxes.forEach(infobox => {
+            if (infobox.position > category.position) {
+              infobox.position = previousPosition + 1;
+              previousPosition = infobox.position;
+            }
+        });
+    } else {
+        newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
+    }
+
+    const newInfobox = {
+        id: newId,
+        bio: 'Write description about the subject here...',
+        type: 'text area',
+        category: category ? category.id : null,
+        position: category ? category.position + 1 : newPosition
     };
-    reader.readAsDataURL(file);
+    infoboxes.push(newInfobox);
+
+    updateTextArea(template, newInfobox);
+    if (category) {
+        catTemplate.parentNode.insertBefore(template, catTemplate.nextElementSibling);
+    } else {
+        document.getElementById('table-body').appendChild(template);
+    }
+    saveState();
 }
 
-// moves sections up and down inside character row
-function moveSection(row, character, type) {
+function updateTextArea(row, textArea) {
+    row.querySelector('.character-wrapper').setAttribute('data-index', textArea.id);
+    row.querySelector('.infobox-bio-text').innerHTML = textArea.bio;
+}
+
+function loadImage(event, element) {
+    if (event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            element.imgSrc = e.target.result;
+            const row = document.querySelector(`tr[data-index="${element.id}"]`);
+            row.querySelector('.infobox-img').src = element.imgSrc;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        element.imgSrc = prompt('Enter the URL', 'https://');
+        const row = document.querySelector(`tr[data-index="${element.id}"]`);
+        row.querySelector('.infobox-img').src = element.imgSrc;
+    }
+}
+
+// moves sections up and down inside infobox row
+function moveSection(row, infobox, direction) {
     const previousRow = row.previousElementSibling;
     const nextRow = row.nextElementSibling;
     const index = row.getAttribute('data-index');
-    const sections = character.sections;
+    const sections = infobox.sections;
     const currentSection = sections.find(sec => sec.id == index);
-    if (type === 'up' && previousRow) {
+    if (direction === 'up' && previousRow) {
         const previousIndex = Number(previousRow.dataset.index);
         const previousSection = sections.find(sec => sec.id === previousIndex);
         
@@ -711,7 +959,7 @@ function moveSection(row, character, type) {
         previousSection.position = currentPosition;
     
         row.parentNode.insertBefore(row, previousRow);
-    } else if (type === 'down' && nextRow) {
+    } else if (direction === 'down' && nextRow) {
         const nextIndex = Number(nextRow.dataset.index);
         const nextSection = sections.find(sec => sec.id === nextIndex);
         
@@ -733,10 +981,10 @@ function moveSection(row, character, type) {
     saveState();
 }
 
-function moveCell(row, currentCell, type) {
+function moveCell(row, currentCell, direction) {
     const previousRow = row.previousElementSibling;
     const nextRow = row.nextElementSibling;
-    if (type === 'up' && previousRow) {
+    if (direction === 'up' && previousRow) {
         const previousIndex = Number(previousRow.dataset.index);
         const previousCell = cells.find(el => el.id === previousIndex);
         
@@ -745,7 +993,7 @@ function moveCell(row, currentCell, type) {
         previousCell.position = currentPosition;
     
         row.parentNode.insertBefore(row, previousRow);
-    } else if (type === 'down' && nextRow) {
+    } else if (direction === 'down' && nextRow) {
         const nextIndex = Number(nextRow.dataset.index);
         const nextCell = cells.find(el => el.id === nextIndex);
         
@@ -767,35 +1015,81 @@ function moveCell(row, currentCell, type) {
     saveState();
 }
 
-// moves character rows up and down
-function moveRow(row, character, type) {
-    const previousRow = row.previousElementSibling;
-    const nextRow = row.nextElementSibling;
-    if (type === 'up' && previousRow) {
-        const previousIndex = Number(previousRow.dataset.index);
-        const previousCharacter = characters.find(char => char.id === previousIndex);
-        
-        const currentPosition = character.position;
-        character.position = previousCharacter.position;
-        previousCharacter.position = currentPosition;
-        console.log(character.position + ': ' + previousCharacter.position);
+// moves infobox rows up and down
+function moveInfobox(row, infobox, direction) {
+    let previousInfobox;
+    let nextInfobox;
+    let previousRow;
+    let nextRow;
+    if (infobox.type === 'category') {
+        const categories = infoboxes.filter(box => box.type == 'category');
+        categories.sort((a, b) => a.position - b.position);
+        previousInfobox = categories[categories.indexOf(infobox) - 1];
+        nextInfobox = categories[categories.indexOf(infobox) + 1];
+        previousRow = previousInfobox ? document.querySelector(`tr[data-index="${previousInfobox.id}"]`) : null;
+        nextRow = nextInfobox ? document.querySelector(`tr[data-index="${nextInfobox.id}"]`) : null;
+    } else {
+        previousRow = row.previousElementSibling;
+        nextRow = row.nextElementSibling;
+        if (previousRow) {
+            const previousIndex = Number(previousRow.dataset.index);
+            previousInfobox = infoboxes.find(char => char.id === previousIndex);
+        }
+        if (nextRow) {
+            const nextIndex = Number(nextRow.dataset.index);
+            nextInfobox = infoboxes.find(char => char.id === nextIndex);
+        }
+    }
     
+    if (direction === 'up' && previousRow) {
         row.parentNode.insertBefore(row, previousRow);
-    } else if (type === 'down' && nextRow) {
-        const nextIndex = Number(nextRow.dataset.index);
-        const nextCharacter = characters.find(char => char.id === nextIndex);
         
-        const currentPosition = character.position;
-        character.position = nextCharacter.position;
-        nextCharacter.position = currentPosition;
-    
+        if (infobox.type === 'category') {
+            allignCategory(row, infobox);
+        } else {
+            const currentPosition = infobox.position;
+            infobox.position = previousInfobox.position;
+            previousInfobox.position = currentPosition;
+            
+            console.log(infobox.position + ': ' + previousInfobox.position);
+        }
+    } else if (direction === 'down' && nextRow) {
         row.parentNode.insertBefore(nextRow, row);
+        
+        if (infobox.type === 'category') {
+            allignCategory(nextRow, nextInfobox);
+            allignCategory(row, infobox);
+        } else {
+            const currentPosition = infobox.position;
+            infobox.position = nextInfobox.position;
+            nextInfobox.position = currentPosition;
+        }
     }
     saveState();
 }
 
+function allignCategory(row, category) {
+    let id = category.id;
+    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    const childsOfCat = infoboxes.filter(a => a.category === category.id);
+    childsOfCat.sort((a, b) => a.position - b.position);
+    let previousRow = row;
+    
+    if (childsOfCat.length > 0) {
+        childsOfCat.forEach(child => {
+            const index = child.id;
+            const childNode = document.querySelector(`tr[data-index="${child.id}"]`);
+            
+            childNode.style.display = 'block';
+            childNode.parentNode.insertBefore(childNode, previousRow.nextElementSibling);
+            previousRow = childNode;
+        });
+    }
+    allignRows();
+}
+
 function toggleBio(row) {
-    const bioElement = row.querySelector('.character-bio');
+    const bioElement = row.querySelector('.infobox-bio');
     const btnElement = row.querySelector('.see-more-btn');
 
     if (bioElement.style.maxHeight) {
@@ -807,11 +1101,11 @@ function toggleBio(row) {
     }
 }
 
-// generates info cells for the characters
-function generateSection(row, character, text) {
+// generates info cells for the infoboxes
+function generateSection(row, infobox, text) {
     const template = document.getElementById('section-template').content.cloneNode(true);
     const newId = Date.now();
-    const sections = character.sections;
+    const sections = infobox.sections;
     const newPosition = sections.length ? sections[sections.length - 1].position + 1 : 0;
 
     const newSection = {
@@ -820,7 +1114,7 @@ function generateSection(row, character, text) {
         text2: 'Write here',
         position: newPosition
     };
-    character.sections.push(newSection);
+    infobox.sections.push(newSection);
     
     updateSection(template, newSection);
     const textWrapper = template.querySelectorAll('.cell-text');
@@ -832,7 +1126,7 @@ function generateSection(row, character, text) {
     inputWrappers.forEach(input => {
         input.style.display = 'block';
     });
-    const bioElement = row.querySelector('.character-bio');
+    const bioElement = row.querySelector('.infobox-bio');
     row.querySelector('.section-lists').appendChild(template);
     bioElement.style.maxHeight = bioElement.scrollHeight + 'px';
     saveState();
@@ -844,20 +1138,6 @@ function updateSection(template, section) {
     template.querySelector('.info-input').innerHTML = section.text1;
     template.querySelector('.value-cell').innerHTML = section.text2;
     template.querySelector('.value-input').innerHTML = section.text2;
-}
-
-function generateData() {
-    const newData = {
-        id: currentArticleId,
-        title: articleName,
-        intro: 'Write intro here...',
-        synopsis: 'Write synopsis here...',
-        poster: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
-    };
-    data = newData;
-    updateData(newData);
-    saveState();
-    loadState();
 }
 
 function updateData(data) {
@@ -882,31 +1162,53 @@ function loadState() {
         
         if (articleData) {
             data = articleData.data;
-            characters = articleData.characters;
+            infoboxes = articleData.characters;
             cells = articleData.cells;
-            synopses = articleData.synopses;
             
             if (data.id) {
                 updateData(data);
             } else {
-                generateData();
+                console.log("failed");
             }
             
-            characters.sort((a, b) => a.position - b.position);
+            infoboxes.sort((a, b) => a.position - b.position);
             
-            characters.forEach(character => {
-                const template = document.getElementById('character-template').content.cloneNode(true);
-                updateRow(template, character);
-                const editorWrapper = template.querySelector('.character-name-controls');
-                const name = template.querySelector('.character-name');
-                const bio = template.querySelector('.character-bio-text');
-                const nameInput = template.querySelector('.name-input');
-                const bioInput = template.querySelector('.bio-input');
-                editorWrapper.style.display = 'none';
-                nameInput.style.display = 'none';
-                bioInput.style.display = 'none';
-                name.style.display = 'block';
-                bio.style.display = 'block';
+            infoboxes.forEach(infobox => {
+                let template;
+                
+                if (infobox.type === 'category') {
+                  template = document.getElementById('category-template').content.cloneNode(true);
+                  updateCategory(template, infobox);
+                  const editorWrapper = template.querySelector('.infobox-name-controls');
+                  const name = template.querySelector('.infobox-name');
+                  const nameInput = template.querySelector('.name-input');
+                  editorWrapper.style.display = 'none';
+                  nameInput.style.display = 'none';
+                  name.style.display = 'block';
+                } else if (infobox.type === 'text area') {
+                  template = document.getElementById('text-template').content.cloneNode(true);
+                  updateTextArea(template, infobox);
+                  const editorWrapper = template.querySelector('.infobox-name-controls');
+                  const bio = template.querySelector('.infobox-bio-text');
+                  const bioInput = template.querySelector('.bio-input');
+                  editorWrapper.style.display = 'none';
+                  bioInput.style.display = 'none';
+                  bio.style.display = 'block';
+                } else {
+                  template = document.getElementById('infobox-template').content.cloneNode(true);
+                  updateRow(template, infobox);
+                  const editorWrapper = template.querySelector('.infobox-name-controls');
+                  const name = template.querySelector('.infobox-name');
+                  const bio = template.querySelector('.infobox-bio-text');
+                  const nameInput = template.querySelector('.name-input');
+                  const bioInput = template.querySelector('.bio-input');
+                  editorWrapper.style.display = 'none';
+                  nameInput.style.display = 'none';
+                  bioInput.style.display = 'none';
+                  name.style.display = 'block';
+                  bio.style.display = 'block';
+                }
+                
                 document.getElementById('table-body').appendChild(template);
             });
             
@@ -923,18 +1225,6 @@ function loadState() {
                 
                 document.getElementById('info-list').appendChild(template);
             });
-            
-            synopses.forEach(element => {
-                const template = element.text ? document.getElementById('Synopsis-text-template').content.cloneNode(true) : null;
-  
-                if (element.text) {
-                    updateText(template, element);
-                    const synopsisWrapper = template.querySelector('.synopsis-wrapper');
-                    synopsisWrapper.querySelector('.synopsis-text').style.display = 'block';
-                    synopsisWrapper.querySelector('.synopsis-text-input').style.display = 'none';
-                    document.getElementById('table1').appendChild(template);
-                }
-            });
         }
     };
 }
@@ -947,9 +1237,8 @@ function saveState() {
     const articleData = {
         articleId: currentArticleId,
         data: data,
-        characters: characters,
+        characters: infoboxes,
         cells: cells,
-        synopses: synopses
     };
     articleStore.put(articleData);
 
@@ -963,17 +1252,17 @@ function deleteElementFromArticle() {
 }
 
 function deleteElement(row, element, type) {
-    if (type === 'character') {
-        if (confirm('Are you sure you want to delete this character?')) {
+    if (type === 'infobox') {
+        if (confirm('Are you sure you want to delete this infobox?')) {
             row.remove();
-            characters.splice(characters.indexOf(element), 1);
+            infoboxes.splice(infoboxes.indexOf(element), 1);
         }
         
         let previousPosition = -1;
           
-        characters.forEach(character => {
-            character.position = previousPosition + 1;
-            previousPosition = character.position;
+        infoboxes.forEach(infobox => {
+            infobox.position = previousPosition + 1;
+            previousPosition = infobox.position;
         });
     } else if (type === 'cell') {
         if (confirm('Are you sure you want to delete this cell?')) {
@@ -990,23 +1279,23 @@ function deleteElement(row, element, type) {
     } else if (type === 'section') {
         if (confirm('Are you sure you want to delete this cell?')) {
             const index = row.closest('.character-wrapper').getAttribute('data-index');
-            const character = characters.find(char => char.id == index);
-            const sections = character.sections;
+            const infobox = infoboxes.find(char => char.id == index);
+            const sections = infobox.sections;
             row.remove();
             sections.splice(sections.indexOf(element), 1);
             
             let previousPosition = -1;
           
             sections.forEach(cell => {
-                sections.position = previousPosition + 1;
-                previousPosition = sections.position;
+                cell.position = previousPosition + 1;
+                previousPosition = cell.position;
             });
         }
     }
 }
 
 // Generates premade rows for the Infobox
-function presetGenerateInfoRow(type) {
+function presetGenerateCell(type) {
     editButton.click();
     settingsBtn.click();
     let presetCells = [];
@@ -1043,13 +1332,13 @@ function presetGenerateInfoRow(type) {
     
     presetCells.forEach((cell, index) => {
         setTimeout(() => {
-            generateInfoRow('info-template', `<b>${cell.text}</b>`);
+            generateCell('info-template', `<b>${cell.text}</b>`);
         }, index * 100);
     });
 }
 
-// Generates premade rows for the characters
-function presetGenerateSection(row, character) {
+// Generates premade rows for the infoboxes
+function presetGenerateSection(row, infobox) {
     let presetSectionCells = [];
     
     presetSectionCells = [
@@ -1068,7 +1357,7 @@ function presetGenerateSection(row, character) {
     
     presetSectionCells.forEach((cell, index) => {
         setTimeout(() => {
-            generateSection(row, character, `<b>${cell.text}</b>`);
+            generateSection(row, infobox, `<b>${cell.text}</b>`);
         }, index * 100);
     });
 }

@@ -7,6 +7,7 @@
     <title>Lawah Article Maker</title>
   </head>
   <body>
+    <input type="file" id="upload-img2" style="display: none;" accept="image/*">
     <input type="file" id="upload-input" accept="application/json" style="display:none">
     <div id="toolbar" style="display: none;">
       <button id="header-toggle-btn" class="toolbar-btn"><b>H</b></button>
@@ -16,7 +17,9 @@
       <button id="bold-text-btn" class="toolbar-btn"><b>B</b></button>
       <button id="italic-text-btn" class="toolbar-btn"><i>I</i></button>
       <button id="link-text-btn" class="toolbar-btn">🔗</button>
-      <button id="img-text-btn" class="toolbar-btn">📷</button>
+      <button id="img-toggle-btn" class="toolbar-btn">📷</button>
+      <button id="img-file-btn" class="toolbar-btn img-btn">📷📁</button>
+      <button id="img-link-btn" class="toolbar-btn img-btn">📷🔗</button>
       <button id="bullet-list-btn" class="toolbar-btn">(•)</button>
     </div>
     <div id="header-wrapper">
@@ -32,11 +35,12 @@
       </div>
     </div>
     <div id="settings" style="display: none;">
+      <button id="chrome-mode"><b>Chrome Mode: Off</b></button>
       <div class="settings-section">
         <p><b>Presets</b></p>
       </div>
       <button id="enable-preset1"><b>Preset 1</b></button>
-        <button id="enable-preset2"><b>Preset 2</b></button>
+      <button id="enable-preset2"><b>Preset 2</b></button>
     </div>
     <div class="description" id="intro-wrapper">
       <p id="intro">Intro</p>
@@ -51,7 +55,7 @@
             <br>
             <input type="file" id="poster-input" accept="image/*" style="display: none;">
             <a id="change-poster">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="Game Poster" id="poster" width="100%">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="Article Poster" id="poster" width="100%">
             </a>
           </td>
         </tr>
@@ -71,18 +75,16 @@
       <div id="synopsis-text-input" contenteditable="true" style="display: none;"></div>
     </div>
     <div class="section">
-      <h3>CHARACTERS</h3>
-      <button id="toggle-character-btn">👁</button>
+      <h3>MORE INFORMATION</h3>
+      <button id="toggle-infobox-btn">👁</button>
     </div>
     <table class="center-table" id="table2" style="display: none;">
       <tbody id="table-body"></tbody>
     </table>
-    <div class="control-room" style="display: none;">
-      <button id="add-character-btn">➕️</button>
-    </div>
-    <div class="section">
-      <h3>LOCATIONS (not working)</h3>
-      <button>👁</button>
+    <div id="control-room2" class="control-room" style="display: none;">
+      <button id="add-infobox-btn">➕️ Infobox</button>
+      <button id="add-category-btn">➕️ Category</button>
+      <button id="add-text-btn">➕️ Text Area</button>
     </div>
     <template id="info-template">
       <tr class="info-wrapper">
@@ -114,52 +116,27 @@
         </td>
       </tr>
     </template>
-    <template id="character-template">
+    <template id="infobox-template">
       <tr class="character-wrapper">
         <td>
-          <button class="generate-preset-btn" style="display: none; font-weight: bold;">Bismillah</button>
-          <div class="character-profile">
-            <h3 class="character-name" style="display: none;">New Character</h3>
+          <button class="generate-preset-btn" style="display: none; font-weight: bold;">Preset</button>
+          <div class="infobox-profile">
+            <h3 class="infobox-name" style="display: none;">New Infobox</h3>
             <input type="text" class="name-input" placeholder="Enter new name">
-            <div class="character-name-controls">
+            <div class="infobox-name-controls">
               <input type="file" class="upload-img" style="display: none;" accept="image/*">
-              <button class="upload-img1-btn">📷</button>
+              <button class="upload-img-btn">📷</button>
+              <button class="infobox-img-btn img-file-btn">📷📁</button>
+              <button class="infobox-img-btn img-link-btn">📷🔗</button>
               <button class="move-up-btn">⬆️</button>
               <button class="move-down-btn">⬇️</button>
               <button class="delete-btn">❌️</button>
             </div>
-            <img class="character-img" src="https://via.placeholder.com/100" alt="New Character">
+            <img class="infobox-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="New Infobox">
           </div>
-          <div class="character-bio">
-            <p class="character-bio-text" style="display: none;">New character bio goes here...</p>
+          <div class="infobox-bio">
+            <p class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</p>
             <div class="bio-input" contenteditable="true">Write a bio</div>
-            <div style="display: flex;">
-              <div class="info-cell">
-                <b>Role:</b>
-              </div>
-              <div class="info-cell-value">
-                <select class="role-select">
-                  <option value="Unknown">Unknown</option>
-                  <option value="Protagonist">Protagonist</option>
-                  <option value="Love Interest">Love Interest</option>
-                  <option value="Side Protagonist">Side Protagonist</option>
-                  <option value="Antagonist">Antagonist</option>
-                  <option value="Side Antagonist">Side Antagonist</option>
-                  <option value="Side Character">Side Character</option>
-                </select>
-              </div>
-            </div>
-            <div style="display: flex;">
-              <div class="info-cell">
-                <b>Playable:</b>
-              </div>
-              <div class="info-cell-value">
-                <select class="playable-select">
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
-            </div>
             <div class="section-lists"></div>
             <div class="control-room" style="display: none;">
               <button class="add-section-btn">➕️</button>
@@ -171,16 +148,56 @@
         </td>
       </tr>
     </template>
+    <template id="category-template">
+      <tr class="character-wrapper">
+        <td class="category">
+          <div class="infobox-profile">
+            <div class="infobox-controls">
+              <h3 class="infobox-name" style="display: none;">New Category</h3>
+              <input type="text" class="name-input" placeholder="Enter new name">
+              <button class="toggle-category-btn">👁</button>
+            </div>
+            <div class="infobox-name-controls">
+              <button class="move-up-btn">⬆️</button>
+              <button class="move-down-btn">⬇️</button>
+              <button class="delete-btn">❌️</button>
+              <button class="add-infobox-btn2">➕️ 1</button>
+              <button class="add-text-btn2">➕️ 2</button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </template>
+    <template id="text-template">
+      <tr class="character-wrapper">
+        <td class="text-area">
+          <div class="infobox-profile">
+            <div class="infobox-name-controls">
+              <button class="move-up-btn">⬆️</button>
+              <button class="move-down-btn">⬇️</button>
+              <button class="delete-btn">❌️</button>
+            </div>
+          </div>
+          <div class="infobox-bio">
+            <p class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</p>
+            <div class="bio-input" contenteditable="true">Write a bio</div>
+          </div>
+          <div class="see-more text-center">
+            <span class="see-more-btn">show more</span>
+          </div>
+        </td>
+      </tr>
+    </template>
     <template id="section-template">
       <div class="section-wrapper">
-        <div class="character-cell1">
+        <div class="infobox-cell1">
           <p class="info-title cell-text"></p>
           <div class="cell-input-wrapper" style="display: none;">
             <div class="info-input" contenteditable="true"></div>
             <button class="cell-up-btn">⬆️</button>
           </div>
         </div>
-        <div class="character-cell2">
+        <div class="infobox-cell2">
           <p class="value-cell cell-text"></p>
           <div class="cell-input-wrapper" style="display: none;">
             <div class="value-input" contenteditable="true"></div>
