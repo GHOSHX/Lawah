@@ -103,7 +103,8 @@ function generateArticle(newId, newTitle) {
         title: newTitle,
         intro: 'Write intro here...',
         synopsis: 'Write synopsis here...',
-        poster: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019'
+        poster: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
+        upperToolbar: false
     };
     
     const newArticle = {

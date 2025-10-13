@@ -35,7 +35,6 @@ let editButton;
 let fileUploadBtn;
 let downloadBtn;
 let settingsBtn;
-let chromeMode = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -73,29 +72,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('enable-preset1').addEventListener('click', () => presetGenerateCell(1));
     document.getElementById('enable-preset2').addEventListener('click', () => presetGenerateCell(2));
-    document.getElementById('chrome-mode').addEventListener('click', function() {
+    document.getElementById('upper-toolbar-btn').addEventListener('click', function() {
         const toolbar = document.getElementById('toolbar');
         const introWrapper = document.getElementById('intro-wrapper');
         
-        if (this.textContent === 'Chrome Mode: Off') {
-            this.innerHTML = '<b>Chrome Mode: On</b>';
+        if (this.textContent === 'Upper Toolbar: Off') {
+            this.innerHTML = '<b>Upper Toolbar: On</b>';
             toolbar.classList.toggle('top');
             toolbar.classList.toggle('bottom');
             if (toolbar.style.display === 'block') {
                 introWrapper.classList.toggle('intro-wrapper1');
                 introWrapper.classList.toggle('intro-wrapper2');
             }
-            chromeMode = true;
+            data.upperToolbar = true;
         } else {
-            this.innerHTML = '<b>Chrome Mode: Off</b>';
+            this.innerHTML = '<b>Upper Toolbar: Off</b>';
             toolbar.classList.toggle('top');
             toolbar.classList.toggle('bottom');
             if (toolbar.style.display === 'block') {
                 introWrapper.classList.toggle('intro-wrapper1');
                 introWrapper.classList.toggle('intro-wrapper2');
             }
-            chromeMode = false;
+            data.upperToolbar = false;
         }
+        saveState();
     });
     document.getElementById('header-toggle-btn').addEventListener('click', () => {
         const headerTextBtn = document.querySelectorAll('.header-text-btn');
@@ -437,7 +437,7 @@ function editArticle() {
             controlRoom.forEach(room => {
                 room.style.display = 'block';
             });
-            if (chromeMode) {
+            if (data.upperToolbar) {
                 introWrapper.classList.
                 toggle('intro-wrapper1');
                 introWrapper.classList.toggle('intro-wrapper2');
@@ -457,7 +457,7 @@ function editArticle() {
             controlRoom.forEach(room => {
                 room.style.display = 'none';
             });
-            if (chromeMode) {
+            if (data.upperToolbar) {
                 introWrapper.classList.toggle('intro-wrapper1');
                 introWrapper.classList.toggle('intro-wrapper2');
             }
@@ -1167,8 +1167,11 @@ function updateData(data) {
     });
     document.getElementById('intro-input').addEventListener('focus', function(event) {
         currentTextArea = event.target;
-    })
+    });
     document.getElementById('poster').src = data.poster;
+    if (data.upperToolbar) {
+        document.getElementById('upper-toolbar-btn').click();
+    }
 }
 
 function loadState() {
