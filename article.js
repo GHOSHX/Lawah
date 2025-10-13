@@ -74,11 +74,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('enable-preset1').addEventListener('click', () => presetGenerateCell(1));
     document.getElementById('enable-preset2').addEventListener('click', () => presetGenerateCell(2));
     document.getElementById('chrome-mode').addEventListener('click', function() {
+        const toolbar = document.getElementById('toolbar');
+        const introWrapper = document.getElementById('intro-wrapper');
+        
         if (this.textContent === 'Chrome Mode: Off') {
             this.innerHTML = '<b>Chrome Mode: On</b>';
+            toolbar.classList.toggle('top');
+            toolbar.classList.toggle('bottom');
+            if (toolbar.style.display === 'block') {
+                introWrapper.classList.toggle('intro-wrapper1');
+                introWrapper.classList.toggle('intro-wrapper2');
+            }
             chromeMode = true;
         } else {
             this.innerHTML = '<b>Chrome Mode: Off</b>';
+            toolbar.classList.toggle('top');
+            toolbar.classList.toggle('bottom');
+            if (toolbar.style.display === 'block') {
+                introWrapper.classList.toggle('intro-wrapper1');
+                introWrapper.classList.toggle('intro-wrapper2');
+            }
             chromeMode = false;
         }
     });
@@ -223,16 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('info-list').addEventListener('change', handleCellChange);
     document.getElementById('table-body').addEventListener('click', handleTableClick);
     document.getElementById('table-body').addEventListener('change', handleTableChange);
-    document.getElementById('table-body').addEventListener('focusin', () => {
-        if (chromeMode) {
-            document.getElementById('toolbar').style.marginBottom = '10px';
-        }
-    });
-    document.getElementById('table-body').addEventListener('focusout', () => {
-        if (chromeMode) {
-            document.getElementById('toolbar').style.marginBottom = '0px';
-        }
-    });
 });
 
 function toggleTable(tableId, button) {
@@ -418,6 +423,7 @@ function editArticle() {
     const titleInput = document.getElementById('title-input');
     const introInput = document.getElementById('intro-input');
     const synopsisInput = document.getElementById('synopsis-text-input');
+    const introWrapper = document.getElementById('intro-wrapper');
     const editMode = editButton.textContent === '✏️';
     
     if (db) {
@@ -431,6 +437,11 @@ function editArticle() {
             controlRoom.forEach(room => {
                 room.style.display = 'block';
             });
+            if (chromeMode) {
+                introWrapper.classList.
+                toggle('intro-wrapper1');
+                introWrapper.classList.toggle('intro-wrapper2');
+            }
             toolbar.style.display = 'block';
             titleInput.value = title.textContent;
             introInput.innerHTML = introText.innerHTML;
@@ -446,6 +457,10 @@ function editArticle() {
             controlRoom.forEach(room => {
                 room.style.display = 'none';
             });
+            if (chromeMode) {
+                introWrapper.classList.toggle('intro-wrapper1');
+                introWrapper.classList.toggle('intro-wrapper2');
+            }
             data.title = titleInput.value;
             data.intro = introInput.innerHTML;
             data.synopsis = synopsisInput.innerHTML;
@@ -492,7 +507,6 @@ function editInfobox(editMode) {
         const infoboxBio = template.querySelector('.infobox-bio-text');
         const infoboxBioInput = template.querySelector('.bio-input');
         const presetBtn = template.querySelector('.generate-preset-btn');
-        console.l
         const index = template.getAttribute('data-index');
         const infobox = infoboxes.find(char => char.id == index);
         const toggleCategoryBtn = template.querySelector('.toggle-category-btn');
@@ -838,6 +852,7 @@ function generateInfobox(catTemplate, category) {
     let newPosition = null;
     if (category) {
         let previousPosition = category.position + 1;
+        newPosition = previousPosition;
           
         infoboxes.forEach(infobox => {
             if (infobox.position > category.position) {
@@ -846,23 +861,25 @@ function generateInfobox(catTemplate, category) {
             }
         });
     } else {
+        infoboxes.sort((a, b) => a.position - b.position);
         newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
     }
 
     const newInfobox = {
         id: newId,
-        name: 'Infobox No.' + (category ? category.position + 1 : newPosition + 1),
+        name: 'Infobox No.' + (newPosition + 1),
         bio: 'Write description about the subject here...',
         imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
         type: 'infobox',
         category: category ? category.id : null,
         sections: [],
-        position: category ? category.position + 1 : newPosition
+        position: newPosition
     };
     infoboxes.push(newInfobox);
     
     updateRow(template, newInfobox);
     if (category) {
+        infoboxes.sort((a, b) => a.position - b.position);
         catTemplate.parentNode.insertBefore(template, catTemplate.nextElementSibling);
     } else {
         document.getElementById('table-body').appendChild(template);
@@ -914,6 +931,7 @@ function generateTextArea(catTemplate, category) {
 
     updateTextArea(template, newInfobox);
     if (category) {
+        infoboxes.sort((a, b) => a.position - b.position);
         catTemplate.parentNode.insertBefore(template, catTemplate.nextElementSibling);
     } else {
         document.getElementById('table-body').appendChild(template);
