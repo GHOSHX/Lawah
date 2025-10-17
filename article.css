@@ -1,10 +1,15 @@
-html, body { margin: 0; }
-
 body {
   background-image:url('https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTEyL3Jhd3BpeGVsb2ZmaWNlM19hYnN0cmFjdF9nZW9tZXRyaWNfZmx1aWRfYmxhY2tfY29sb3JfZ3JhZGllbnRfYl9mNWYxMTRjMC01MTVlLTRkZTctYjAxMi05ZDFkODljYzEyODBfMS5qcGc.jpg');
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: cover;
+  margin: 400px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+@media (max-width: 600px) {
+  html, body { margin: 0; }
 }
 
 #toolbar {
@@ -108,6 +113,12 @@ body {
   display: none;
 }
 
+#intro-wrapper {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
 .intro-wrapper1 {
   margin-top: 44px;
 }
@@ -128,7 +139,7 @@ table, th, td {
 }
 
 th, td {
-  width: 50%;
+  width: 40%;
   padding: 5px;
   text-align: left;
 }
@@ -313,4 +324,25 @@ img {
   cursor: pointer;
   color: blue;
   margin-top: 1px;
+}
+
+.row-wrapper {
+  width: 100%;
+}
+
+.table-scroll {
+  max-width: 96vw;
+  overflow-x: auto; /* Enables horizontal scroll */
+  overflow-y: hidden; /* Prevents vertical scroll */
+  white-space: nowrap; /* Prevents wrapping */
+  scrollbar-width: thin; /* For Firefox */
+}
+
+.table-scroll::-webkit-scrollbar {
+  height: 6px; /* Small scrollbar height */
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
 }

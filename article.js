@@ -61,14 +61,15 @@ document.addEventListener('DOMContentLoaded', () => {
     addCell1Btn.addEventListener('click', () => generateCell('info-template', null));
     addCell2Btn.addEventListener('click', () => generateCell('info-template2', null));
     addRow1Btn.addEventListener('click', () => generateInfobox(null, null));
+    document.getElementById('add-table-btn').addEventListener('click', () => generateTable(null, null));
     addRow2Btn.addEventListener('click', generateCategory);
     addRow3Btn.addEventListener('click', () => generateTextArea(null, null));
     toggleSynopsisBtn.addEventListener('click', () => toggleTable('table1', toggleSynopsisBtn));
     toggleInfoboxBtn.addEventListener('click', () => toggleTable('table2', toggleInfoboxBtn));
     document.getElementById('delete-article-btn').addEventListener('click', () => {
-      if (confirm('Are you sure you want to delete this saved article?')) {
-          deleteElementFromArticle();
-      }
+        if (confirm('Are you sure you want to delete this saved article?')) {
+            deleteElementFromArticle();
+        }
     });
     document.getElementById('enable-preset1').addEventListener('click', () => presetGenerateCell(1));
     document.getElementById('enable-preset2').addEventListener('click', () => presetGenerateCell(2));
@@ -236,8 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('info-list').addEventListener('click', handleCellClick);
     document.getElementById('info-list').addEventListener('change', handleCellChange);
-    document.getElementById('table-body').addEventListener('click', handleTableClick);
-    document.getElementById('table-body').addEventListener('change', handleTableChange);
+    document.getElementById('table-body').addEventListener('click', handleRowClick);
+    document.getElementById('table-body').addEventListener('change', handleRowChange);
 });
 
 function toggleTable(tableId, button) {
@@ -563,10 +564,53 @@ function editInfobox(editMode) {
             }
         }
         
+        if (infobox.type === 'table') {
+            const rows = infobox.rows;
+            
+            rows.forEach(row => {
+                const rowElement = document.querySelector(`tr[data-index="${row.id}"]`);
+                editTableData(rowElement, row, editMode);
+            })
+        }
+        
         if (presetBtn) {
             editSection(template, infobox, editMode);
         }
     });
+}
+
+function editTableData(rowElement, row, editMode) {
+    const dataWrappers = rowElement.querySelectorAll('.data-wrapper');
+    const tableData = row.data;
+    
+    if (dataWrappers) {
+        dataWrappers.forEach(wrapper => {
+            const infoTitle = wrapper.querySelector('.info-title');
+            const inputWrapper = wrapper.querySelector('.cell-input-wrapper');
+            const infoInput = wrapper.querySelector('.info-input');
+            const index = wrapper.dataset.index;
+            const currentData = tableData.find(el => el.id == index);
+            
+            
+            if (editMode) {
+                infoTitle.style.display = 'none';
+                infoInput.innerHTML = infoTitle.innerHTML;
+                inputWrapper.style.display = 'block';
+            } else {
+                currentData.text = infoInput.innerHTML;
+                /* if (!infoInput.textContent.trim()) {
+                    const wrapper = infoInput.closest('.info-wrapper');
+                    deleteElement(section, cell, 'section');
+                } else {
+                    infoTitle.innerHTML = cell.text1;
+                    valueCell.innerHTML = cell.text2;
+                } */
+                infoTitle.innerHTML = currentData.text;
+                inputWrapper.style.display = 'none';
+                infoTitle.style.display = 'block';
+            }
+        });
+    }
 }
 
 function editSection(row, infobox, editMode) {
@@ -579,8 +623,6 @@ function editSection(row, infobox, editMode) {
             const valueCell = section.querySelector('.value-cell');
             const inputWrapper = section.querySelectorAll('.cell-input-wrapper');
             const textWrapper = section.querySelectorAll('.cell-text');
-            const cell1 = section.querySelector('.cell1');
-            const cell2 = section.querySelector('.cell2');
             const infoInput = section.querySelector('.info-input');
             const valueInput = section.querySelector('.value-input');
             const index = infoTitle.closest('.section-wrapper').getAttribute('data-index');
@@ -718,7 +760,7 @@ function updateImage(template, imageElement) {
     img.src = imageElement.imgSrc;
 }
 
-function handleTableClick(event) {
+function handleRowClick(event) {
     const target = event.target;
     const row = target.closest('tr');
     const index = row ? row.dataset.index : null;
@@ -762,6 +804,12 @@ function handleTableClick(event) {
         generateInfobox(row, infobox);
     } else if (target.classList.contains('add-text-btn2')) {
         generateTextArea(row, infobox);
+    } else if (target.classList.contains('add-table-btn2')) {
+        generateTable(row, infobox);
+    }else if (target.classList.contains('add-row-btn')) {
+        generateRow(row, infobox);
+    } else if (target.classList.contains('add-data-btn')) {
+        generateTableData(row, infobox);
     }
 }
 
@@ -778,7 +826,7 @@ function allignRows() {
     });
 }
 
-function handleTableChange(event) {
+function handleRowChange(event) {
     const target = event.target;
     const row = target.closest('.character-wrapper');
     const index = row ? row.dataset.index : null;
@@ -877,7 +925,7 @@ function generateInfobox(catTemplate, category) {
     };
     infoboxes.push(newInfobox);
     
-    updateRow(template, newInfobox);
+    updateInfobox(template, newInfobox);
     if (category) {
         infoboxes.sort((a, b) => a.position - b.position);
         catTemplate.parentNode.insertBefore(template, catTemplate.nextElementSibling);
@@ -887,7 +935,7 @@ function generateInfobox(catTemplate, category) {
     saveState();
 }
 
-function updateRow(row, infobox) {
+function updateInfobox(row, infobox) {
     row.querySelector('.character-wrapper').setAttribute('data-index', infobox.id);
     row.querySelector('.infobox-name').textContent = infobox.name;
     row.querySelector('.infobox-bio-text').innerHTML = infobox.bio;
@@ -942,6 +990,155 @@ function generateTextArea(catTemplate, category) {
 function updateTextArea(row, textArea) {
     row.querySelector('.character-wrapper').setAttribute('data-index', textArea.id);
     row.querySelector('.infobox-bio-text').innerHTML = textArea.bio;
+}
+
+// generates table rows
+function generateTable(catTemplate, category) {
+    const template = document.getElementById('table-template').content.cloneNode(true);
+    const newId = Date.now();
+    let newPosition = null;
+    
+    if (category) {
+        let previousPosition = category.position + 1;
+          
+        infoboxes.forEach(infobox => {
+            if (infobox.position > category.position) {
+              infobox.position = previousPosition + 1;
+              previousPosition = infobox.position;
+            }
+        });
+    } else {
+        newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
+    }
+
+    const newInfobox = {
+        id: newId,
+        rows: [],
+        type: 'table',
+        category: null,
+        position: category ? category.position + 1 : newPosition
+    };
+    infoboxes.push(newInfobox);
+
+    updateTable(template, newInfobox);
+    if (category) {
+        infoboxes.sort((a, b) => a.position - b.position);
+        catTemplate.parentNode.insertBefore(template, catTemplate.nextElementSibling);
+    } else {
+        document.getElementById('table-body').appendChild(template);
+    }
+    saveState();
+}
+
+function updateTable(element, table) {
+    element.querySelector('.character-wrapper').setAttribute('data-index', table.id);
+    const rows = table.rows;
+    if (rows) {
+        rows.sort((a, b) => a.position - b.position);
+        rows.forEach(row => {
+            const template = document.getElementById('row-template').content.cloneNode(true);
+            updateRow(template, row, true);
+            element.querySelector('.table-body').appendChild(template);
+        });
+    }
+}
+
+function generateRow(row, infobox) {
+    const rows = infobox.rows;
+    const firstRow = rows.length ? false : true;
+    let template;
+    if (firstRow) {
+        template = document.getElementById('row-template').content.cloneNode(true);
+    } else {
+        const previousRow = document.querySelector(`tr[data-index="${rows[rows.length - 1].id}"]`);
+        template = previousRow.cloneNode(true);
+        console.log(template);
+    }
+    const newId = Date.now();
+    const newPosition = rows.length ? rows[rows.length - 1].position + 1 : 0;
+
+    const newRow = {
+        id: newId,
+        data: [],
+        position: newPosition
+    };
+    infobox.rows.push(newRow);
+    
+    updateRow(template, newRow, firstRow);
+    row.querySelector('.table-body').appendChild(template);
+    saveState();
+}
+
+function updateRow(rowElement, row, firstRow) {
+    if (firstRow) {
+        rowElement.querySelector('.row-wrapper').setAttribute('data-index', row.id);
+        
+        const tableData = row.data;
+        if (tableData) {
+            tableData.sort((a, b) => a.position - b.position);
+            tableData.forEach(data => {
+                const template = document.getElementById('data-template').content.cloneNode(true);
+                updateTableData(template, data, true);
+                rowElement.querySelector('.row-body').appendChild(template);
+            });
+        }
+    } else {
+        rowElement.setAttribute('data-index', row.id);
+        const dataWrappers = rowElement.querySelectorAll('.data-wrapper');
+        
+        dataWrappers.forEach(wrapper => {
+            const newId = Date.now();
+            const tableData = row.data;
+            tableData.sort((a, b) => a.position - b.position);
+            const newPosition = tableData.length ? tableData[tableData.length - 1].position + 1 : 0;
+          
+            const newTableData = {
+                id: newId + newPosition + 100,
+                text: 'Write here',
+                position: newPosition
+            };
+            row.data.push(newTableData);
+            updateTableData(wrapper, newTableData, firstRow);
+        });
+    }
+}
+
+function generateTableData(tableElement, table) {
+    const rows = table.rows;
+    
+    rows.forEach(row => {
+        const rowElement = document.querySelector(`tr[data-index="${row.id}"]`);
+        const template = document.getElementById('data-template').content.cloneNode(true);
+        const newId = Date.now();
+        const tableData = row.data;
+        const newPosition = tableData.length ? tableData[tableData.length - 1].position + 1 : 0;
+      
+        const newTableData = {
+            id: newId,
+            text: 'Write here',
+            position: newPosition
+        };
+        row.data.push(newTableData);
+        
+        updateTableData(template, newTableData, true);
+        const infoTitle = template.querySelector('.info-title');
+        const inputWrapper = template.querySelector('.cell-input-wrapper');
+        
+        infoTitle.style.display = 'none';
+        inputWrapper.style.display = 'block';
+        rowElement.appendChild(template);
+    });
+    saveState();
+}
+
+function updateTableData(template, tableData, firstRow) {
+    if (firstRow) {
+        template.querySelector('.data-wrapper').setAttribute('data-index', tableData.id);
+    } else {
+        template.setAttribute('data-index', tableData.id);
+    }
+    template.querySelector('.info-title').innerHTML = tableData.text;
+    template.querySelector('.info-input').innerHTML = tableData.text;
 }
 
 function loadImage(event, element) {
@@ -1093,7 +1290,7 @@ function allignCategory(row, category) {
     childsOfCat.sort((a, b) => a.position - b.position);
     let previousRow = row;
     
-    if (childsOfCat.length > 0) {
+    if (childsOfCat.length) {
         childsOfCat.forEach(child => {
             const index = child.id;
             const childNode = document.querySelector(`tr[data-index="${child.id}"]`);
@@ -1215,9 +1412,14 @@ function loadState() {
                   editorWrapper.style.display = 'none';
                   bioInput.style.display = 'none';
                   bio.style.display = 'block';
+                } else if (infobox.type === 'table') {
+                  template = document.getElementById('table-template').content.cloneNode(true);
+                  updateTable(template, infobox);
+                  const editorWrapper = template.querySelector('.infobox-name-controls');
+                  editorWrapper.style.display = 'none';
                 } else {
                   template = document.getElementById('infobox-template').content.cloneNode(true);
-                  updateRow(template, infobox);
+                  updateInfobox(template, infobox);
                   const editorWrapper = template.querySelector('.infobox-name-controls');
                   const name = template.querySelector('.infobox-name');
                   const bio = template.querySelector('.infobox-bio-text');

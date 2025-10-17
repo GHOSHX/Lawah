@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="article.css">
     <script src="article.js"></script>
-    <title>Lawah Article Maker</title>
+    <title>Lawah Article Editor</title>
   </head>
   <body>
     <input type="file" id="upload-img2" style="display: none;" accept="image/*">
@@ -91,6 +91,7 @@
       <button id="add-infobox-btn">➕️ Infobox</button>
       <button id="add-category-btn">➕️ Category</button>
       <button id="add-text-btn">➕️ Text Area</button>
+      <button id="add-table-btn">➕️ Table</button>
     </div>
     <template id="info-template">
       <tr class="info-wrapper">
@@ -169,6 +170,7 @@
               <button class="delete-btn">❌️</button>
               <button class="add-infobox-btn2">➕️ 1</button>
               <button class="add-text-btn2">➕️ 2</button>
+              <button class="add-table-btn2">➕️ 3</button>
             </div>
           </div>
         </td>
@@ -193,6 +195,35 @@
           </div>
         </td>
       </tr>
+    </template>
+    <template id="table-template">
+      <tr class="character-wrapper">
+        <td>
+          <div class="infobox-profile">
+            <div class="infobox-name-controls">
+              <button class="move-up-btn">⬆️</button>
+              <button class="move-down-btn">⬇️</button>
+              <button class="delete-btn">❌️</button>
+              <button class="add-row-btn">➕️1</button>
+              <button class="add-data-btn">➕️2</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="table-body"></table>
+          </div>
+        </td>
+      </tr>
+    </template>
+    <template id="row-template">
+      <tr class="row-wrapper row-body"></tr>
+    </template>
+    <template id="data-template">
+      <td class="data-wrapper cell1">
+        <p class="info-title">Hello</p>
+        <div class="cell-input-wrapper" style="display: none;">
+            <div class="info-input" contenteditable="true"></div>
+        </div>
+      </td>
     </template>
     <template id="section-template">
       <div class="section-wrapper">
