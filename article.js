@@ -98,6 +98,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         saveState();
     });
+    document.getElementById('infobox-toggle-btn').addEventListener('click', function() {
+        const mainInfobox = document.getElementById('infobox');
+        const presetBtn1 = document.getElementById('enable-preset1');
+        const presetBtn2 = document.getElementById('enable-preset2');
+        
+        if (this.textContent === 'Main Infobox: Hide') {
+            mainInfobox.style.display = 'table';
+            presetBtn1.style.display = 'inline';
+            presetBtn2.style.display = 'inline';
+            this.innerHTML = `<b>Main Infobox: Show</b>`
+            data.infobox = true;
+        } else {
+            mainInfobox.style.display = 'none';
+            presetBtn1.style.display = 'none';
+            presetBtn2.style.display = 'none';
+            this.innerHTML = `<b>Main Infobox: Hide</b>`
+            data.infobox = false;
+        }
+        saveState();
+    });
     document.getElementById('header-toggle-btn').addEventListener('click', () => {
         const headerTextBtn = document.querySelectorAll('.header-text-btn');
       
@@ -581,7 +601,18 @@ function editInfobox(editMode) {
 
 function editTableData(rowElement, row, editMode) {
     const dataWrappers = rowElement.querySelectorAll('.data-wrapper');
+    const rowDeleteBtns = rowElement.querySelectorAll('.row-delete-wrapper')
     const tableData = row.data;
+    
+    if (rowDeleteBtns) {
+        rowDeleteBtns.forEach(btn => {
+            if (editMode) {
+                btn.style.display = 'table-cell';
+            } else {
+                btn.style.display = 'none';
+            }
+        });
+    }
     
     if (dataWrappers) {
         dataWrappers.forEach(wrapper => {
@@ -762,7 +793,7 @@ function updateImage(template, imageElement) {
 
 function handleRowClick(event) {
     const target = event.target;
-    const row = target.closest('tr');
+    const row = target.closest('.character-wrapper');
     const index = row ? row.dataset.index : null;
     const infobox = infoboxes.find(char => char.id == index);
 
@@ -810,6 +841,12 @@ function handleRowClick(event) {
         generateRow(row, infobox);
     } else if (target.classList.contains('add-data-btn')) {
         generateTableData(row, infobox);
+    } else if (target.classList.contains('row-delete-btn')) {
+        const rowElement = target.closest('.row-wrapper');
+        const rows = infobox.rows;
+        const index = rowElement.dataset.index;
+        const miniRow = rows.find(r => r.id == index);
+        deleteElement(rowElement, miniRow, 'mini row');
     }
 }
 
@@ -1070,8 +1107,10 @@ function generateRow(row, infobox) {
 }
 
 function updateRow(rowElement, row, firstRow) {
+    const template = document.getElementById('row-delete-template').content.cloneNode(true);
     if (firstRow) {
         rowElement.querySelector('.row-wrapper').setAttribute('data-index', row.id);
+        rowElement.querySelector('.row-body').appendChild(template);
         
         const tableData = row.data;
         if (tableData) {
@@ -1084,6 +1123,8 @@ function updateRow(rowElement, row, firstRow) {
         }
     } else {
         rowElement.setAttribute('data-index', row.id);
+        rowElement.appendChild(template);
+        
         const dataWrappers = rowElement.querySelectorAll('.data-wrapper');
         
         dataWrappers.forEach(wrapper => {
@@ -1369,6 +1410,9 @@ function updateData(data) {
     if (data.upperToolbar) {
         document.getElementById('upper-toolbar-btn').click();
     }
+    if (data.infobox) {
+        document.getElementById('infobox-toggle-btn').click();
+    }
 }
 
 function loadState() {
@@ -1416,7 +1460,11 @@ function loadState() {
                   template = document.getElementById('table-template').content.cloneNode(true);
                   updateTable(template, infobox);
                   const editorWrapper = template.querySelector('.infobox-name-controls');
+                  const rowDeleteBtns = template.querySelectorAll('.row-delete-wrapper');
                   editorWrapper.style.display = 'none';
+                  rowDeleteBtns.forEach(btn => {
+                      btn.style.display = 'none';
+                  });
                 } else {
                   template = document.getElementById('infobox-template').content.cloneNode(true);
                   updateInfobox(template, infobox);
@@ -1513,6 +1561,14 @@ function deleteElement(row, element, type) {
                 cell.position = previousPosition + 1;
                 previousPosition = cell.position;
             });
+        }
+    } else if (type === 'mini row') {
+        if (confirm('Are you sure you want to delete this cell?')) {
+            const index = row.closest('.character-wrapper').getAttribute('data-index');
+            const infobox = infoboxes.find(char => char.id == index);
+            row.remove();
+            const rows = infobox.rows;
+            rows.splice(rows.indexOf(element), 1);
         }
     }
 }

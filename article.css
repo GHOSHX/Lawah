@@ -38,6 +38,10 @@ body {
   border-top: 2px solid black;
 }
 
+#infobox {
+  display: none;
+}
+
 #toolbar::-webkit-scrollbar {
   height: 6px; /* Small scrollbar height */
 }
@@ -133,7 +137,8 @@ body {
 
 table, th, td {
   width: 100%;
-  border: 1px solid black;
+  border-right: 1px solid black;
+  border-left: 1px solid black;
   border-collapse: collapse;
   background-color: #F1e7dd;
 }
@@ -219,6 +224,13 @@ th, td {
 
 .category {
   background-color: #f4c458;
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+}
+
+.row-delete-wrapper {
+  width: 10%;
+  border: 1px solid black;
 }
 
 h3 {
