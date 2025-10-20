@@ -601,8 +601,15 @@ function editInfobox(editMode) {
 
 function editTableData(rowElement, row, editMode) {
     const dataWrappers = rowElement.querySelectorAll('.data-wrapper');
+    const rowDelete2Template = rowElement.parentNode.querySelector('.row2-wrapper');
     const rowDeleteBtns = rowElement.querySelectorAll('.row-delete-wrapper')
     const tableData = row.data;
+    
+    if (editMode) {
+        rowDelete2Template.style.display = 'table-row';
+    } else {
+        rowDelete2Template.style.display = 'none';
+    }
     
     if (rowDeleteBtns) {
         rowDeleteBtns.forEach(btn => {
@@ -785,12 +792,6 @@ function handleCellChange(event) {
     saveState();
 }
 
-function updateImage(template, imageElement) {
-    const img = template.querySelector('img');
-    img.setAttribute('data-index', imageElement.id);
-    img.src = imageElement.imgSrc;
-}
-
 function handleRowClick(event) {
     const target = event.target;
     const row = target.closest('.character-wrapper');
@@ -847,6 +848,21 @@ function handleRowClick(event) {
         const index = rowElement.dataset.index;
         const miniRow = rows.find(r => r.id == index);
         deleteElement(rowElement, miniRow, 'mini row');
+    } else if (target.classList.contains('row-delete2-btn')) {
+        const index = target.dataset.index;
+        const rows = infobox.rows;
+        rows.forEach(box => {
+            const tableData = box.data;
+            tableData.forEach(cell => {
+                if (cell.position == index) {
+                    const rowElement = document.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
+                    target.parentNode.remove();
+                    rowElement.remove();
+                    tableData.splice(tableData.indexOf(cell), 1);
+                }
+            });
+        });
+        saveState();
     }
 }
 
@@ -1069,13 +1085,32 @@ function generateTable(catTemplate, category) {
 
 function updateTable(element, table) {
     element.querySelector('.character-wrapper').setAttribute('data-index', table.id);
+    const rowDelete2Template = document.getElementById('row2-template').content.cloneNode(true);
+    const dataTemplate = document.getElementById('data-template').content.cloneNode(true);
+    element.querySelector('.table-body').appendChild(rowDelete2Template);
+    element.querySelector('.row2-wrapper').appendChild(dataTemplate);
+    const infoTitle = 
+    element.querySelector('.row2-wrapper').querySelector('.info-title');
+    infoTitle.textContent = '';
     const rows = table.rows;
+    let firstRow = true;
     if (rows) {
         rows.sort((a, b) => a.position - b.position);
         rows.forEach(row => {
             const template = document.getElementById('row-template').content.cloneNode(true);
             updateRow(template, row, true);
             element.querySelector('.table-body').appendChild(template);
+            if (firstRow) {
+                const rowDelete2Wrapper = element.querySelector('.row2-wrapper');
+              
+                const data = row.data;
+                data.forEach(tableData => {
+                    const rowDelete2Btn = document.getElementById('row-delete2-template').content.cloneNode(true);
+                    rowDelete2Btn.querySelector('.row-delete2-btn').setAttribute('data-index', tableData.position);
+                    rowDelete2Wrapper.appendChild(rowDelete2Btn);
+                });
+            }
+            firstRow = false;
         });
     }
 }
@@ -1123,7 +1158,6 @@ function updateRow(rowElement, row, firstRow) {
         }
     } else {
         rowElement.setAttribute('data-index', row.id);
-        rowElement.appendChild(template);
         
         const dataWrappers = rowElement.querySelectorAll('.data-wrapper');
         
@@ -1146,6 +1180,7 @@ function updateRow(rowElement, row, firstRow) {
 
 function generateTableData(tableElement, table) {
     const rows = table.rows;
+    let previousPosition;
     
     rows.forEach(row => {
         const rowElement = document.querySelector(`tr[data-index="${row.id}"]`);
@@ -1168,7 +1203,12 @@ function generateTableData(tableElement, table) {
         infoTitle.style.display = 'none';
         inputWrapper.style.display = 'block';
         rowElement.appendChild(template);
+        previousPosition = newPosition;
     });
+    const rowDelete2Btn = document.getElementById('row-delete2-template').content.cloneNode(true);
+    const rowDelete2Wrapper = tableElement.querySelector('.row2-wrapper');
+    rowDelete2Btn.querySelector('.row-delete2-btn').setAttribute('data-index', previousPosition)
+    rowDelete2Wrapper.appendChild(rowDelete2Btn);
     saveState();
 }
 
@@ -1460,11 +1500,13 @@ function loadState() {
                   template = document.getElementById('table-template').content.cloneNode(true);
                   updateTable(template, infobox);
                   const editorWrapper = template.querySelector('.infobox-name-controls');
+                  const rowDelete2Template = template.querySelector('.row2-wrapper');
                   const rowDeleteBtns = template.querySelectorAll('.row-delete-wrapper');
                   editorWrapper.style.display = 'none';
                   rowDeleteBtns.forEach(btn => {
                       btn.style.display = 'none';
                   });
+                  rowDelete2Template.style.display = 'none';
                 } else {
                   template = document.getElementById('infobox-template').content.cloneNode(true);
                   updateInfobox(template, infobox);

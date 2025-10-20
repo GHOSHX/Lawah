@@ -12,6 +12,20 @@ body {
   html, body { margin: 0; }
 }
 
+table, th, td {
+  width: 100%;
+  border-right: 1px solid black;
+  border-left: 1px solid black;
+  border-collapse: collapse;
+  background-color: #F1e7dd;
+}
+
+th, td {
+  width: 40%;
+  padding: 5px;
+  text-align: left;
+}
+
 #toolbar {
   position: fixed;
   right: 0;
@@ -133,20 +147,6 @@ body {
 
 #control-room2 {
   margin-bottom: 39px;
-}
-
-table, th, td {
-  width: 100%;
-  border-right: 1px solid black;
-  border-left: 1px solid black;
-  border-collapse: collapse;
-  background-color: #F1e7dd;
-}
-
-th, td {
-  width: 40%;
-  padding: 5px;
-  text-align: left;
 }
 
 #title-input {
