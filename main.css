@@ -1,5 +1,12 @@
 html, body { height: 100%; margin: 0; }
 
+#tutorial-page-btn {
+  margin: 4px;
+  padding: 5px 10px;
+  font-size: 100%;
+  background-color: gray;
+}
+
 #home-wrapper {
   margin-top: 8px;
   display: flex;
@@ -20,6 +27,7 @@ html, body { height: 100%; margin: 0; }
 #clear-all-btn {
   background-color: #ffe19c;
   padding: 7px;
+  display: none;
 }
 
 #create-section-btn, #upload-file-btn {
