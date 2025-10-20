@@ -28,6 +28,9 @@ let sections = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     openDB();
+    document.getElementById('tutorial-page-btn').addEventListener('click', () => {
+        window.location.href = 'tutorial.html';
+    });
     document.getElementById('pic-toggle-btn').addEventListener('click', () => {
         const isVisible = document.getElementById('home-pic1').style.display !== 'none';
         
@@ -104,7 +107,8 @@ function generateArticle(newId, newTitle) {
         intro: 'Write intro here...',
         synopsis: 'Write synopsis here...',
         poster: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
-        upperToolbar: false
+        upperToolbar: false,
+        infobox: false
     };
     
     const newArticle = {
