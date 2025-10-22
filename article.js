@@ -853,6 +853,22 @@ function handleRowClick(event) {
             deleteElement(target, infobox, 'table data');
         }
         saveState();
+    } else if (target.classList.contains('row-up-btn')) {
+        const rowElement = target.closest('.row-wrapper');
+        moveMiniRow(rowElement, infobox, 'up');
+    } else if (target.classList.contains('row-down-btn')) {
+        const rowElement = target.closest('.row-wrapper');
+        moveMiniRow(rowElement, infobox, 'down');
+    } else if (target.classList.contains('row-left-btn')) {
+        const rowDelete2Btn = target.parentNode.querySelector('.row-delete2-btn');
+        const index = rowDelete2Btn.dataset.index;
+        console.log(index);
+        moveTableData(index, infobox, 'left');
+    } else if (target.classList.contains('row-right-btn')) {
+        const rowDelete2Btn = target.parentNode.querySelector('.row-delete2-btn');
+        const index = rowDelete2Btn.dataset.index;
+        console.log(index);
+        moveTableData(index, infobox, 'right');
     }
 }
 
@@ -1268,9 +1284,81 @@ function moveSection(row, infobox, direction) {
     saveState();
 }
 
+// moves mini rows inside the table row
+function moveMiniRow(row, table, direction) {
+    const previousRowElement = row.previousElementSibling;
+    const nextRowElement = row.nextElementSibling;
+    const index = row.dataset.index;
+    const rows = table.rows;
+    const currentRow = rows.find(r => r.id == index);
+    if (direction === 'up' && previousRowElement) {
+        const previousIndex = Number(previousRowElement.dataset.index);
+        const previousRow = rows.find(sec => sec.id === previousIndex);
+        
+        const currentPosition = currentRow.position;
+        currentRow.position = previousRow.position;
+        previousRow.position = currentPosition;
+    
+        row.parentNode.insertBefore(row, previousRowElement);
+    } else if (direction === 'down' && nextRowElement) {
+        const nextIndex = Number(nextRowElement.dataset.index);
+        const nextRow = rows.find(sec => sec.id === nextIndex);
+        
+        const currentPosition = currentRow.position;
+        currentRow.position = nextRow.position;
+        nextRow.position = currentPosition;
+    
+        row.parentNode.insertBefore(nextRowElement, row);
+    } else {
+        let previousPosition = 0;
+        
+        rows.forEach(box => {
+            box.position = previousPosition++;
+        });
+    }
+    saveState();
+}
+
+function moveTableData(position, table, direction) {
+    const rows = table.rows;
+    rows.forEach(row => {
+        const tableData = row.data;
+        const rowElement = document.querySelector(`.row-wrapper[data-index="${row.id}"]`);
+        tableData.forEach(cell => {
+            if (cell.position == position) {
+                const dataElement = rowElement.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
+                const previousCell = dataElement.previousElementSibling;
+                const nextCell = dataElement.nextElementSibling;
+                
+                if (direction === 'left' && previousCell && previousCell.classList.contains('data-wrapper')) {
+                    const previousIndex = Number(previousCell.dataset.index);
+                    const previousData = tableData.find(a => a.id === previousIndex);
+                    
+                    const currentPosition = cell.position;
+                    cell.position = previousData.position;
+                    previousData.position = currentPosition;
+                    
+                    dataElement.parentNode.insertBefore(dataElement, previousCell);
+                } else if (direction === 'right' && nextCell) {
+                    const nextIndex = Number(nextCell.dataset.index);
+                    const nextData = tableData.find(a => a.id === nextIndex);
+                    
+                    const currentPosition = cell.position;
+                    cell.position = nextData.position;
+                    nextData.position = currentPosition;
+                    
+                    dataElement.parentNode.insertBefore(nextCell, dataElement);
+                }
+            }
+            tableData.sort((a, b) => a.position - b.position);
+        });
+    });
+}
+
 function moveCell(row, currentCell, direction) {
     const previousRow = row.previousElementSibling;
     const nextRow = row.nextElementSibling;
+    
     if (direction === 'up' && previousRow) {
         const previousIndex = Number(previousRow.dataset.index);
         const previousCell = cells.find(el => el.id === previousIndex);
@@ -1599,6 +1687,12 @@ function deleteElement(row, element, type) {
             row.remove();
             const rows = infobox.rows;
             rows.splice(rows.indexOf(element), 1);
+            
+            let previousPosition = 0;
+            
+            rows.forEach(box => {
+                box.position = previousPosition++;
+            });
         }
     } else if (type === 'table data') {
         const target = row;
