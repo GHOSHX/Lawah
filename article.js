@@ -849,19 +849,9 @@ function handleRowClick(event) {
         const miniRow = rows.find(r => r.id == index);
         deleteElement(rowElement, miniRow, 'mini row');
     } else if (target.classList.contains('row-delete2-btn')) {
-        const index = target.dataset.index;
-        const rows = infobox.rows;
-        rows.forEach(box => {
-            const tableData = box.data;
-            tableData.forEach(cell => {
-                if (cell.position == index) {
-                    const rowElement = document.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
-                    target.parentNode.remove();
-                    rowElement.remove();
-                    tableData.splice(tableData.indexOf(cell), 1);
-                }
-            });
-        });
+        if (confirm('Are you sure you want to delete these cells?')) {
+            deleteElement(target, infobox, 'table data');
+        }
         saveState();
     }
 }
@@ -906,7 +896,7 @@ function toggleCategory(row, category) {
             if (isVisible) {
                 template.style.display = 'none';
             } else {
-                template.style.display = 'block';
+                template.style.display = 'table-row';
                 allignCategory(row, category);
             }
         }
@@ -979,6 +969,7 @@ function generateInfobox(catTemplate, category) {
     infoboxes.push(newInfobox);
     
     updateInfobox(template, newInfobox);
+    template.querySelector('.control-room').style.display = 'block';
     if (category) {
         infoboxes.sort((a, b) => a.position - b.position);
         catTemplate.parentNode.insertBefore(template, catTemplate.nextElementSibling);
@@ -1571,11 +1562,10 @@ function deleteElement(row, element, type) {
             infoboxes.splice(infoboxes.indexOf(element), 1);
         }
         
-        let previousPosition = -1;
+        let previousPosition = 0;
           
         infoboxes.forEach(infobox => {
-            infobox.position = previousPosition + 1;
-            previousPosition = infobox.position;
+            infobox.position = previousPosition++;
         });
     } else if (type === 'cell') {
         if (confirm('Are you sure you want to delete this cell?')) {
@@ -1583,11 +1573,10 @@ function deleteElement(row, element, type) {
             cells.splice(cells.indexOf(element), 1);
         }
         
-        let previousPosition = -1;
+        let previousPosition = 0;
           
         cells.forEach(cell => {
-            cell.position = previousPosition + 1;
-            previousPosition = cell.position;
+            cell.position = previousPosition++;
         });
     } else if (type === 'section') {
         if (confirm('Are you sure you want to delete this cell?')) {
@@ -1597,11 +1586,10 @@ function deleteElement(row, element, type) {
             row.remove();
             sections.splice(sections.indexOf(element), 1);
             
-            let previousPosition = -1;
+            let previousPosition = 0;
           
             sections.forEach(cell => {
-                cell.position = previousPosition + 1;
-                previousPosition = cell.position;
+                cell.position = previousPosition++;
             });
         }
     } else if (type === 'mini row') {
@@ -1612,6 +1600,30 @@ function deleteElement(row, element, type) {
             const rows = infobox.rows;
             rows.splice(rows.indexOf(element), 1);
         }
+    } else if (type === 'table data') {
+        const target = row;
+        const index = target.dataset.index;
+        const rowDelete2Wrapper = target.closest('.row2-wrapper');
+        target.parentNode.remove();
+        const rowDelete2Btns = rowDelete2Wrapper.querySelectorAll('.row-delete2-btn');
+        const rows = element.rows;
+        let previousPosition = 0;
+        
+        rowDelete2Btns.forEach(btn => {
+            btn.setAttribute('data-index', previousPosition++);
+        });
+        
+        rows.forEach(miniRow => {
+            const cell = miniRow.data.find(a => a.position == index);
+            const rowElement = document.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
+            rowElement.remove();
+            miniRow.data.splice(miniRow.data.indexOf(cell), 1);
+            previousPosition = 0;
+            
+            miniRow.data.forEach(cell => {
+                cell.position = previousPosition++;
+            });
+        });
     }
 }
 

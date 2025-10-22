@@ -21,7 +21,6 @@ table, th, td {
 }
 
 th, td {
-  width: 40%;
   padding: 5px;
   text-align: left;
 }
@@ -202,7 +201,7 @@ th, td {
 }
 
 .text-area {
-  width: 500px;
+  width: 100vw;
 }
 
 #info-list {
@@ -226,11 +225,6 @@ th, td {
   background-color: #f4c458;
   border-top: 2px solid black;
   border-bottom: 2px solid black;
-}
-
-.row-delete-wrapper {
-  width: 10%;
-  border: 1px solid black;
 }
 
 h3 {
@@ -338,8 +332,21 @@ img {
   margin-top: 1px;
 }
 
-.row-wrapper {
-  width: 100%;
+.mini-table {
+  width: 100vw;
+}
+
+.data-wrapper {
+  width: 40%;
+}
+
+.row-delete2-wrapper {
+  border: 1px solid black;
+}
+
+.row-delete-wrapper {
+  width: 10%;
+  border: 1px solid black;
 }
 
 .table-scroll {
