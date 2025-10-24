@@ -200,6 +200,15 @@ th, td {
   box-sizing: border-box;
 }
 
+.toggle-btn {
+  background-image: url(https://i.ibb.co/6q919Xb/20251024-055350.png);
+  background-color: transparent;
+  background-size: cover;
+  width: 25px;
+  height: 15px;
+  border: 0px;
+}
+
 .text-area {
   width: 100vw;
 }

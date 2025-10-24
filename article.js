@@ -262,13 +262,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function toggleTable(tableId, button) {
-    let isVisible = button.textContent === '⛔️';
+    let isVisible = getComputedStyle(button).backgroundImage.includes('https://i.ibb.co/s91K27m8/20251024-091953.png');
     var table = document.getElementById(tableId);
     const infoboxTemplate = document.querySelectorAll('.character-wrapper');
     
     if (!isVisible) {
         table.style.display = 'table';
-        button.textContent = '⛔️';
+        button.style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
         let toggleCategoryBtn;
         
         infoboxTemplate.forEach(template => {
@@ -276,16 +276,16 @@ function toggleTable(tableId, button) {
             const infobox = infoboxes.find(char => char.id == index);
             
             if (infobox.type !== 'category') {
-                if (toggleCategoryBtn === '👁') {
+                if (toggleCategoryBtn.includes('https://i.ibb.co/6q919Xb/20251024-055350.png')) {
                     template.style.display = 'none';
                 }
             } else {
-              toggleCategoryBtn = template.querySelector('.toggle-category-btn').textContent;
+              toggleCategoryBtn = getComputedStyle(template.querySelector('.toggle-category-btn')).backgroundImage;
             }
         });
     } else {
         table.style.display = 'none';
-        button.textContent = '👁';
+        button.style.backgroundImage = 'url(https://i.ibb.co/6q919Xb/20251024-055350.png)';
     }
 }
 
@@ -901,7 +901,7 @@ function handleRowChange(event) {
 function toggleCategory(row, category) {
     let id = category.id;
     let toggleButton = row.querySelector('.toggle-category-btn');
-    let isVisible = toggleButton.textContent === '⛔️';
+    let isVisible = getComputedStyle(toggleButton).backgroundImage.includes('https://i.ibb.co/s91K27m8/20251024-091953.png');
     const infoboxTemplate = document.querySelectorAll('.character-wrapper');
     
     infoboxTemplate.forEach(template => {
@@ -919,9 +919,9 @@ function toggleCategory(row, category) {
     });
     
     if (isVisible) {
-        toggleButton.textContent = '️👁';
+        toggleButton.style.backgroundImage = 'url(https://i.ibb.co/6q919Xb/20251024-055350.png)';
     } else {
-        toggleButton.textContent = '⛔️';
+        toggleButton.style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
     }
     saveState();
 }
