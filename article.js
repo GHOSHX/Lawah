@@ -26,6 +26,7 @@ let currentTextArea;
 let toggleSynopsisBtn;
 let toggleInfoboxBtn;
 let editSynopsisBtn;
+let toggleAddBtn;
 let addRow1Btn;
 let addRow2Btn;
 let addRow3Btn;
@@ -53,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     downloadBtn = document.getElementById('download-btn');
     settingsBtn = document.getElementById('settings-btn');
     editSynopsisBtn = document.getElementById('edit-synopsis-btn');
+    toggleAddBtn = document.getElementById('toggle-add-btn');
     addRow1Btn = document.getElementById('add-infobox-btn');
     addRow2Btn = document.getElementById('add-category-btn');
     addRow3Btn = document.getElementById('add-text-btn');
@@ -60,6 +62,17 @@ document.addEventListener('DOMContentLoaded', () => {
     addCell2Btn = document.getElementById('add-info-btn2');
     addCell1Btn.addEventListener('click', () => generateCell('info-template', null));
     addCell2Btn.addEventListener('click', () => generateCell('info-template2', null));
+    toggleAddBtn.addEventListener('click', () => {
+        const addBtn = document.querySelectorAll('.row-add-btn');
+        
+        addBtn.forEach(button => {
+            if (getComputedStyle(button).display.includes('none')) {
+                button.style.display = 'inline-flex';
+            } else {
+                button.style.display = 'none';
+            }
+        });
+    });
     addRow1Btn.addEventListener('click', () => generateInfobox(null, null));
     document.getElementById('add-table-btn').addEventListener('click', () => generateTable(null, null));
     addRow2Btn.addEventListener('click', generateCategory);
@@ -275,12 +288,10 @@ function toggleTable(tableId, button) {
             const index = template.getAttribute('data-index');
             const infobox = infoboxes.find(char => char.id == index);
             
-            if (infobox.type !== 'category') {
-                if (toggleCategoryBtn.includes('https://i.ibb.co/6q919Xb/20251024-055350.png')) {
-                    template.style.display = 'none';
-                }
-            } else {
-              toggleCategoryBtn = getComputedStyle(template.querySelector('.toggle-category-btn')).backgroundImage;
+            if (infobox.type === 'category') {
+                toggleCategoryBtn = getComputedStyle(template.querySelector('.toggle-category-btn')).backgroundImage;
+            } else if (toggleCategoryBtn && toggleCategoryBtn.includes('https://i.ibb.co/6q919Xb/20251024-055350.png')) {
+                template.style.display = 'none';
             }
         });
     } else {
@@ -449,10 +460,10 @@ function editArticle() {
     
     if (db) {
         if (editMode) {
-            if (toggleSynopsisBtn.textContent === '👁') {
+            if (getComputedStyle(toggleSynopsisBtn).backgroundImage.includes('https://i.ibb.co/6q919Xb/20251024-055350.png')) {
                 toggleSynopsisBtn.click();
             }
-            if (toggleInfoboxBtn.textContent === '👁') {
+            if (getComputedStyle(toggleInfoboxBtn).backgroundImage.includes('https://i.ibb.co/6q919Xb/20251024-055350.png')) {
                 toggleInfoboxBtn.click();
             }
             controlRoom.forEach(room => {
@@ -531,7 +542,7 @@ function editInfobox(editMode) {
         const index = template.getAttribute('data-index');
         const infobox = infoboxes.find(char => char.id == index);
         const toggleCategoryBtn = template.querySelector('.toggle-category-btn');
-        const isCategoryVisible = toggleCategoryBtn ? toggleCategoryBtn.textContent === '⛔️' : null;
+        const isCategoryVisible = toggleCategoryBtn ? getComputedStyle(toggleCategoryBtn).backgroundImage.includes('https://i.ibb.co/s91K27m8/20251024-091953.png') : null;
           
         if (editMode) {
             if (infobox.type === 'category') {
@@ -802,8 +813,8 @@ function handleRowClick(event) {
         const imgBtn = row.querySelectorAll('.infobox-img-btn');
       
         imgBtn.forEach(button => {
-            if (button.style.display === 'none'||button.style.display === '') {
-              button.style.display = 'inline-block';
+            if (getComputedStyle(button).display.includes('none')) {
+              button.style.display = 'inline-flex';
             } else {
               button.style.display = 'none';
             }
@@ -869,6 +880,16 @@ function handleRowClick(event) {
         const index = rowDelete2Btn.dataset.index;
         console.log(index);
         moveTableData(index, infobox, 'right');
+    } else if (target.classList.contains('toggle-add-btn2')) {
+        const addBtn = row.querySelectorAll('.row-add-btn2');
+        
+        addBtn.forEach(button => {
+            if (getComputedStyle(button).display.includes('none')) {
+                button.style.display = 'inline-flex';
+            } else {
+                button.style.display = 'none';
+            }
+        });
     }
 }
 
@@ -941,7 +962,7 @@ function generateCategory() {
     infoboxes.push(newInfobox);
 
     updateCategory(template, newInfobox);
-    template.querySelector('.toggle-category-btn').textContent = '⛔️';
+    template.querySelector('.toggle-category-btn').style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
     
     document.getElementById('table-body').appendChild(template);
     saveState();

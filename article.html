@@ -89,10 +89,11 @@
       <tbody id="table-body"></tbody>
     </table>
     <div id="control-room2" class="control-room" style="display: none;">
-      <button id="add-infobox-btn">➕️ Infobox</button>
-      <button id="add-category-btn">➕️ Category</button>
-      <button id="add-text-btn">➕️ Text Area</button>
-      <button id="add-table-btn">➕️ Table</button>
+      <button id="toggle-add-btn">➕️</button>
+      <button id="add-infobox-btn" class="row-add-btn"></button>
+      <button id="add-category-btn" class="row-add-btn"></button>
+      <button id="add-text-btn" class="row-add-btn"><b>Text</b></button>
+      <button id="add-table-btn" class="row-add-btn"></button>
     </div>
     <template id="info-template">
       <tr class="info-wrapper">
@@ -169,9 +170,10 @@
               <button class="move-up-btn">⬆️</button>
               <button class="move-down-btn">⬇️</button>
               <button class="delete-btn">❌️</button>
-              <button class="add-infobox-btn2">➕️ 1</button>
-              <button class="add-text-btn2">➕️ 2</button>
-              <button class="add-table-btn2">➕️ 3</button>
+              <button class="toggle-add-btn2">➕️</button>
+              <button class="add-infobox-btn2 row-add-btn2"></button>
+              <button class="add-text-btn2 row-add-btn2">Text</button>
+              <button class="add-table-btn2 row-add-btn2"></button>
             </div>
           </div>
         </td>

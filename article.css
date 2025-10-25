@@ -122,10 +122,6 @@ th, td {
   display: none;
 }
 
-.infobox-img-btn {
-  display: none;
-}
-
 .img-btn {
   display: none;
 }
@@ -209,6 +205,38 @@ th, td {
   border: 0px;
 }
 
+#add-infobox-btn {
+  background-image: url(https://i.ibb.co/jvZpGgFd/20251024-213808.png);
+  background-size: contain;
+  background-position: center;
+}
+
+#add-table-btn {
+  background-image: url(https://i.ibb.co/W4T8G4rP/20251024-122856.png);
+  background-size: contain;
+  background-position: center;
+}
+
+.add-infobox-btn2 {
+  background-image: url(https://i.ibb.co/jvZpGgFd/20251024-213808.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+#add-category-btn {
+  background-image: url(https://i.ibb.co/Xk566hdf/20251025-114655.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+.add-table-btn2 {
+  background-image: url(https://i.ibb.co/W4T8G4rP/20251024-122856.png);
+  background-size: contain;
+  background-position: center;
+}
+
 .text-area {
   width: 100vw;
 }
@@ -260,6 +288,42 @@ p {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.infobox-name-controls button {
+  justify-content: center;
+  align-items: center;
+  width: 35px;
+  height: 25px;
+  padding: 0px;
+  margin: 2px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  vertical-align: middle;
+}
+
+#control-room2 button {
+  justify-content: center;
+  align-items: center;
+  width: 35px;
+  height: 25px;
+  padding: 0px;
+  margin: 2px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  vertical-align: middle;
+}
+
+.infobox-img-btn {
+  display: none;
+}
+
+.row-add-btn {
+  display: none;
+}
+
+.row-add-btn2 {
+  display: none;
 }
 
 .info-cell {
