@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addRow2Btn.addEventListener('click', generateCategory);
     addRow3Btn.addEventListener('click', () => generateTextArea(null, null));
     toggleSynopsisBtn.addEventListener('click', () => toggleTable('table1', toggleSynopsisBtn));
-    toggleInfoboxBtn.addEventListener('click', () => toggleTable('table2', toggleInfoboxBtn));
+    toggleInfoboxBtn.addEventListener('click', () => toggleTable('row-list', toggleInfoboxBtn));
     document.getElementById('delete-article-btn').addEventListener('click', () => {
         if (confirm('Are you sure you want to delete this saved article?')) {
             deleteElementFromArticle();
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
           // Update UI
           updateData(data);
-          document.getElementById('table-body').innerHTML = '';
+          document.getElementById('row-list').innerHTML = '';
           document.getElementById('info-list').innerHTML = '';
           saveState(); // persist back to IndexedDB
           loadState(); // reload saved structures
@@ -270,8 +270,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('info-list').addEventListener('click', handleCellClick);
     document.getElementById('info-list').addEventListener('change', handleCellChange);
-    document.getElementById('table-body').addEventListener('click', handleRowClick);
-    document.getElementById('table-body').addEventListener('change', handleRowChange);
+    document.getElementById('row-list').addEventListener('click', handleRowClick);
+    document.getElementById('row-list').addEventListener('change', handleRowChange);
 });
 
 function toggleTable(tableId, button) {
@@ -280,7 +280,7 @@ function toggleTable(tableId, button) {
     const infoboxTemplate = document.querySelectorAll('.character-wrapper');
     
     if (!isVisible) {
-        table.style.display = 'table';
+        table.style.display = 'block';
         button.style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
         let toggleCategoryBtn;
         
@@ -933,7 +933,7 @@ function toggleCategory(row, category) {
             if (isVisible) {
                 template.style.display = 'none';
             } else {
-                template.style.display = 'table-row';
+                template.style.display = 'block';
                 allignCategory(row, category);
             }
         }
@@ -951,11 +951,18 @@ function toggleCategory(row, category) {
 function generateCategory() {
     const template = document.getElementById('category-template').content.cloneNode(true);
     const newId = Date.now();
-    const newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
+    const newPosition = 0;
+    let firstRow;
+    
+    if (infoboxes.length) {
+        infoboxes.forEach((Infobox, index) => Infobox.position = index + 1);
+        
+        firstRow = document.querySelector(`.character-wrapper[data-index="${infoboxes[0].id}"]`);
+    }
 
     const newInfobox = {
         id: newId,
-        name: 'Category No.' + (newPosition + 1),
+        name: 'Category No.' + (infoboxes.length ? infoboxes.length + 1 : 1),
         type: 'category',
         position: newPosition
     };
@@ -964,7 +971,12 @@ function generateCategory() {
     updateCategory(template, newInfobox);
     template.querySelector('.toggle-category-btn').style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
     
-    document.getElementById('table-body').appendChild(template);
+    if (firstRow) {
+        firstRow.parentNode.insertBefore(template, firstRow);
+    } else {
+        document.getElementById('row-list').appendChild(template);
+    }
+    infoboxes.sort((a, b) => a.position - b.position);
     saveState();
 }
 
@@ -978,24 +990,30 @@ function generateInfobox(catTemplate, category) {
     const template = document.getElementById('infobox-template').content.cloneNode(true);
     const newId = Date.now();
     let newPosition = null;
+    let firstRow;
     if (category) {
-        let previousPosition = category.position + 1;
-        newPosition = previousPosition;
+        newPosition = category.position + 1;
           
-        infoboxes.forEach(infobox => {
-            if (infobox.position > category.position) {
-              infobox.position = previousPosition + 1;
-              previousPosition = infobox.position;
+        infoboxes.forEach((infobox, index) => {
+            if (infobox.position >= newPosition) {
+                firstRow = firstRow ? firstRow : document.querySelector(`.character-wrapper[data-index="${infobox.id}"]`);
+                infobox.position = index + 1;
             }
         });
     } else {
-        infoboxes.sort((a, b) => a.position - b.position);
-        newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
+        newPosition = 0;
+        
+        if (infoboxes.length) {
+            infoboxes.forEach((infobox, index) =>
+                infobox.position = index + 1);
+            
+            firstRow = document.querySelector(`.character-wrapper[data-index="${infoboxes[0].id}"]`);
+        }
     }
 
     const newInfobox = {
         id: newId,
-        name: 'Infobox No.' + (newPosition + 1),
+        name: 'Infobox No.' + (infoboxes.length ? infoboxes.length + 1 : 1),
         bio: 'Write description about the subject here...',
         imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
         type: 'infobox',
@@ -1007,12 +1025,12 @@ function generateInfobox(catTemplate, category) {
     
     updateInfobox(template, newInfobox);
     template.querySelector('.control-room').style.display = 'block';
-    if (category) {
-        infoboxes.sort((a, b) => a.position - b.position);
-        catTemplate.parentNode.insertBefore(template, catTemplate.nextElementSibling);
+    if (firstRow) {
+        firstRow.parentNode.insertBefore(template, firstRow);
     } else {
-        document.getElementById('table-body').appendChild(template);
+        document.getElementById('row-list').appendChild(template);
     }
+    infoboxes.sort((a, b) => a.position - b.position);
     saveState();
 }
 
@@ -1036,17 +1054,24 @@ function generateTextArea(catTemplate, category) {
     const template = document.getElementById('text-template').content.cloneNode(true);
     const newId = Date.now();
     let newPosition = null;
+    let firstRow;
     if (category) {
-        let previousPosition = category.position + 1;
+        newPosition = category.position + 1;
           
-        infoboxes.forEach(infobox => {
-            if (infobox.position > category.position) {
-              infobox.position = previousPosition + 1;
-              previousPosition = infobox.position;
+        infoboxes.forEach((infobox, index) => {
+            if (infobox.position >= newPosition) {
+                firstRow = firstRow ? firstRow : document.querySelector(`.character-wrapper[data-index="${infobox.id}"]`);
+                infobox.position = index + 1;
             }
         });
     } else {
-        newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
+        newPosition = 0;
+        
+        if (infoboxes.length) {
+            infoboxes.forEach((infobox, index) => infobox.position = index + 1);
+            
+            firstRow = document.querySelector(`.character-wrapper[data-index="${infoboxes[0].id}"]`);
+        };
     }
 
     const newInfobox = {
@@ -1059,12 +1084,12 @@ function generateTextArea(catTemplate, category) {
     infoboxes.push(newInfobox);
 
     updateTextArea(template, newInfobox);
-    if (category) {
-        infoboxes.sort((a, b) => a.position - b.position);
-        catTemplate.parentNode.insertBefore(template, catTemplate.nextElementSibling);
+    if (firstRow) {
+        firstRow.parentNode.insertBefore(template, firstRow);
     } else {
-        document.getElementById('table-body').appendChild(template);
+        document.getElementById('row-list').appendChild(template);
     }
+    infoboxes.sort((a, b) => a.position - b.position);
     saveState();
 }
 
@@ -1078,18 +1103,25 @@ function generateTable(catTemplate, category) {
     const template = document.getElementById('table-template').content.cloneNode(true);
     const newId = Date.now();
     let newPosition = null;
+    let firstRow;
     
     if (category) {
-        let previousPosition = category.position + 1;
+        newPosition = category.position + 1;
           
-        infoboxes.forEach(infobox => {
+        infoboxes.forEach((infobox, index) => {
             if (infobox.position > category.position) {
-              infobox.position = previousPosition + 1;
-              previousPosition = infobox.position;
+                firstRow = firstRow ? firstRow : document.querySelector(`.character-wrapper[data-index="${infobox.id}"]`);
+                infobox.position = index + 1;
             }
         });
     } else {
-        newPosition = infoboxes.length ? infoboxes[infoboxes.length - 1].position + 1 : 0;
+        newPosition = 0;
+        
+        if (infoboxes.length) {
+            infoboxes.forEach((infobox, index) => infobox.position = index + 1);
+            
+            firstRow = document.querySelector(`.character-wrapper[data-index="${infoboxes[0].id}"]`);
+        }
     }
 
     const newInfobox = {
@@ -1102,12 +1134,12 @@ function generateTable(catTemplate, category) {
     infoboxes.push(newInfobox);
 
     updateTable(template, newInfobox);
-    if (category) {
-        infoboxes.sort((a, b) => a.position - b.position);
-        catTemplate.parentNode.insertBefore(template, catTemplate.nextElementSibling);
+    if (firstRow) {
+        firstRow.parentNode.insertBefore(template, firstRow);
     } else {
-        document.getElementById('table-body').appendChild(template);
+        document.getElementById('row-list').appendChild(template);
     }
+    infoboxes.sort((a, b) => a.position - b.position);
     saveState();
 }
 
@@ -1474,7 +1506,7 @@ function allignCategory(row, category) {
     if (childsOfCat.length) {
         childsOfCat.forEach(child => {
             const index = child.id;
-            const childNode = document.querySelector(`tr[data-index="${child.id}"]`);
+            const childNode = document.querySelector(`.character-wrapper[data-index="${child.id}"]`);
             
             childNode.style.display = 'block';
             childNode.parentNode.insertBefore(childNode, previousRow.nextElementSibling);
@@ -1622,7 +1654,7 @@ function loadState() {
                   bio.style.display = 'block';
                 }
                 
-                document.getElementById('table-body').appendChild(template);
+                document.getElementById('row-list').appendChild(template);
             });
             
             cells.sort((a, b) => a.position - b.position);

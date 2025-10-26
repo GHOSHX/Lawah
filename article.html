@@ -85,15 +85,14 @@
       <h3>ROWS</h3>
       <button id="toggle-infobox-btn" class="toggle-btn"></button>
     </div>
-    <table class="center-table" id="table2" style="display: none;">
-      <tbody id="table-body"></tbody>
-    </table>
     <div id="control-room2" class="control-room" style="display: none;">
       <button id="toggle-add-btn">➕️</button>
       <button id="add-infobox-btn" class="row-add-btn"></button>
       <button id="add-category-btn" class="row-add-btn"></button>
       <button id="add-text-btn" class="row-add-btn"><b>Text</b></button>
       <button id="add-table-btn" class="row-add-btn"></button>
+    </div>
+    <div class="center-table" id="row-list">
     </div>
     <template id="info-template">
       <tr class="info-wrapper">
@@ -125,83 +124,76 @@
         </td>
       </tr>
     </template>
-    <template id="infobox-template">
-      <tr class="character-wrapper">
-        <td class="character">
-          <button class="generate-preset-btn" style="display: none; font-weight: bold;">Preset</button>
-          <div class="infobox-profile">
-            <h3 class="infobox-name" style="display: none;">New Infobox</h3>
-            <input type="text" class="name-input" placeholder="Enter new name">
-            <div class="infobox-name-controls">
-              <input type="file" class="upload-img" style="display: none;" accept="image/*">
-              <button class="upload-img-btn">📷</button>
-              <button class="infobox-img-btn img-file-btn">📷📁</button>
-              <button class="infobox-img-btn img-link-btn">📷🔗</button>
-              <button class="move-up-btn">⬆️</button>
-              <button class="move-down-btn">⬇️</button>
-              <button class="delete-btn">❌️</button>
-            </div>
-            <img class="infobox-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="New Infobox">
-          </div>
-          <div class="infobox-bio">
-            <p class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</p>
-            <div class="bio-input" contenteditable="true">Write a bio</div>
-            <div class="section-lists"></div>
-            <div class="control-room" style="display: none;">
-              <button class="add-section-btn">➕️</button>
-            </div>
-          </div>
-          <div class="see-more text-center">
-            <span class="see-more-btn">show more</span>
-          </div>
-        </td>
-      </tr>
-    </template>
     <template id="category-template">
-      <tr class="character-wrapper">
-        <td class="category">
-          <div class="infobox-profile">
-            <div class="infobox-controls">
-              <h3 class="infobox-name" style="display: none;">New Category</h3>
-              <input type="text" class="name-input" placeholder="Enter new name">
-              <button class="toggle-category-btn toggle-btn"></button>
-            </div>
-            <div class="infobox-name-controls">
-              <button class="move-up-btn">⬆️</button>
-              <button class="move-down-btn">⬇️</button>
-              <button class="delete-btn">❌️</button>
-              <button class="toggle-add-btn2">➕️</button>
-              <button class="add-infobox-btn2 row-add-btn2"></button>
-              <button class="add-text-btn2 row-add-btn2">Text</button>
-              <button class="add-table-btn2 row-add-btn2"></button>
-            </div>
+      <div class="character-wrapper category-wrapper">
+        <div class="infobox-profile">
+          <div class="infobox-controls">
+            <h3 class="infobox-name" style="display: none;">New Category</h3>
+            <input type="text" class="name-input" placeholder="Enter new name">
+            <button class="toggle-category-btn toggle-btn"></button>
           </div>
-        </td>
-      </tr>
+          <div class="infobox-name-controls">
+            <button class="move-up-btn">⬆️</button>
+            <button class="move-down-btn">⬇️</button>
+            <button class="delete-btn">❌️</button>
+            <button class="toggle-add-btn2">➕️</button>
+            <button class="add-infobox-btn2 row-add-btn2"></button>
+            <button class="add-text-btn2 row-add-btn2">Text</button>
+            <button class="add-table-btn2 row-add-btn2"></button>
+          </div>
+        </div>
+      </div>
+    </template>
+    <template id="infobox-template">
+      <div class="character-wrapper infobox-wrapper">
+        <button class="generate-preset-btn" style="display: none; font-weight: bold;">Preset</button>
+        <div class="infobox-profile">
+          <h3 class="infobox-name" style="display: none;">New Infobox</h3>
+          <input type="text" class="name-input" placeholder="Enter new name">
+          <div class="infobox-name-controls">
+            <input type="file" class="upload-img" style="display: none;" accept="image/*">
+            <button class="upload-img-btn">📷</button>
+            <button class="infobox-img-btn img-file-btn">📷📁</button>
+            <button class="infobox-img-btn img-link-btn">📷🔗</button>
+            <button class="move-up-btn">⬆️</button>
+            <button class="move-down-btn">⬇️</button>
+            <button class="delete-btn">❌️</button>
+          </div>
+          <img class="infobox-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="New Infobox">
+        </div>
+        <div class="infobox-bio">
+          <p class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</p>
+          <div class="bio-input" contenteditable="true">Write a bio</div>
+          <div class="section-lists"></div>
+          <div class="control-room" style="display: none;">
+            <button class="add-section-btn">➕️</button>
+          </div>
+        </div>
+        <div class="see-more text-center">
+          <span class="see-more-btn">show more</span>
+        </div>
+      </div>
     </template>
     <template id="text-template">
-      <tr class="character-wrapper">
-        <td class="text-area">
-          <div class="infobox-profile">
-            <div class="infobox-name-controls">
-              <button class="move-up-btn">⬆️</button>
-              <button class="move-down-btn">⬇️</button>
-              <button class="delete-btn">❌️</button>
-            </div>
+      <div class="character-wrapper text-area-wrapper">
+        <div class="infobox-profile">
+          <div class="infobox-name-controls">
+            <button class="move-up-btn">⬆️</button>
+            <button class="move-down-btn">⬇️</button>
+            <button class="delete-btn">❌️</button>
           </div>
-          <div class="infobox-bio">
-            <p class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</p>
-            <div class="bio-input" contenteditable="true">Write a bio</div>
-          </div>
-          <div class="see-more text-center">
-            <span class="see-more-btn">show more</span>
-          </div>
-        </td>
-      </tr>
+        </div>
+        <div class="infobox-bio">
+          <p class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</p>
+          <div class="bio-input" contenteditable="true">Write a bio</div>
+        </div>
+        <div class="see-more text-center">
+          <span class="see-more-btn">show more</span>
+        </div>
+      </div>
     </template>
     <template id="table-template">
-      <tr class="character-wrapper">
-        <td class="mini-table">
+      <div class="character-wrapper mini-table-wrapper">
           <div class="infobox-profile">
             <div class="infobox-name-controls">
               <button class="move-up-btn">⬆️</button>
@@ -214,8 +206,7 @@
           <div class="table-scroll">
             <table class="table-body"></table>
           </div>
-        </td>
-      </tr>
+      </div>
     </template>
     <template id="row-template">
       <tr class="row-wrapper row-body"></tr>
