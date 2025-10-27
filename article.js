@@ -43,8 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
     articleName = decodeURIComponent(urlParams.get('articleTitle'));
     
     openDB();
-    console.log(articleName);
-    console.log(currentArticleId);
     
     const inputPoster = document.getElementById('poster-input');
     toggleSynopsisBtn = document.getElementById('toggle-synopsis-btn');
@@ -109,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             data.upperToolbar = false;
         }
-        saveState();
+        saveState(1);
     });
     document.getElementById('infobox-toggle-btn').addEventListener('click', function() {
         const mainInfobox = document.getElementById('infobox');
@@ -129,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.innerHTML = `<b>Main Infobox: Hide</b>`
             data.infobox = false;
         }
-        saveState();
+        saveState(2);
     });
     document.getElementById('header-toggle-btn').addEventListener('click', () => {
         const headerTextBtn = document.querySelectorAll('.header-text-btn');
@@ -198,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
           updateData(data);
           document.getElementById('row-list').innerHTML = '';
           document.getElementById('info-list').innerHTML = '';
-          saveState(); // persist back to IndexedDB
+          saveState(3); // persist back to IndexedDB
           loadState(); // reload saved structures
     
           alert('File uploaded and data restored ✅');
@@ -263,13 +261,12 @@ document.addEventListener('DOMContentLoaded', () => {
       reader.onload = function(e) {
         data.poster = e.target.result;
         document.getElementById('poster').src = data.poster;
-        saveState();
+        saveState(4);
       }
       
       reader.readAsDataURL(this.files[0]);
     });
     document.getElementById('info-list').addEventListener('click', handleCellClick);
-    document.getElementById('info-list').addEventListener('change', handleCellChange);
     document.getElementById('row-list').addEventListener('click', handleRowClick);
     document.getElementById('row-list').addEventListener('change', handleRowChange);
 });
@@ -425,7 +422,6 @@ function generateCell(templateId, text) {
         template.querySelector('.cell3').style.backgroundColor = 'white';
     }
     document.getElementById('info-list').appendChild(template);
-    saveState();
 }
 
 function updateCell(template, cell) {
@@ -485,6 +481,8 @@ function editArticle() {
             introText.style.display = 'none';
             synopsisText.style.display = 'none';
             editButton.textContent = '✔️';
+            editInfobox(editMode);
+            editMainInfobox(editMode);
         } else {
             controlRoom.forEach(room => {
                 room.style.display = 'none';
@@ -508,10 +506,10 @@ function editArticle() {
             toolbar.style.display = 'none';
             editButton.textContent = '✏️';
             assignCategoriesToInfoboxes();
+            editInfobox(editMode);
+            editMainInfobox(editMode);
+            saveState(6);
         }
-        
-        editInfobox(editMode);
-        editMainInfobox(editMode);
     }
 }
 
@@ -521,11 +519,11 @@ function assignCategoriesToInfoboxes() {
   infoboxes.sort((a, b) => a.position - b.position);
 
   infoboxes.forEach(infobox => {
-    if (infobox.type === "category") {
-      currentCategoryId = infobox.id;
-    } else {
-      infobox.category = currentCategoryId; // assign nearest category above
-    }
+      if (infobox.type === "category") {
+          currentCategoryId = infobox.id;
+      } else {
+          infobox.category = currentCategoryId;
+      }
   });
 }
 
@@ -597,10 +595,18 @@ function editInfobox(editMode) {
         
         if (infobox.type === 'table') {
             const rows = infobox.rows;
+            const rowDelete2Wrapper = template.querySelector('.row2-wrapper');
+            
+            if (editMode) {
+                rowDelete2Wrapper.style.display = 'table-row';
+            } else {
+                rowDelete2Wrapper.style.display = 'none';
+            }
             
             rows.forEach(row => {
                 const rowElement = document.querySelector(`tr[data-index="${row.id}"]`);
                 editTableData(rowElement, row, editMode);
+                
             })
         }
         
@@ -612,15 +618,8 @@ function editInfobox(editMode) {
 
 function editTableData(rowElement, row, editMode) {
     const dataWrappers = rowElement.querySelectorAll('.data-wrapper');
-    const rowDelete2Template = rowElement.parentNode.querySelector('.row2-wrapper');
     const rowDeleteBtns = rowElement.querySelectorAll('.row-delete-wrapper')
     const tableData = row.data;
-    
-    if (editMode) {
-        rowDelete2Template.style.display = 'table-row';
-    } else {
-        rowDelete2Template.style.display = 'none';
-    }
     
     if (rowDeleteBtns) {
         rowDeleteBtns.forEach(btn => {
@@ -771,7 +770,6 @@ function editMainInfobox(editMode) {
                 });
             }
         });
-        saveState();
     }
 }
 
@@ -786,21 +784,6 @@ function handleCellClick(event) {
     } else if (target.classList.contains('cell-down-btn')) {
         moveCell(row, cell, 'down');
     }
-}
-
-function handleCellChange(event) {
-    const target = event.target;
-    const index = target.closest('.info-wrapper').getAttribute('data-index');
-    const cell = cells.find(el => el.id == index);
-
-    if (target.classList.contains('info-input')) {
-        cell.text1 = target.value;
-        target.closest('.info-wrapper').querySelector('.info-cell').innerHTML = target.value;
-    } else if (target.classList.contains('value-input')) {
-        cell.text2 = target.value;
-        target.closest('.value-wrapper').querySelector('.value-cell').innerHTML = target.value;
-    }
-    saveState();
 }
 
 function handleRowClick(event) {
@@ -863,7 +846,6 @@ function handleRowClick(event) {
         if (confirm('Are you sure you want to delete these cells?')) {
             deleteElement(target, infobox, 'table data');
         }
-        saveState();
     } else if (target.classList.contains('row-up-btn')) {
         const rowElement = target.closest('.row-wrapper');
         moveMiniRow(rowElement, infobox, 'up');
@@ -873,12 +855,10 @@ function handleRowClick(event) {
     } else if (target.classList.contains('row-left-btn')) {
         const rowDelete2Btn = target.parentNode.querySelector('.row-delete2-btn');
         const index = rowDelete2Btn.dataset.index;
-        console.log(index);
         moveTableData(index, infobox, 'left');
     } else if (target.classList.contains('row-right-btn')) {
         const rowDelete2Btn = target.parentNode.querySelector('.row-delete2-btn');
         const index = rowDelete2Btn.dataset.index;
-        console.log(index);
         moveTableData(index, infobox, 'right');
     } else if (target.classList.contains('toggle-add-btn2')) {
         const addBtn = row.querySelectorAll('.row-add-btn2');
@@ -916,7 +896,6 @@ function handleRowChange(event) {
         const type = target.getAttribute('data-type');
         loadImage(event, infobox);
     }
-    saveState();
 }
 
 function toggleCategory(row, category) {
@@ -944,7 +923,6 @@ function toggleCategory(row, category) {
     } else {
         toggleButton.style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
     }
-    saveState();
 }
 
 // generates category rows
@@ -977,7 +955,6 @@ function generateCategory() {
         document.getElementById('row-list').appendChild(template);
     }
     infoboxes.sort((a, b) => a.position - b.position);
-    saveState();
 }
 
 function updateCategory(row, category) {
@@ -1031,7 +1008,6 @@ function generateInfobox(catTemplate, category) {
         document.getElementById('row-list').appendChild(template);
     }
     infoboxes.sort((a, b) => a.position - b.position);
-    saveState();
 }
 
 function updateInfobox(row, infobox) {
@@ -1090,7 +1066,6 @@ function generateTextArea(catTemplate, category) {
         document.getElementById('row-list').appendChild(template);
     }
     infoboxes.sort((a, b) => a.position - b.position);
-    saveState();
 }
 
 function updateTextArea(row, textArea) {
@@ -1140,7 +1115,6 @@ function generateTable(catTemplate, category) {
         document.getElementById('row-list').appendChild(template);
     }
     infoboxes.sort((a, b) => a.position - b.position);
-    saveState();
 }
 
 function updateTable(element, table) {
@@ -1184,7 +1158,6 @@ function generateRow(row, infobox) {
     } else {
         const previousRow = document.querySelector(`tr[data-index="${rows[rows.length - 1].id}"]`);
         template = previousRow.cloneNode(true);
-        console.log(template);
     }
     const newId = Date.now();
     const newPosition = rows.length ? rows[rows.length - 1].position + 1 : 0;
@@ -1198,7 +1171,7 @@ function generateRow(row, infobox) {
     
     updateRow(template, newRow, firstRow);
     row.querySelector('.table-body').appendChild(template);
-    saveState();
+    saveState(11);
 }
 
 function updateRow(rowElement, row, firstRow) {
@@ -1269,7 +1242,7 @@ function generateTableData(tableElement, table) {
     const rowDelete2Wrapper = tableElement.querySelector('.row2-wrapper');
     rowDelete2Btn.querySelector('.row-delete2-btn').setAttribute('data-index', previousPosition)
     rowDelete2Wrapper.appendChild(rowDelete2Btn);
-    saveState();
+    saveState(12);
 }
 
 function updateTableData(template, tableData, firstRow) {
@@ -1288,13 +1261,13 @@ function loadImage(event, element) {
         const reader = new FileReader();
         reader.onload = function(e) {
             element.imgSrc = e.target.result;
-            const row = document.querySelector(`tr[data-index="${element.id}"]`);
+            const row = document.querySelector(`.character-wrapper[data-index="${element.id}"]`);
             row.querySelector('.infobox-img').src = element.imgSrc;
         };
         reader.readAsDataURL(file);
     } else {
         element.imgSrc = prompt('Enter the URL', 'https://');
-        const row = document.querySelector(`tr[data-index="${element.id}"]`);
+        const row = document.querySelector(`.character-wrapper[data-index="${element.id}"]`);
         row.querySelector('.infobox-img').src = element.imgSrc;
     }
 }
@@ -1334,7 +1307,7 @@ function moveSection(row, infobox, direction) {
             previousPosition = section.position;
         });
     }
-    saveState();
+    sections.sort((a, b) => a.position - b.position);
 }
 
 // moves mini rows inside the table row
@@ -1369,7 +1342,7 @@ function moveMiniRow(row, table, direction) {
             box.position = previousPosition++;
         });
     }
-    saveState();
+    rows.sort((a, b) => a.position - b.position);
 }
 
 function moveTableData(position, table, direction) {
@@ -1440,7 +1413,7 @@ function moveCell(row, currentCell, direction) {
             previousPosition = cell.position;
         });
     }
-    saveState();
+    cells.sort((a, b) => a.position - b.position);
 }
 
 // moves infobox rows up and down
@@ -1493,7 +1466,7 @@ function moveInfobox(row, infobox, direction) {
             nextInfobox.position = currentPosition;
         }
     }
-    saveState();
+    infoboxes.sort((a, b) => a.position - b.position);
 }
 
 function allignCategory(row, category) {
@@ -1557,7 +1530,6 @@ function generateSection(row, infobox, text) {
     const bioElement = row.querySelector('.infobox-bio');
     row.querySelector('.section-lists').appendChild(template);
     bioElement.style.maxHeight = bioElement.scrollHeight + 'px';
-    saveState();
 }
 
 function updateSection(template, section) {
@@ -1674,7 +1646,7 @@ function loadState() {
     };
 }
 
-function saveState() {
+function saveState(trigger) {
     const transaction = db.transaction(['articles'], 'readwrite');
     
     const articleStore = transaction.objectStore('articles');
@@ -1689,6 +1661,7 @@ function saveState() {
 
     transaction.oncomplete = function() {
         console.log('Data saved to IndexedDB');
+        console.log(trigger)
     };
 }
 
@@ -1702,23 +1675,15 @@ function deleteElement(row, element, type) {
             row.remove();
             infoboxes.splice(infoboxes.indexOf(element), 1);
         }
-        
-        let previousPosition = 0;
           
-        infoboxes.forEach(infobox => {
-            infobox.position = previousPosition++;
-        });
+        infoboxes.forEach((infobox, index) => infobox.position = index);
     } else if (type === 'cell') {
         if (confirm('Are you sure you want to delete this cell?')) {
             row.remove();
             cells.splice(cells.indexOf(element), 1);
         }
-        
-        let previousPosition = 0;
           
-        cells.forEach(cell => {
-            cell.position = previousPosition++;
-        });
+        cells.forEach((cell, index) => cell.position = index);
     } else if (type === 'section') {
         if (confirm('Are you sure you want to delete this cell?')) {
             const index = row.closest('.character-wrapper').getAttribute('data-index');
@@ -1726,12 +1691,8 @@ function deleteElement(row, element, type) {
             const sections = infobox.sections;
             row.remove();
             sections.splice(sections.indexOf(element), 1);
-            
-            let previousPosition = 0;
           
-            sections.forEach(cell => {
-                cell.position = previousPosition++;
-            });
+            sections.forEach((cell, index) => cell.position = index);
         }
     } else if (type === 'mini row') {
         if (confirm('Are you sure you want to delete this cell?')) {
@@ -1741,11 +1702,7 @@ function deleteElement(row, element, type) {
             const rows = infobox.rows;
             rows.splice(rows.indexOf(element), 1);
             
-            let previousPosition = 0;
-            
-            rows.forEach(box => {
-                box.position = previousPosition++;
-            });
+            rows.forEach((box, index) => box.position = index);
         }
     } else if (type === 'table data') {
         const target = row;
@@ -1754,10 +1711,9 @@ function deleteElement(row, element, type) {
         target.parentNode.remove();
         const rowDelete2Btns = rowDelete2Wrapper.querySelectorAll('.row-delete2-btn');
         const rows = element.rows;
-        let previousPosition = 0;
         
-        rowDelete2Btns.forEach(btn => {
-            btn.setAttribute('data-index', previousPosition++);
+        rowDelete2Btns.forEach((btn, i) => {
+            btn.setAttribute('data-index', i);
         });
         
         rows.forEach(miniRow => {
@@ -1765,11 +1721,8 @@ function deleteElement(row, element, type) {
             const rowElement = document.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
             rowElement.remove();
             miniRow.data.splice(miniRow.data.indexOf(cell), 1);
-            previousPosition = 0;
             
-            miniRow.data.forEach(cell => {
-                cell.position = previousPosition++;
-            });
+            miniRow.data.forEach((cell, i) => cell.position = i);
         });
     }
 }
