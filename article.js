@@ -129,6 +129,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         saveState(2);
     });
+    document.getElementById('undo-btn').addEventListener('click', () => {
+        document.execCommand('undo');
+    });
+    document.getElementById('redo-btn').addEventListener('click', () => {
+        document.execCommand('redo');
+    });
     document.getElementById('header-toggle-btn').addEventListener('click', () => {
         const headerTextBtn = document.querySelectorAll('.header-text-btn');
       
@@ -452,6 +458,7 @@ function editArticle() {
     const introInput = document.getElementById('intro-input');
     const synopsisInput = document.getElementById('synopsis-text-input');
     const introWrapper = document.getElementById('intro-wrapper');
+    const rowList = document.getElementById('row-list');
     const editMode = editButton.textContent === '✏️';
     
     if (db) {
@@ -469,6 +476,8 @@ function editArticle() {
                 introWrapper.classList.
                 toggle('intro-wrapper1');
                 introWrapper.classList.toggle('intro-wrapper2');
+            } else {
+                rowList.classList.toggle('row-list-edit-mode');
             }
             toolbar.style.display = 'block';
             titleInput.value = title.textContent;
@@ -490,6 +499,8 @@ function editArticle() {
             if (data.upperToolbar) {
                 introWrapper.classList.toggle('intro-wrapper1');
                 introWrapper.classList.toggle('intro-wrapper2');
+            } else {
+                rowList.classList.toggle('row-list-edit-mode');
             }
             data.title = titleInput.value;
             data.intro = introInput.innerHTML;
@@ -690,7 +701,7 @@ function editSection(row, infobox, editMode) {
                 cell.text2 = valueInput.innerHTML;
                 if (!infoInput.textContent.trim() && !valueInput.textContent.trim()) {
                     const wrapper = infoInput.closest('.info-wrapper');
-                    deleteElement(section, cell, 'section');
+                    deleteElement(section, cell, sections, 'section');
                 } else {
                     infoTitle.innerHTML = cell.text1;
                     valueCell.innerHTML = cell.text2;
@@ -743,7 +754,7 @@ function editMainInfobox(editMode) {
                     cell.text1 = infoInput.innerHTML;
                     if (!infoInput.textContent.trim()) {
                         const wrapper = infoInput.closest('.info-wrapper');
-                        deleteElement(wrapper, cell, 'cell');
+                        deleteElement(wrapper, cell, cells, 'cell');
                     } else {
                         cell3.style.backgroundColor = '#F1e7dd';
                         infoTitle.style.display = 'inline';
@@ -754,7 +765,7 @@ function editMainInfobox(editMode) {
                     cell.text2 = valueInput.innerHTML;
                     if (!infoInput.textContent.trim() && !valueInput.textContent.trim()) {
                         const wrapper = infoInput.closest('.info-wrapper');
-                        deleteElement(wrapper, cell, 'cell');
+                        deleteElement(wrapper, cell, cells, 'cell');
                     } else {
                         cell1.style.backgroundColor = '#F1e7dd';
                         cell2.style.backgroundColor = '#F1e7dd';
@@ -819,7 +830,7 @@ function handleRowClick(event) {
     } else if (target.classList.contains('see-more-btn')) {
         toggleBio(row);
     } else if (target.classList.contains('delete-btn')) {
-        deleteElement(row, infobox, 'infobox');
+        deleteElement(row, infobox, infoboxes, 'infobox');
     } else if (target.classList.contains('add-section-btn')) {
         generateSection(row, infobox, null);
     } else if (target.classList.contains('generate-preset-btn')) {
@@ -841,7 +852,7 @@ function handleRowClick(event) {
         const rows = infobox.rows;
         const index = rowElement.dataset.index;
         const miniRow = rows.find(r => r.id == index);
-        deleteElement(rowElement, miniRow, 'mini row');
+        deleteElement(rowElement, miniRow, rows, 'mini row');
     } else if (target.classList.contains('row-delete2-btn')) {
         if (confirm('Are you sure you want to delete these cells?')) {
             deleteElement(target, infobox, 'table data');
@@ -1669,41 +1680,15 @@ function deleteElementFromArticle() {
     window.location.href = `index.html?articleId=${currentArticleId}`;
 }
 
-function deleteElement(row, element, type) {
-    if (type === 'infobox') {
-        if (confirm('Are you sure you want to delete this infobox?')) {
+function deleteElement(row, element, array, type) {
+  console.log(type);
+    if (type !== 'table data') {
+        if (confirm(`Are you sure you want to delete this ${type}?`)) {
             row.remove();
-            infoboxes.splice(infoboxes.indexOf(element), 1);
+            array.splice(array.indexOf(element), 1);
         }
           
-        infoboxes.forEach((infobox, index) => infobox.position = index);
-    } else if (type === 'cell') {
-        if (confirm('Are you sure you want to delete this cell?')) {
-            row.remove();
-            cells.splice(cells.indexOf(element), 1);
-        }
-          
-        cells.forEach((cell, index) => cell.position = index);
-    } else if (type === 'section') {
-        if (confirm('Are you sure you want to delete this cell?')) {
-            const index = row.closest('.character-wrapper').getAttribute('data-index');
-            const infobox = infoboxes.find(char => char.id == index);
-            const sections = infobox.sections;
-            row.remove();
-            sections.splice(sections.indexOf(element), 1);
-          
-            sections.forEach((cell, index) => cell.position = index);
-        }
-    } else if (type === 'mini row') {
-        if (confirm('Are you sure you want to delete this cell?')) {
-            const index = row.closest('.character-wrapper').getAttribute('data-index');
-            const infobox = infoboxes.find(char => char.id == index);
-            row.remove();
-            const rows = infobox.rows;
-            rows.splice(rows.indexOf(element), 1);
-            
-            rows.forEach((box, index) => box.position = index);
-        }
+        array.forEach((el, index) => el.position = index);
     } else if (type === 'table data') {
         const target = row;
         const index = target.dataset.index;

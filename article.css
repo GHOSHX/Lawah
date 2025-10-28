@@ -251,6 +251,11 @@ th, td {
   background-position: center;
 }
 
+#add-text-btn {
+  border: 2px solid black;
+  box-sizing: border-box;
+}
+
 #add-category-btn {
   background-image: url(https://i.ibb.co/Xk566hdf/20251025-114655.png);
   background-repeat: no-repeat;
@@ -263,6 +268,11 @@ th, td {
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
+}
+
+.add-text-btn2 {
+  border: 2px solid black;
+  box-sizing: border-box;
 }
 
 .add-table-btn2 {
