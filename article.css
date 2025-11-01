@@ -34,7 +34,7 @@ th, td {
 }
 
 .row-list-edit-mode {
-  margin-bottom: 39px;
+  margin-bottom: 41px;
 }
 
 .category-wrapper {
@@ -69,7 +69,7 @@ th, td {
   right: 0;
   left: 0;
   background-color: #fe9821;
-  padding: 7px;
+  padding: 5px;
   display: flex;
   justify-content: flex-start; /* Changed from center */
   align-items: center;
@@ -161,10 +161,6 @@ th, td {
   display: none;
 }
 
-.img-btn {
-  display: none;
-}
-
 #intro-wrapper {
   padding: 5px;
   box-sizing: border-box;
@@ -228,6 +224,35 @@ th, td {
   width: 100%;
   padding: 5px;
   box-sizing: border-box;
+}
+
+#undo-btn {
+  background-image: url(https://i.ibb.co/yc3BYGvX/Ic-undo-48px-svg.png);
+  background-color: transparent;
+  background-size: cover;
+  border: 0px;
+}
+
+#redo-btn {
+  background-image: url(https://i.ibb.co/4wh8F546/20251101-140141.png);
+  background-color: transparent;
+  background-size: cover;
+  border: 0px;
+}
+
+#toolbar button {
+  justify-content: center;
+  align-items: center;
+  width: 27px;
+  height: 27px;
+  padding: 0px;
+  margin: 1px;
+  vertical-align: middle;
+}
+
+#toolbar .img-btn {
+  display: none;
+  width: 40px;
 }
 
 .toggle-btn {

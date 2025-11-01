@@ -10,8 +10,8 @@
     <input type="file" id="upload-img2" style="display: none;" accept="image/*">
     <input type="file" id="upload-input" accept="application/json" style="display:none">
     <div id="toolbar" class="bottom" style="display: none;">
-      <button id="undo-btn">Undo</button>
-      <button id="redo-btn">Redo</button>
+      <button id="undo-btn"></button>
+      <button id="redo-btn"></button>
       <button id="header-toggle-btn" class="toolbar-btn"><b>H</b></button>
       <button id="header1-text-btn" class="toolbar-btn header-text-btn"><b>H1</b></button>
       <button id="header2-text-btn" class="toolbar-btn header-text-btn"><b>H2</b></button>
@@ -97,7 +97,7 @@
     <div class="center-table" id="row-list">
     </div>
     <template id="info-template">
-      <tr class="info-wrapper">
+      <tr class="cell-wrapper info-wrapper">
         <td class="cell1">
           <p class="info-title cell-text"></p>
           <div class="cell-input-wrapper" style="display: none;">
@@ -127,7 +127,7 @@
       </tr>
     </template>
     <template id="category-template">
-      <div class="character-wrapper category-wrapper">
+      <div class="category-wrapper character-wrapper">
         <div class="infobox-profile">
           <div class="infobox-controls">
             <h3 class="infobox-name" style="display: none;">New Category</h3>
@@ -147,7 +147,7 @@
       </div>
     </template>
     <template id="infobox-template">
-      <div class="character-wrapper infobox-wrapper">
+      <div class="infobox-wrapper character-wrapper">
         <button class="generate-preset-btn" style="display: none; font-weight: bold;">Preset</button>
         <div class="infobox-profile">
           <h3 class="infobox-name" style="display: none;">New Infobox</h3>
@@ -177,7 +177,7 @@
       </div>
     </template>
     <template id="text-template">
-      <div class="character-wrapper text-area-wrapper">
+      <div class="text-area-wrapper character-wrapper">
         <div class="infobox-profile">
           <div class="infobox-name-controls">
             <button class="move-up-btn">⬆️</button>
@@ -195,7 +195,7 @@
       </div>
     </template>
     <template id="table-template">
-      <div class="character-wrapper mini-table-wrapper">
+      <div class="mini-table-wrapper character-wrapper">
           <div class="infobox-profile">
             <div class="infobox-name-controls">
               <button class="move-up-btn">⬆️</button>
