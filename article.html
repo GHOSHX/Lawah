@@ -58,7 +58,7 @@
     <table class="center-table" id="infobox">
       <thead>
         <tr>
-          <td colspan="2" style="text-align: center;">
+          <td colspan="3" style="text-align: center;">
             <h2 id="title">title</h2>
             <input type="text" id="title-input" style="display: none;" placeholder="Enter new title">
             <br>
@@ -98,6 +98,9 @@
     </div>
     <template id="info-template">
       <tr class="cell-wrapper info-wrapper">
+        <td class="row-delete-cell">
+          <button class="row-delete-btn">❌️</button>
+        </td>
         <td class="cell1">
           <p class="info-title cell-text"></p>
           <div class="cell-input-wrapper" style="display: none;">
@@ -240,6 +243,9 @@
     </template>
     <template id="section-template">
       <div class="section-wrapper">
+        <div class="row-delete-cell">
+          <button class="section-delete-btn">❌️</button>
+        </div>
         <div class="infobox-cell1">
           <p class="info-title cell-text"></p>
           <div class="cell-input-wrapper" style="display: none;">

@@ -216,6 +216,15 @@ th, td {
   box-sizing: border-box;
 }
 
+.row-delete-cell {
+  background-color: white;
+  width: 10%;
+  padding: 5px;
+  border: 1px solid black;
+  border-left: 0;
+  box-sizing: border-box;
+}
+
 .infobox-cell1, .infobox-cell2 {
   background-color: white;
 }
