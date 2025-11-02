@@ -819,6 +819,7 @@ function editSection(row, infobox, editMode) {
     if (sectionWrappers) {
         sectionWrappers.forEach(section => {
             const rowDeleteCell = section.querySelector('.row-delete-cell');
+            const rowCell1 = section.querySelector('.infobox-cell1');
             const infoTitle = section.querySelector('.info-title');
             const valueCell = section.querySelector('.value-cell');
             const inputWrapper = section.querySelectorAll('.cell-input-wrapper');
@@ -840,6 +841,7 @@ function editSection(row, infobox, editMode) {
                     text.style.display = 'none';
                 });
                 rowDeleteCell.style.display = 'block';
+                rowCell1.style.width = '48%';
                 valueInput.innerHTML = valueCell.innerHTML;
                 infoInput.innerHTML = infoTitle.innerHTML;
                 inputWrapper.forEach(input => {
@@ -856,6 +858,7 @@ function editSection(row, infobox, editMode) {
                     valueCell.innerHTML = cell.text2;
                 }
                 rowDeleteCell.style.display = 'none';
+                rowCell1.style.width = '50%';
                 inputWrapper.forEach(input => {
                     input.style.display = 'none';
                 });
