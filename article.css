@@ -17,6 +17,9 @@ table, th, td {
   border-right: 1px solid black;
   border-left: 1px solid black;
   border-collapse: collapse;
+}
+
+table {
   background-color: #F1e7dd;
 }
 
@@ -62,6 +65,10 @@ th, td {
   width: 100%;
   padding: 5px;
   box-sizing: border-box;
+}
+
+.writeble-element {
+  background-color: white;
 }
 
 #toolbar {
@@ -202,7 +209,7 @@ th, td {
 
 .cell1, .infobox-cell1 {
   width: 42%;
-  padding: 5px;
+  padding: 7px;
   border: 1px solid black;
   border-right: 0;
   box-sizing: border-box;
@@ -210,23 +217,18 @@ th, td {
 
 .cell2, .infobox-cell2 {
   width: 58%;
-  padding: 5px;
+  padding: 7px;
   border: 1px solid black;
   border-left: 0;
   box-sizing: border-box;
 }
 
 .row-delete-cell {
-  background-color: white;
   width: 12%;
   padding: 5px;
   border: 1px solid black;
   border-right: 0px;
   box-sizing: border-box;
-}
-
-.infobox-cell1, .infobox-cell2 {
-  background-color: white;
 }
 
 .cell3 {

@@ -89,8 +89,8 @@
     </div>
     <div id="control-room2" class="control-room" style="display: none;">
       <button id="toggle-add-btn">➕️</button>
-      <button id="add-infobox-btn" class="row-add-btn"></button>
       <button id="add-category-btn" class="row-add-btn"></button>
+      <button id="add-infobox-btn" class="row-add-btn"></button>
       <button id="add-text-btn" class="row-add-btn"><b>Text</b></button>
       <button id="add-table-btn" class="row-add-btn"></button>
     </div>
@@ -101,15 +101,15 @@
         <td class="row-delete-cell">
           <button class="row-delete-btn">❌️</button>
         </td>
-        <td class="cell1">
-          <p class="info-title cell-text"></p>
+        <td class="cell1 writeble-element">
+          <div class="info-title cell-text"></div>
           <div class="cell-input-wrapper" style="display: none;">
             <div class="info-input" contenteditable="true"></div>
             <button class="cell-up-btn">⬆️</button>
           </div>
         </td>
-        <td class="cell2">
-          <p class="value-cell cell-text"></p>
+        <td class="cell2 writeble-element">
+          <div class="value-cell cell-text"></div>
           <div class="cell-input-wrapper" style="display: none;">
             <div class="value-input" contenteditable="true"></div>
             <button class="cell-down-btn">⬇️</button>
@@ -119,8 +119,8 @@
     </template>
     <template id="info-template2">
       <tr class="info-wrapper">
-        <td class="cell3" colspan="2">
-          <p class="info-title cell-text text-center"></p>
+        <td class="cell3 writeble-element" colspan="3">
+          <div class="info-title cell-text text-center"></div>
           <div class="cell-input-wrapper" style="display: none;">
             <div class="info-input text-center" contenteditable="true"></div>
             <button class="cell-up-btn">⬆️</button>
@@ -167,8 +167,8 @@
           <img class="infobox-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="New Infobox">
         </div>
         <div class="infobox-bio">
-          <p class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</p>
-          <div class="bio-input" contenteditable="true">Write description about the subject here...</div>
+          <div class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</div>
+          <div class="bio-input writeble-element" contenteditable="true">Write description about the subject here...</div>
           <div class="section-lists"></div>
           <div class="control-room" style="display: none;">
             <button class="add-section-btn">➕️</button>
@@ -189,8 +189,8 @@
           </div>
         </div>
         <div class="infobox-bio">
-          <p class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</p>
-          <div class="bio-input" contenteditable="true">Write description about the subject here...</div>
+          <div class="infobox-bio-text" style="display: none;">New Infobox bio goes here...</div>
+          <div class="bio-input writeble-element" contenteditable="true">Write description about the subject here...</div>
         </div>
         <div class="see-more text-center">
           <span class="see-more-btn">show more</span>
@@ -220,8 +220,8 @@
       <tr class="row2-wrapper row-body"></tr>
     </template>
     <template id="data-template">
-      <td class="data-wrapper cell1">
-        <p class="info-title">Hello</p>
+      <td class="data-wrapper cell1 writeble-element">
+        <div class="info-title">Hello</div>
         <div class="cell-input-wrapper" style="display: none;">
             <div class="info-input" contenteditable="true"></div>
         </div>
@@ -246,15 +246,15 @@
         <div class="row-delete-cell">
           <button class="section-delete-btn">❌️</button>
         </div>
-        <div class="infobox-cell1">
-          <p class="info-title cell-text"></p>
+        <div class="infobox-cell1 writeble-element">
+          <div class="info-title cell-text"></div>
           <div class="cell-input-wrapper" style="display: none;">
             <div class="info-input" contenteditable="true"></div>
             <button class="cell-up-btn">⬆️</button>
           </div>
         </div>
-        <div class="infobox-cell2">
-          <p class="value-cell cell-text"></p>
+        <div class="infobox-cell2 writeble-element">
+          <div class="value-cell cell-text"></div>
           <div class="cell-input-wrapper" style="display: none;">
             <div class="value-input" contenteditable="true"></div>
             <button class="cell-down-btn">⬇️</button>
