@@ -1593,8 +1593,8 @@ function moveInfobox(row, infobox, direction) {
         categories.sort((a, b) => a.position - b.position);
         previousInfobox = categories[categories.indexOf(infobox) - 1];
         nextInfobox = categories[categories.indexOf(infobox) + 1];
-        previousRow = previousInfobox ? document.querySelector(`tr[data-index="${previousInfobox.id}"]`) : null;
-        nextRow = nextInfobox ? document.querySelector(`tr[data-index="${nextInfobox.id}"]`) : null;
+        previousRow = previousInfobox ? document.querySelector(`.character-wrapper[data-index="${previousInfobox.id}"]`) : null;
+        nextRow = nextInfobox ? document.querySelector(`.character-wrapper[data-index="${nextInfobox.id}"]`) : null;
     } else {
         previousRow = row.previousElementSibling;
         nextRow = row.nextElementSibling;
