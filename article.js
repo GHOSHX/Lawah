@@ -9,7 +9,7 @@ function openDB() {
 
     request.onsuccess = function(event) {
         db = event.target.result;
-        loadState();
+        loadState(false);
     };
 
     request.onerror = function(event) {
@@ -314,23 +314,8 @@ function actionManager(element, newData, oldData, type) {
         };
     } else if (type === 'element-change') {
         newAction = {
-          newArray: newData,
-          oldArray: oldData,
-          nextElement: element.nextElementSibling,
-          parentNode: element.parentNode,
-          type,
-          element
-        };
-    } else if (type === 'element-change2') {
-        newAction = {
-          newElement: {
-            newArray: newData,
-            newData: element.innerHTML
-          },
-          oldElement: {
-            oldArray: oldData.oldRows,
-            oldData: oldData.oldData
-          },
+          newData,
+          oldData,
           type,
           element
         };
@@ -342,78 +327,53 @@ function actionManager(element, newData, oldData, type) {
 
 function undoManager() {
     const previousAction = undoList.pop();
-    const element = previousAction?.element;
+    let type;
+    if (!previousAction) return;
+    let element = previousAction.element;
+    type = previousAction.type;
     
-    if (!element) return;
-    
-    if (element.isConnected && previousAction.type === 'text-change') {
+    if (type === 'text-change') {
         element.innerHTML = previousAction.oldData;
-    } else if (previousAction.type === 'element-change') {
-        const newArray = previousAction.newArray;
-        const oldArray = previousAction.oldArray;
-        previousAction.newArray = JSON.parse(JSON.stringify(newArray));
-        previousAction.oldArray = newArray;
+    } else if (type === 'element-change') {
+        const newArray = previousAction.newData;
+        const oldArray = previousAction.oldData;
+        previousAction.newData = JSON.parse(JSON.stringify(newArray));
+        previousAction.oldData = newArray;
         
         newArray.length = 0;
         newArray.push(...oldArray);
-        if (element.isConnected) {
-            element.remove();
+        if (element) {
+            loadState(element);
         } else {
-            const id = previousAction.element.dataset.index;
-            const oldRow = oldArray.find(a => a.id == id);
-            const template = document.createDocumentFragment();
-            template.appendChild(element);
-            const nextElement = previousAction.nextElement;
-            nextElement ? previousAction.parentNode.insertBefore(element, nextElement) : previousAction.parentNode.appendChild(element);
+            loadState(true);
         }
-    } else if (previousAction.type === 'element-change2') {
-        const newArray = previousAction.newElement.newArray;
-        const oldArray = previousAction.oldElement.oldArray;
-        previousAction.newElement.newArray = JSON.parse(JSON.stringify(newArray));
-        previousAction.oldElement.oldArray = newArray;
-        
-        newArray.length = 0;
-        newArray.push(...oldArray);
-        previousAction.element.innerHTML = previousAction.oldElement.oldData;
     }
     redoList.push(previousAction);
 }
 
 function redoManager() {
     const previousAction = redoList.pop();
-        
-    const element = previousAction?.element;
-    if (!element) return;
+    let type;
+    let element;
+    if (!previousAction) return;
+    element = previousAction.element;
+    type = previousAction.type;
     
-    if (previousAction.type === 'text-change') {
+    if (type === 'text-change') {
         element.innerHTML = previousAction.newData;
-    } else if (previousAction.type === 'element-change') {
-        const newArray = previousAction.newArray;
-        const oldArray = previousAction.oldArray;
-        previousAction.oldArray = JSON.parse(JSON.stringify(oldArray));
-        previousAction.newArray = oldArray;
+    } else if (type === 'element-change') {
+        const newArray = previousAction.newData;
+        const oldArray = previousAction.oldData;
+        previousAction.oldData = JSON.parse(JSON.stringify(oldArray));
+        previousAction.newData = oldArray;
         
         oldArray.length = 0;
         oldArray.push(...newArray);
-        if (element.isConnected) {
-            element.remove();
+        if (element) {
+            loadState(element);
         } else {
-            const id = previousAction.element.dataset.index;
-            const oldRow = oldArray.find(a => a.id == id);
-            const template = document.createDocumentFragment();
-            template.appendChild(element);
-            const nextElement = previousAction.nextElement;
-            nextElement ? previousAction.parentNode.insertBefore(element, nextElement) : previousAction.parentNode.appendChild(element);
+            loadState(true);
         }
-    } else if (previousAction.type === 'element-change2') {
-        const newArray = previousAction.newElement.newArray;
-        const oldArray = previousAction.oldElement.oldArray;
-        previousAction.oldElement.oldArray = JSON.parse(JSON.stringify(oldArray));
-        previousAction.newElement.newArray = oldArray;
-        
-        oldArray.length = 0;
-        oldArray.push(...newArray);
-        previousAction.element.innerHTML = previousAction.newElement.newData;
     }
     undoList.push(previousAction);
 }
@@ -595,6 +555,7 @@ function updateCell(template, cell) {
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoTitle.innerHTML;
         
         actionManager(element, element.innerHTML, lastText, 'text-change');
+        cell.text1 = element.innerHTML;
     });
     infoInput.addEventListener('focus', function(event) {
         currentTextArea = event.target;
@@ -610,6 +571,7 @@ function updateCell(template, cell) {
             const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : valueCell.innerHTML;
             
             actionManager(element, element.innerHTML, lastText, 'text-change');
+            cell.text2 = element.innerHTML;
         });
         valueInput.addEventListener('focus', function(event) {
             currentTextArea = event.target;
@@ -620,6 +582,7 @@ function updateCell(template, cell) {
 function editArticle() {
     const controlRoom = document.querySelectorAll('.control-room');
     const toolbar = document.getElementById('toolbar');
+    const mainInfobox = document.getElementById('infobox');
     const title = document.getElementById('title');
     const introText = document.getElementById('intro');
     const synopsisText = document.getElementById('synopsis-text');
@@ -652,14 +615,13 @@ function editArticle() {
             writebleElements.forEach(el => {
                 el.style.backgroundColor = 'white';
             });
+            mainInfobox.classList.toggle('cell-edit-mode');
             toolbar.style.display = 'block';
             titleInput.value = title.textContent;
             introInput.innerHTML = introText.innerHTML;
             synopsisInput.innerHTML = synopsisText.innerHTML;
-            titleInput.style.display = 'inline';
             introInput.style.display = 'block';
             synopsisInput.style.display = 'block';
-            title.style.display = 'none';
             introText.style.display = 'none';
             synopsisText.style.display = 'none';
             editButton.textContent = '✔️';
@@ -678,16 +640,15 @@ function editArticle() {
             writebleElements.forEach(el => {
                 el.style.backgroundColor = '#F1e7dd';
             });
+            mainInfobox.classList.toggle('cell-edit-mode');
             data.title = titleInput.value;
             data.intro = introInput.innerHTML;
             data.synopsis = synopsisInput.innerHTML;
             title.textContent = data.title;
             introText.innerHTML = data.intro;
             synopsisText.innerHTML = data.synopsis;
-            titleInput.style.display = 'none';
             introInput.style.display = 'none';
             synopsisInput.style.display = 'none';
-            title.style.display = 'block';
             introText.style.display = 'block';
             synopsisText.style.display = 'block';
             toolbar.style.display = 'none';
@@ -736,48 +697,34 @@ function editInfobox(editMode) {
                     toggleCategoryBtn.click();
                 }
             }
-            charControls.style.display = 'block';
+            template.classList.toggle('row-edit-mode');
             if (infoboxName) {
-              infoboxName.style.display = 'none';
               infoboxNameInput.value = infoboxName.textContent;
-              infoboxNameInput.style.display = 'inline';
             }
             
             if (infoboxBio) {
-              infoboxBio.style.display = 'none';
               infoboxBioInput.innerHTML = infoboxBio.innerHTML;
-              infoboxBioInput.style.display = 'block';
             }
             if (presetBtn) {
-                presetBtn.style.display = 'block';
+                editSection(template, infobox, editMode);
             }
         } else {
-            charControls.style.display = 'none';
-            
-            if (presetBtn) {
-                presetBtn.style.display = 'none';
-            }
-            
+            template.classList.toggle('row-edit-mode');
             if (infoboxName) {
-                infoboxNameInput.style.display = 'none';
-                
                 if (infoboxNameInput.value.trim()) {
                     infobox.name = infoboxNameInput.value;
                     infoboxName.textContent = infoboxNameInput.value;
                 }
-                
-                infoboxName.style.display = 'block';
             }
             
             if (infoboxBio) {
-                infoboxBioInput.style.display = 'none';
-                
                 if (infoboxBioInput.innerHTML.trim()) {
                     infobox.bio = infoboxBioInput.innerHTML;
                     infoboxBio.innerHTML = infoboxBioInput.innerHTML;
                 }
-                
-                infoboxBio.style.display = 'block'
+            }
+            if (presetBtn) {
+                editSection(template, infobox, editMode);
             }
         }
         
@@ -785,20 +732,10 @@ function editInfobox(editMode) {
             const rows = infobox.rows;
             const rowDelete2Wrapper = template.querySelector('.row2-wrapper');
             
-            if (editMode) {
-                rowDelete2Wrapper.style.display = 'table-row';
-            } else {
-                rowDelete2Wrapper.style.display = 'none';
-            }
-            
             rows.forEach(row => {
                 const rowElement = document.querySelector(`tr[data-index="${row.id}"]`);
                 editTableData(rowElement, row, editMode);
             });
-        }
-        
-        if (presetBtn) {
-            editSection(template, infobox, editMode);
         }
     });
 }
@@ -807,16 +744,6 @@ function editTableData(rowElement, row, editMode) {
     const dataWrappers = rowElement.querySelectorAll('.data-wrapper');
     const rowDeleteBtns = rowElement.querySelectorAll('.row-delete-wrapper')
     const tableData = row.data;
-    
-    if (rowDeleteBtns) {
-        rowDeleteBtns.forEach(btn => {
-            if (editMode) {
-                btn.style.display = 'table-cell';
-            } else {
-                btn.style.display = 'none';
-            }
-        });
-    }
     
     if (dataWrappers) {
         dataWrappers.forEach(wrapper => {
@@ -828,9 +755,7 @@ function editTableData(rowElement, row, editMode) {
             
             
             if (editMode) {
-                infoTitle.style.display = 'none';
                 infoInput.innerHTML = infoTitle.innerHTML;
-                inputWrapper.style.display = 'block';
             } else {
                 currentData.text = infoInput.innerHTML;
                 /* if (!infoInput.textContent.trim()) {
@@ -841,8 +766,6 @@ function editTableData(rowElement, row, editMode) {
                     valueCell.innerHTML = cell.text2;
                 } */
                 infoTitle.innerHTML = currentData.text;
-                inputWrapper.style.display = 'none';
-                infoTitle.style.display = 'block';
             }
         });
     }
@@ -866,16 +789,9 @@ function editSection(row, infobox, editMode) {
             let cell = sections.find(el => el.id == index);
             
             if (editMode) {
-                textWrapper.forEach(text => {
-                    text.style.display = 'none';
-                });
-                rowDeleteCell.style.display = 'block';
                 rowCell1.style.width = '48%';
                 valueInput.innerHTML = valueCell.innerHTML;
                 infoInput.innerHTML = infoTitle.innerHTML;
-                inputWrapper.forEach(input => {
-                    input.style.display = 'block';
-                });
             } else {
                 cell.text1 = infoInput.innerHTML;
                 cell.text2 = valueInput.innerHTML;
@@ -886,14 +802,7 @@ function editSection(row, infobox, editMode) {
                     infoTitle.innerHTML = cell.text1;
                     valueCell.innerHTML = cell.text2;
                 }
-                rowDeleteCell.style.display = 'none';
                 rowCell1.style.width = '50%';
-                inputWrapper.forEach(input => {
-                    input.style.display = 'none';
-                });
-                textWrapper.forEach(text => {
-                    text.style.display = 'block';
-                });
             }
         });
     }
@@ -911,24 +820,16 @@ function editMainInfobox(editMode) {
             const cell1 = info.querySelector('.cell1');
             const cell2 = info.querySelector('.cell2');
             const cell3 = info.querySelector('.cell3');
-            const rowDeleteCell = info.querySelector('.row-delete-cell');
             const infoInput = info.querySelector('.info-input');
             const valueInput = info.querySelector('.value-input');
             const index = infoTitle.closest('.info-wrapper').getAttribute('data-index');
             const cell = cells.find(el => el.id == index);
             
             if (editMode) {
-                textWrapper.forEach(text => {
-                    text.style.display = 'none';
-                });
-                rowDeleteCell.style.display = 'table-cell';
                 if (!cell3) {
                     valueInput.innerHTML = valueCell.innerHTML;
                 }
                 infoInput.innerHTML = infoTitle.innerHTML;
-                inputWrapper.forEach(input => {
-                    input.style.display = 'block';
-                });
             } else {
                 if (cell3) {
                     cell.text1 = infoInput.innerHTML;
@@ -953,13 +854,6 @@ function editMainInfobox(editMode) {
                         valueCell.innerHTML = cell.text2;
                     }
                 }
-                rowDeleteCell.style.display = 'none';
-                inputWrapper.forEach(input => {
-                    input.style.display = 'none';
-                });
-                textWrapper.forEach(text => {
-                    text.style.display = 'block';
-                });
             }
         });
     }
@@ -1161,7 +1055,7 @@ function generateRow(catTemplate, category, type) {
             position: newPosition
         };
         infoboxes.push(newInfobox);
-        updateCategory(template, newInfobox);
+        updateCategory(template, newInfobox, null);
     } else if (type === 'infobox') {
         newInfobox = {
             id: newId,
@@ -1174,7 +1068,7 @@ function generateRow(catTemplate, category, type) {
             position: newPosition
         };
         infoboxes.push(newInfobox);
-        updateInfobox(template, newInfobox);
+        updateInfobox(template, newInfobox, null);
     } else if (type === 'text') {
         newInfobox = {
             id: newId,
@@ -1184,7 +1078,7 @@ function generateRow(catTemplate, category, type) {
             position: newPosition
         };
         infoboxes.push(newInfobox);
-        updateTextArea(template, newInfobox);
+        updateTextArea(template, newInfobox, null);
     } else if (type === 'table') {
         newInfobox = {
             id: newId,
@@ -1194,7 +1088,7 @@ function generateRow(catTemplate, category, type) {
             position: newPosition
         };
         infoboxes.push(newInfobox);
-        updateTable(template, newInfobox);
+        updateTable(template, newInfobox, null);
     }
     
     const element = template.querySelector('.character-wrapper');
@@ -1207,51 +1101,88 @@ function generateRow(catTemplate, category, type) {
     actionManager(element, infoboxes, oldRows, 'element-change');
 }
 
-function updateCategory(row, category) {
-    const editMode = editButton.template === '✔️';
+function updateCategory(row, category, oldElement) {
+    const editMode = editButton.textContent === '✔️';
     
     row.querySelector('.character-wrapper').setAttribute('data-index', category.id);
+    const editorWrapper = row.querySelector('.infobox-name-controls');
+    const name = row.querySelector('.infobox-name');
+    const nameInput = row.querySelector('.name-input');
     if (editMode) {
         row.querySelector('.toggle-category-btn').style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
+        row.querySelector('.category-wrapper').classList.add('row-edit-mode');
+        nameInput.value = category.name;
+    } else {
+        row.querySelector('.category-wrapper').classList.remove('row-edit-mode');
+        name.textContent = category.name;
     }
-    row.querySelector('.infobox-name').textContent = category.name;
 }
 
-function updateInfobox(row, infobox) {
+function updateInfobox(row, infobox, oldElement) {
     const editMode = editButton.textContent === '✔️';
     
     row.querySelector('.character-wrapper').setAttribute('data-index', infobox.id);
+    const editorWrapper = row.querySelector('.infobox-name-controls');
+    const name = row.querySelector('.infobox-name');
+    const bio = row.querySelector('.infobox-bio-text');
+    const nameInput = row.querySelector('.name-input');
+    const bioInput = row.querySelector('.bio-input');
+    bio.setAttribute('data-index', infobox.id);
+    bioInput.setAttribute('data-index', infobox.id);
     if (editMode) {
         row.querySelector('.control-room').style.display = 'block';
+        row.querySelector('.infobox-wrapper').classList.add('row-edit-mode');
+        nameInput.value = infobox.name;
+        bioInput.innerHTML = infobox.bio;
+    } else {
+        row.querySelector('.infobox-wrapper').classList.remove('row-edit-mode');
+        name.textContent = infobox.name;
+        bio.innerHTML = infobox.bio;
     }
-    row.querySelector('.infobox-name').textContent = infobox.name;
-    const bioText = row.querySelector('.infobox-bio-text');
-    bioText.innerHTML = infobox.bio;
     row.querySelector('.bio-input').addEventListener('input', (event) => {
       const element = event.target;
         const elementActions = undoList.filter(undo => undo.element === element);
-        const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : bioText.innerHTML;
+        const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : bio.innerHTML;
         
         actionManager(element, element.innerHTML, lastText, 'text-change');
+        infobox.bio = element.innerHTML;
     });
     row.querySelector('.infobox-img').src = infobox.imgSrc;
     const sections = infobox.sections;
     if (sections) {
         sections.sort((a, b) => a.position - b.position);
+        const sectionNodes = row.querySelectorAll('.section-wrapper');
+        sectionNodes.forEach(node => node.remove());
         sections.forEach(section => {
-            const template = document.getElementById('section-template').content.cloneNode(true);
+            let template;
+            const node = [...sectionNodes].find(node => node.dataset.index == section.id);
+            if (node) {
+                template = document.createDocumentFragment();
+                template.appendChild(node);
+            } else {
+                template = document.getElementById('section-template').content.cloneNode(true);
+            }
             updateSection(template, section);
             const rowDeleteCell = template.querySelector('.row-delete-cell');
-            rowDeleteCell.style.display = 'none';
             row.querySelector('.section-lists').appendChild(template);
         });
     }
 }
 
-function updateTextArea(row, textArea) {
+function updateTextArea(row, textArea, oldElement) {
+    const editMode = editButton.textContent === '✔️';
+    
     row.querySelector('.character-wrapper').setAttribute('data-index', textArea.id);
-    const bioText = row.querySelector('.infobox-bio-text');
-    bioText.innerHTML = textArea.bio;
+    const editorWrapper = row.querySelector('.infobox-name-controls');
+    const bio = row.querySelector('.infobox-bio-text');
+    const bioInput = row.querySelector('.bio-input');
+    if (editMode) {
+        row.querySelector('.text-area-wrapper').classList.add('row-edit-mode');
+        bioInput.innerHTML = textArea.bio;
+    } else {
+        row.querySelector('.text-area-wrapper').classList.remove('row-edit-mode');
+        bio.innerHTML = textArea.bio;
+    }
     row.querySelector('.bio-input').addEventListener('input', (event) => {
         const element = event.target;
         const elementActions = undoList.filter(undo => undo.element === element);
@@ -1261,36 +1192,52 @@ function updateTextArea(row, textArea) {
     });
 }
 
-function updateTable(element, table) {
+function updateTable(element, table, oldElements) {
+    const editMode = editButton.textContent === '✔️';
+    
+    const rowNodes = element.querySelectorAll('.row-wrapper');
+    rowNodes.forEach(node => node.remove());
+    oldElements.push(...rowNodes);
     element.querySelector('.character-wrapper').setAttribute('data-index', table.id);
-    const rowDelete2Template = document.getElementById('row2-template').content.cloneNode(true);
-    const dataTemplate = document.getElementById('data-template').content.cloneNode(true);
-    element.querySelector('.table-body').appendChild(rowDelete2Template);
-    dataTemplate.querySelector('.data-wrapper').classList.toggle('writeble-element');
-    element.querySelector('.row2-wrapper').appendChild(dataTemplate);
-    const infoTitle = 
-    element.querySelector('.row2-wrapper').querySelector('.info-title');
-    infoTitle.textContent = '';
+    if (!rowNodes.length) {
+        const rowDelete2Template = document.getElementById('row2-template').content.cloneNode(true);
+        const dataTemplate = document.getElementById('data-template').content.cloneNode(true);
+        element.querySelector('.table-body').appendChild(rowDelete2Template);
+        dataTemplate.querySelector('.data-wrapper').classList.toggle('writeble-element');
+        element.querySelector('.row2-wrapper').appendChild(dataTemplate);
+        const infoTitle = 
+        element.querySelector('.row2-wrapper').querySelector('.info-title');
+        infoTitle.textContent = '';
+    }
     const rows = table.rows;
     let firstRow = true;
     if (rows) {
         rows.sort((a, b) => a.position - b.position);
         rows.forEach(row => {
-            const template = document.getElementById('row-template').content.cloneNode(true);
-            updateMiniRow(template, row, true);
-            element.querySelector('.table-body').appendChild(template);
-            if (firstRow) {
-                const rowDelete2Wrapper = element.querySelector('.row2-wrapper');
-              
-                const data = row.data;
-                data.forEach(tableData => {
-                    const rowDelete2Btn = document.getElementById('row-delete2-template').content.cloneNode(true);
-                    rowDelete2Btn.querySelector('.row-delete2-btn').setAttribute('data-index', tableData.position);
-                    rowDelete2Wrapper.appendChild(rowDelete2Btn);
-                });
+            let template;
+            const node = oldElements ? oldElements.find(node => node.dataset.index == row.id) : null;
+            if (node) {
+                template = document.createDocumentFragment();
+                template.appendChild(node);
+            } else {
+                template = document.getElementById('row-template').content.cloneNode(true);
             }
-            firstRow = false;
+            updateMiniRow(template, row, oldElements, true);
+            element.querySelector('.table-body').appendChild(template);
         });
+        const rowDelete2Wrapper = element.querySelector('.row2-wrapper');
+        const rowDelete2Btns = rowDelete2Wrapper.querySelectorAll('.row-delete2-wrapper');
+        rowDelete2Btns.forEach(btn => btn.remove());
+        rows[0]?.data?.forEach(cell => {
+            const rowDelete2Btn = document.getElementById('row-delete2-template').content.cloneNode(true);
+            rowDelete2Btn.querySelector('.row-delete2-btn').setAttribute('data-index', cell.position);
+            rowDelete2Wrapper.appendChild(rowDelete2Btn);
+        });
+    }
+    if (editMode) {
+        element.querySelector('.character-wrapper').classList.add('row-edit-mode');
+    } else {
+        element.querySelector('.character-wrapper').classList.remove('row-edit-mode');
     }
 }
 
@@ -1317,24 +1264,37 @@ function generateMiniRow(row, infobox) {
     };
     rows.push(newRow);
     
-    updateMiniRow(template, newRow, firstRow);
+    updateMiniRow(template, newRow, null, firstRow);
     const element = template.querySelector('.row-wrapper');
     row.querySelector('.table-body').appendChild(template);
     actionManager(element, rows, oldRows, 'element-change');
 }
 
-function updateMiniRow(rowElement, row, firstRow) {
-    const template = document.getElementById('row-delete-template').content.cloneNode(true);
+function updateMiniRow(rowElement, row, oldElements, firstRow) {
+    const rowDeleteBtn = document.getElementById('row-delete-template').content.cloneNode(true);
     if (firstRow) {
         rowElement.querySelector('.row-wrapper').setAttribute('data-index', row.id);
-        rowElement.querySelector('.row-body').appendChild(template);
+        const dataElements = rowElement.querySelectorAll('.data-wrapper');
+        dataElements.forEach(el => el.remove());
+        oldElements.push(...dataElements);
+        if (!dataElements.length) {
+            rowElement.querySelector('.row-body').appendChild(rowDeleteBtn);
+        }
         
         const tableData = row.data;
         if (tableData) {
             tableData.sort((a, b) => a.position - b.position);
-            tableData.forEach(data => {
-                const template = document.getElementById('data-template').content.cloneNode(true);
-                updateTableData(template, data, true);
+            tableData.forEach(cell => {
+                let template;
+                const node = oldElements ? oldElements.find(el => el.dataset.index == cell.id) : null;
+                if (node) {
+                    template = document.createDocumentFragment();
+                    template.appendChild(node);
+                    oldElements.splice(oldElements.indexOf(node), 1);
+                } else {
+                    template = document.getElementById('data-template').content.cloneNode(true);
+                }
+                updateTableData(template, cell, true);
                 rowElement.querySelector('.row-body').appendChild(template);
             });
         }
@@ -1391,7 +1351,6 @@ function generateTableData(tableElement, table) {
     const rowDelete2Wrapper = tableElement.querySelector('.row2-wrapper');
     rowDelete2Btn.querySelector('.row-delete2-btn').setAttribute('data-index', previousPosition)
     rowDelete2Wrapper.appendChild(rowDelete2Btn);
-    saveState(12);
 }
 
 function updateTableData(template, tableData, firstRow) {
@@ -1410,6 +1369,7 @@ function updateTableData(template, tableData, firstRow) {
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoTitle.innerHTML;
         
         actionManager(element, element.innerHTML, lastText, 'text-change');
+        tableData.text = element.innerHTML;
     });
 }
 
@@ -1438,8 +1398,6 @@ function moveSection(row, infobox, direction) {
     const sections = infobox.sections;
     const currentSection = sections.find(sec => sec.id == index);
     const oldRows = JSON.parse(JSON.stringify(infoboxes));
-    const rowList = document.getElementById('row-list');
-    const oldData = rowList.innerHTML;
     
     if (direction === 'up' && previousRow) {
         const previousIndex = Number(previousRow.dataset.index);
@@ -1470,7 +1428,7 @@ function moveSection(row, infobox, direction) {
         });
     }
     sections.sort((a, b) => a.position - b.position);
-    actionManager(rowList, infoboxes, { oldRows, oldData }, 'element-change2');
+    actionManager(null, infoboxes, oldRows, 'element-change');
 }
 
 // moves mini rows inside the table row
@@ -1479,6 +1437,7 @@ function moveMiniRow(row, table, direction) {
     const nextRowElement = row.nextElementSibling;
     const index = row.dataset.index;
     const rows = table.rows;
+    const oldRows = JSON.parse(JSON.stringify(infoboxes));
     const currentRow = rows.find(r => r.id == index);
     if (direction === 'up' && previousRowElement) {
         const previousIndex = Number(previousRowElement.dataset.index);
@@ -1506,10 +1465,12 @@ function moveMiniRow(row, table, direction) {
         });
     }
     rows.sort((a, b) => a.position - b.position);
+    actionManager(null, infoboxes, oldRows, 'element-change');
 }
 
 function moveTableData(position, table, direction) {
     const rows = table.rows;
+    const oldRows = JSON.parse(JSON.stringify(infoboxes));
     rows.forEach(row => {
         const tableData = row.data;
         const rowElement = document.querySelector(`.row-wrapper[data-index="${row.id}"]`);
@@ -1542,13 +1503,13 @@ function moveTableData(position, table, direction) {
             tableData.sort((a, b) => a.position - b.position);
         });
     });
+    actionManager(null, infoboxes, oldRows, 'element-change');
 }
 
 function moveCell(row, currentCell, direction) {
     const previousRow = row.previousElementSibling;
     const nextRow = row.nextElementSibling;
     const oldRows = JSON.parse(JSON.stringify(cells));
-    const oldData = row.parentNode.innerHTML;
     
     if (direction === 'up' && previousRow) {
         const previousIndex = Number(previousRow.dataset.index);
@@ -1579,7 +1540,7 @@ function moveCell(row, currentCell, direction) {
         });
     }
     cells.sort((a, b) => a.position - b.position);
-    actionManager(row.parentNode, cells, { oldRows, oldData}, 'element-change2');
+    actionManager(null, cells, oldRows, 'element-change');
 }
 
 // moves infobox rows up and down
@@ -1608,7 +1569,6 @@ function moveInfobox(row, infobox, direction) {
         }
     }
     const oldRows = JSON.parse(JSON.stringify(infoboxes));
-    const oldData = row.parentNode.innerHTML;
     
     if (direction === 'up' && previousRow) {
         row.parentNode.insertBefore(row, previousRow);
@@ -1635,7 +1595,7 @@ function moveInfobox(row, infobox, direction) {
         }
     }
     infoboxes.sort((a, b) => a.position - b.position);
-    actionManager(row.parentNode, infoboxes, { oldRows, oldData }, 'element-change2');
+    actionManager(null, infoboxes, oldRows, 'element-change');
 }
 
 function allignCategory(row, category) {
@@ -1688,15 +1648,7 @@ function generateSection(row, infobox, text) {
     infobox.sections.push(newSection);
     
     updateSection(template, newSection);
-    const textWrapper = template.querySelectorAll('.cell-text');
-    const inputWrappers = template.querySelectorAll('.cell-input-wrapper');
     
-    textWrapper.forEach(text => {
-        text.style.display = 'none';
-    })
-    inputWrappers.forEach(input => {
-        input.style.display = 'block';
-    });
     const bioElement = row.querySelector('.infobox-bio');
     const element = template.querySelector('.section-wrapper');
     row.querySelector('.section-lists').appendChild(template);
@@ -1706,10 +1658,30 @@ function generateSection(row, infobox, text) {
 
 function updateSection(template, section) {
     template.querySelector('.section-wrapper').setAttribute('data-index', section.id);
-    template.querySelector('.info-title').innerHTML = section.text1;
-    template.querySelector('.info-input').innerHTML = section.text1;
-    template.querySelector('.value-cell').innerHTML = section.text2;
-    template.querySelector('.value-input').innerHTML = section.text2;
+    const infoText = template.querySelector('.info-title');
+    const infoInput = template.querySelector('.info-input');
+    const valueText = template.querySelector('.value-cell');
+    const valueInput = template.querySelector('.value-input');
+    infoText.innerHTML = section.text1;
+    infoInput.innerHTML = section.text1;
+    valueText.innerHTML = section.text2;
+    valueInput.innerHTML = section.text2;
+    infoInput.addEventListener('input', (event) => {
+        const element = event.target;
+        const elementActions = undoList.filter(undo => undo.element === element);
+        const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoText.innerHTML;
+        
+        actionManager(element, element.innerHTML, lastText, 'text-change');
+        tableData.text = element.innerHTML;
+    });
+    valueInput.addEventListener('input', (event) => {
+        const element = event.target;
+        const elementActions = undoList.filter(undo => undo.element === element);
+        const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : valueText.innerHTML;
+        
+        actionManager(element, element.innerHTML, lastText, 'text-change');
+        tableData.text = element.innerHTML;
+    });
 }
 
 function updateData(data) {
@@ -1731,7 +1703,7 @@ function updateData(data) {
     }
 }
 
-function loadState() {
+function loadState(oldElement) {
     const transaction = db.transaction(['articles'], 'readonly');
     const articleStore = transaction.objectStore('articles');
     
@@ -1739,64 +1711,58 @@ function loadState() {
         const articleData = event.target.result;
         
         if (articleData) {
-            data = articleData.data;
-            infoboxes = articleData.characters;
-            cells = articleData.cells;
-            
-            if (data.id) {
-                updateData(data);
+            // doesn't load the saved data if undo is true.
+            let oldElements = [];
+            if (!oldElement) {
+                data = articleData.data;
+                infoboxes = articleData.characters;
+                cells = articleData.cells;
+                
+                if (data.id) {
+                    updateData(data);
+                } else {
+                    console.log("failed");
+                }
             } else {
-                console.log("failed");
+                const rowNodes = document.getElementById('row-list').querySelectorAll('.character-wrapper');
+                const cellNodes = document.getElementById('info-list').querySelectorAll('.info-wrapper');
+                if (cellNodes.length) {
+                    oldElements.push(...cellNodes);
+                }
+                if (rowNodes.length) {
+                    oldElements.push(...rowNodes);
+                }
+                if (oldElement.length) {
+                    oldElements.push(...oldElement);
+                } else if (oldElement.tagName) {
+                    oldElements.push(oldElement);
+                }
+                document.getElementById('row-list').innerHTML = '';
+                document.getElementById('info-list').innerHTML = '';
             }
             
             infoboxes.sort((a, b) => a.position - b.position);
-            console.log(infoboxes);
             
             infoboxes.forEach(infobox => {
                 let template;
                 
+                const node = oldElements ? oldElements.find(node => node.dataset.index == infobox.id) : null;
+                if (node) {
+                    template = document.createDocumentFragment();
+                    template.appendChild(node);
+                }
                 if (infobox.type === 'category') {
-                  template = document.getElementById('category-template').content.cloneNode(true);
-                  updateCategory(template, infobox);
-                  const editorWrapper = template.querySelector('.infobox-name-controls');
-                  const name = template.querySelector('.infobox-name');
-                  const nameInput = template.querySelector('.name-input');
-                  editorWrapper.style.display = 'none';
-                  nameInput.style.display = 'none';
-                  name.style.display = 'block';
+                  template = template ? template : document.getElementById('category-template').content.cloneNode(true);
+                  updateCategory(template, infobox, oldElements);
                 } else if (infobox.type === 'text area') {
-                  template = document.getElementById('text-template').content.cloneNode(true);
-                  updateTextArea(template, infobox);
-                  const editorWrapper = template.querySelector('.infobox-name-controls');
-                  const bio = template.querySelector('.infobox-bio-text');
-                  const bioInput = template.querySelector('.bio-input');
-                  editorWrapper.style.display = 'none';
-                  bioInput.style.display = 'none';
-                  bio.style.display = 'block';
+                  template = template ? template : document.getElementById('text-template').content.cloneNode(true);
+                  updateTextArea(template, infobox, oldElements);
                 } else if (infobox.type === 'table') {
-                  template = document.getElementById('table-template').content.cloneNode(true);
-                  updateTable(template, infobox);
-                  const editorWrapper = template.querySelector('.infobox-name-controls');
-                  const rowDelete2Template = template.querySelector('.row2-wrapper');
-                  const rowDeleteBtns = template.querySelectorAll('.row-delete-wrapper');
-                  editorWrapper.style.display = 'none';
-                  rowDeleteBtns.forEach(btn => {
-                      btn.style.display = 'none';
-                  });
-                  rowDelete2Template.style.display = 'none';
+                  template = template ? template : document.getElementById('table-template').content.cloneNode(true);
+                  updateTable(template, infobox, oldElements);
                 } else {
-                  template = document.getElementById('infobox-template').content.cloneNode(true);
-                  updateInfobox(template, infobox);
-                  const editorWrapper = template.querySelector('.infobox-name-controls');
-                  const name = template.querySelector('.infobox-name');
-                  const bio = template.querySelector('.infobox-bio-text');
-                  const nameInput = template.querySelector('.name-input');
-                  const bioInput = template.querySelector('.bio-input');
-                  editorWrapper.style.display = 'none';
-                  nameInput.style.display = 'none';
-                  bioInput.style.display = 'none';
-                  name.style.display = 'block';
-                  bio.style.display = 'block';
+                  template = template ? template : document.getElementById('infobox-template').content.cloneNode(true);
+                  updateInfobox(template, infobox, oldElements);
                 }
                 
                 document.getElementById('row-list').appendChild(template);
@@ -1806,20 +1772,25 @@ function loadState() {
             
             cells.forEach(cell => {
                 let template;
+                const node = oldElements ? oldElements.find(node => node.dataset.index == infobox.id) : null;
+                if (node) {
+                    template = document.createDocumentFragment();
+                    template.appendChild(node);
+                }
                 if (cell.text2) {
-                    template = document.getElementById('info-template').content.cloneNode(true);
+                    template = template ? template : document.getElementById('info-template').content.cloneNode(true);
                 } else {
-                    template = document.getElementById('info-template2').content.cloneNode(true);
+                    template = template ? template : document.getElementById('info-template2').content.cloneNode(true);
                 }
                 updateCell(template, cell, false);
-                const rowDeleteCell = template.querySelector('.row-delete-cell');
-                rowDeleteCell.style.display = 'none';
                 document.getElementById('info-list').appendChild(template);
             });
             const writebleElements = document.querySelectorAll('.writeble-element');
-            writebleElements.forEach(el => {
-                el.style.backgroundColor = '#F1e7dd';
-            });
+            if (!oldElement) {
+                writebleElements.forEach(el => {
+                    el.style.backgroundColor = '#F1e7dd';
+                });
+            }
         }
     };
 }
@@ -1850,16 +1821,20 @@ function deleteElementFromArticle() {
 function deleteElement(row, element, array, type) {
     if (type !== 'table data') {
         if (confirm(`Are you sure you want to delete this ${type}?`)) {
+            let oldRows;
+            let newRows;
             if (cells === array) {
-                const oldArray = JSON.parse(JSON.stringify(array));
-                actionManager(row, array, oldArray, 'element-change');
+                oldRows = JSON.parse(JSON.stringify(array));
+                newRows = array;
             } else {
-                const oldArray = JSON.parse(JSON.stringify(infoboxes));
-                actionManager(row, infoboxes, oldArray, 'element-change');
+                oldRows = JSON.parse(JSON.stringify(infoboxes));
+                newRows = infoboxes;
             }
             
             row.remove();
             array.splice(array.indexOf(element), 1);
+            
+            actionManager(row, newRows, oldRows, 'element-change');
         }
           
         array.forEach((el, index) => el.position = index);
@@ -1877,18 +1852,20 @@ function deleteElement(row, element, array, type) {
         rowDelete2Btns.forEach((btn, i) => {
             btn.setAttribute('data-index', i);
         });
+        let elements = [];
         
         rows.forEach(miniRow => {
             const tableData = miniRow.data;
             const cell = tableData.find(a => a.position == index);
-            const rowElement = document.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
+            const dataElement = document.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
             
-            rowElement.remove();
+            dataElement.remove();
+            elements.push(dataElement);
             tableData.splice(miniRow.data.indexOf(cell), 1);
             
             tableData.forEach((cell, i) => cell.position = i);
         });
-        actionManager(parentRow, infoboxes, { oldRows, oldData }, 'element-change2');
+        actionManager(elements, infoboxes, oldRows, 'element-change');
     }
 }
 

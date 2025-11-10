@@ -229,6 +229,7 @@ th, td {
   border: 1px solid black;
   border-right: 0px;
   box-sizing: border-box;
+  display: none;
 }
 
 .cell3 {
@@ -487,6 +488,61 @@ img {
 .row-delete-wrapper {
   width: 10%;
   border: 1px solid black;
+}
+
+.cell-input-wrapper, #title-input, .generate-preset-btn, .infobox-name-controls, .row2-wrapper, .row-delete-wrapper, .row-delete2-wrapper, .name-input, .bio-input {
+  display: none;
+}
+
+.infobox-name {
+  display: inline;
+}
+
+.cell-edit-mode #title-input {
+  display: inline;
+}
+
+.cell-edit-mode .row-delete-cell {
+  display: table-cell;
+}
+.cell-edit-mode .cell-input-wrapper {
+  display: block;
+}
+
+.cell-edit-mode .cell-text,
+.cell-edit-mode #title {
+  display: none;
+}
+
+.row-edit-mode .row-delete-cell,
+.row-edit-mode .generate-preset-btn,
+.row-edit-mode .cell-input-wrapper,
+.row-edit-mode .bio-input,
+.row-edit-mode .infobox-name-controls {
+  display: block;
+}
+
+.row-edit-mode .name-input {
+  display: inline;
+}
+
+.row-edit-mode .row2-wrapper {
+  display: table-row;
+}
+
+.row-edit-mode .row-delete2-wrapper {
+  display: table-cell;
+}
+
+.row-edit-mode .row-delete-wrapper {
+  display: table-cell;
+}
+
+.row-edit-mode .infobox-name,
+.row-edit-mode .cell-text,
+.row-edit-mode .info-title,
+.row-edit-mode .infobox-bio-text {
+  display: none;
 }
 
 .table-scroll {
