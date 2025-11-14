@@ -1,7 +1,7 @@
 let db;
 
 function openDB() {
-    const request = indexedDB.open('gameData', 5);
+    const request = indexedDB.open('gameData', 6);
 
     request.onupgradeneeded = function(event) {
         db = event.target.result;
@@ -395,7 +395,7 @@ function redoManager() {
 function toggleTable(tableId, button) {
     let isVisible = getComputedStyle(button).backgroundImage.includes('https://i.ibb.co/s91K27m8/20251024-091953.png');
     var table = document.getElementById(tableId);
-    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    const infoboxTemplate = document.querySelectorAll('.row-wrapper');
     
     if (!isVisible) {
         table.style.display = 'block';
@@ -546,50 +546,52 @@ function generateCell(templateId, text) {
 }
 
 function updateCell(template, cell) {
-    const editMode = editButton.textContent === '✔️';
-    template.querySelector('.info-wrapper').setAttribute('data-index', cell.id);
-    if (editMode) {
-        const textWrapper = template.querySelectorAll('.cell-text');
-        const inputWrappers = template.querySelectorAll('.cell-input-wrapper');
-        
-        textWrapper.forEach(text => {
-            text.style.display = 'none';
-        })
-        inputWrappers.forEach(input => {
-            input.style.display = 'block';
-        });
-    }
-    template.querySelector('.info-title').innerHTML = cell.text1;
-    template.querySelector('.info-input').innerHTML = cell.text1;
-    const infoTitle = template.querySelector('.info-title');
-    const infoInput = template.querySelector('.info-input');
-    infoInput.addEventListener('input', (event) => {
-        const element = event.target;
-        const elementActions = undoList.filter(undo => undo.element === element);
-        const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoTitle.innerHTML;
-        
-        actionManager(element, element.innerHTML, lastText, 'text-change');
-        cell.text1 = element.innerHTML;
-    });
-    infoInput.addEventListener('focus', function(event) {
-        currentTextArea = event.target;
-    });
-    if (cell.text2) {
-        template.querySelector('.value-cell').innerHTML = cell.text2;
-        template.querySelector('.value-input').innerHTML = cell.text2;
-        const valueCell = template.querySelector('.value-cell');
-        const valueInput = template.querySelector('.value-input');
-        valueInput.addEventListener('input', (event) => {
+    if (!template?.dataset?.index) {
+        const editMode = editButton.textContent === '✔️';
+        template.querySelector('.info-wrapper').setAttribute('data-index', cell.id);
+        if (editMode) {
+            const textWrapper = template.querySelectorAll('.cell-text');
+            const inputWrappers = template.querySelectorAll('.cell-input-wrapper');
+            
+            textWrapper.forEach(text => {
+                text.style.display = 'none';
+            })
+            inputWrappers.forEach(input => {
+                input.style.display = 'block';
+            });
+        }
+        template.querySelector('.info-title').innerHTML = cell.text1;
+        template.querySelector('.info-input').innerHTML = cell.text1;
+        const infoTitle = template.querySelector('.info-title');
+        const infoInput = template.querySelector('.info-input');
+        infoInput.addEventListener('input', (event) => {
             const element = event.target;
             const elementActions = undoList.filter(undo => undo.element === element);
-            const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : valueCell.innerHTML;
+            const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoTitle.innerHTML;
             
             actionManager(element, element.innerHTML, lastText, 'text-change');
-            cell.text2 = element.innerHTML;
+            cell.text1 = element.innerHTML;
         });
-        valueInput.addEventListener('focus', function(event) {
+        infoInput.addEventListener('focus', function(event) {
             currentTextArea = event.target;
         });
+        if (cell.text2) {
+            template.querySelector('.value-cell').innerHTML = cell.text2;
+            template.querySelector('.value-input').innerHTML = cell.text2;
+            const valueCell = template.querySelector('.value-cell');
+            const valueInput = template.querySelector('.value-input');
+            valueInput.addEventListener('input', (event) => {
+                const element = event.target;
+                const elementActions = undoList.filter(undo => undo.element === element);
+                const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : valueCell.innerHTML;
+                
+                actionManager(element, element.innerHTML, lastText, 'text-change');
+                cell.text2 = element.innerHTML;
+            });
+            valueInput.addEventListener('focus', function(event) {
+                currentTextArea = event.target;
+            });
+        }
     }
 }
 
@@ -605,7 +607,6 @@ function editArticle() {
     const synopsisInput = document.getElementById('synopsis-text-input');
     const introWrapper = document.getElementById('intro-wrapper');
     const rowList = document.getElementById('row-list');
-    const writebleElements = document.querySelectorAll('.writeble-element');
     const editMode = editButton.textContent === '✏️';
     
     if (db) {
@@ -626,9 +627,6 @@ function editArticle() {
             } else {
                 rowList.classList.toggle('row-list-edit-mode');
             }
-            writebleElements.forEach(el => {
-                el.style.backgroundColor = 'white';
-            });
             mainInfobox.classList.toggle('cell-edit-mode');
             toolbar.style.display = 'block';
             titleInput.value = title.textContent;
@@ -651,9 +649,6 @@ function editArticle() {
             } else {
                 rowList.classList.toggle('row-list-edit-mode');
             }
-            writebleElements.forEach(el => {
-                el.style.backgroundColor = '#F1e7dd';
-            });
             mainInfobox.classList.toggle('cell-edit-mode');
             data.title = titleInput.value;
             data.intro = introInput.innerHTML;
@@ -690,7 +685,7 @@ function assignCategoriesToInfoboxes() {
 }
 
 function editInfobox(editMode) {
-    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    const infoboxTemplate = document.querySelectorAll('.row-wrapper');
     if (!infoboxTemplate) return;
     
     infoboxTemplate.forEach(template => {
@@ -793,6 +788,7 @@ function editSection(row, infobox, editMode) {
         sectionWrappers.forEach(section => {
             const rowDeleteCell = section.querySelector('.row-delete-cell');
             const rowCell1 = section.querySelector('.infobox-cell1');
+            const rowCell3 = section.querySelector('.infobox-cell3');
             const infoTitle = section.querySelector('.info-title');
             const valueCell = section.querySelector('.value-cell');
             const inputWrapper = section.querySelectorAll('.cell-input-wrapper');
@@ -803,20 +799,17 @@ function editSection(row, infobox, editMode) {
             let cell = sections.find(el => el.id == index);
             
             if (editMode) {
-                rowCell1.style.width = '48%';
-                valueInput.innerHTML = valueCell.innerHTML;
                 infoInput.innerHTML = infoTitle.innerHTML;
+                if (!rowCell3) {
+                    valueInput.innerHTML = valueCell.innerHTML;
+                }
             } else {
                 cell.text1 = infoInput.innerHTML;
-                cell.text2 = valueInput.innerHTML;
-                if (!infoInput.textContent.trim() && !valueInput.textContent.trim()) {
-                    const wrapper = infoInput.closest('.info-wrapper');
-                    deleteElement(section, cell, sections, 'section');
-                } else {
-                    infoTitle.innerHTML = cell.text1;
+                infoTitle.innerHTML = cell.text1;
+                if (!rowCell3) {
+                    cell.text2 = valueInput.innerHTML;
                     valueCell.innerHTML = cell.text2;
                 }
-                rowCell1.style.width = '50%';
             }
         });
     }
@@ -851,7 +844,6 @@ function editMainInfobox(editMode) {
                         const wrapper = infoInput.closest('.info-wrapper');
                         deleteElement(wrapper, cell, cells, 'cell');
                     } else {
-                        cell3.style.backgroundColor = '#F1e7dd';
                         infoTitle.innerHTML = cell.text1;
                     }
                 } else {
@@ -861,8 +853,6 @@ function editMainInfobox(editMode) {
                         const wrapper = infoInput.closest('.info-wrapper');
                         deleteElement(wrapper, cell, cells, 'cell');
                     } else {
-                        cell1.style.backgroundColor = '#F1e7dd';
-                        cell2.style.backgroundColor = '#F1e7dd';
                         infoTitle.innerHTML = cell.text1;
                         valueCell.innerHTML = cell.text2;
                     }
@@ -889,7 +879,7 @@ function handleCellClick(event) {
 
 function handleRowClick(event) {
     const target = event.target;
-    const row = target.closest('.character-wrapper');
+    const row = target.closest('.row-wrapper');
     const index = row ? row.dataset.index : null;
     const infobox = infoboxes.find(char => char.id == index);
 
@@ -922,7 +912,9 @@ function handleRowClick(event) {
     } else if (target.classList.contains('delete-btn')) {
         deleteElement(row, infobox, infoboxes, 'infobox');
     } else if (target.classList.contains('add-section-btn')) {
-        generateSection(row, infobox, null);
+        generateSection('section-template', row, infobox, null);
+    } else if (target.classList.contains('add-section-btn2')) {
+        generateSection('section-template2', row, infobox, null);
     } else if (target.classList.contains('generate-preset-btn')) {
         presetGenerateSection(row, infobox);
     } else if (target.classList.contains('toggle-category-btn')) {
@@ -944,7 +936,7 @@ function handleRowClick(event) {
         const section = sections.find(a => a.id == index);
         deleteElement(sectionNode, section, sections, 'section');
     } else if (target.classList.contains('row-delete-btn')) {
-        const rowElement = target.closest('.row-wrapper');
+        const rowElement = target.closest('.mini-row-wrapper');
         const rows = infobox.rows;
         const index = rowElement.dataset.index;
         const miniRow = rows.find(r => r.id == index);
@@ -954,10 +946,10 @@ function handleRowClick(event) {
             deleteElement(target, infobox, null, 'table data');
         }
     } else if (target.classList.contains('row-up-btn')) {
-        const rowElement = target.closest('.row-wrapper');
+        const rowElement = target.closest('.mini-row-wrapper');
         moveMiniRow(rowElement, infobox, 'up');
     } else if (target.classList.contains('row-down-btn')) {
-        const rowElement = target.closest('.row-wrapper');
+        const rowElement = target.closest('.mini-row-wrapper');
         moveMiniRow(rowElement, infobox, 'down');
     } else if (target.classList.contains('row-left-btn')) {
         const rowDelete2Btn = target.parentNode.querySelector('.row-delete2-btn');
@@ -981,7 +973,7 @@ function handleRowClick(event) {
 }
 
 function allignRows() {
-    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    const infoboxTemplate = document.querySelectorAll('.row-wrapper');
     let previousPosition = -1;
           
     infoboxTemplate.forEach(template => {
@@ -995,7 +987,7 @@ function allignRows() {
 
 function handleRowChange(event) {
     const target = event.target;
-    const row = target.closest('.character-wrapper');
+    const row = target.closest('.row-wrapper');
     const index = row ? row.dataset.index : null;
     const infobox = infoboxes.find(char => char.id == index);
 
@@ -1009,7 +1001,7 @@ function toggleCategory(row, category) {
     let id = category.id;
     let toggleButton = row.querySelector('.toggle-category-btn');
     let isVisible = getComputedStyle(toggleButton).backgroundImage.includes('https://i.ibb.co/s91K27m8/20251024-091953.png');
-    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    const infoboxTemplate = document.querySelectorAll('.row-wrapper');
     
     infoboxTemplate.forEach(template => {
         const index = template.getAttribute('data-index');
@@ -1043,7 +1035,7 @@ function generateRow(catTemplate, category, type) {
           
         infoboxes.forEach((infobox, index) => {
             if (infobox.position >= newPosition) {
-                firstRow = firstRow ? firstRow : document.querySelector(`.character-wrapper[data-index="${infobox.id}"]`);
+                firstRow = firstRow ? firstRow : document.querySelector(`.row-wrapper[data-index="${infobox.id}"]`);
                 infobox.position = index + 1;
             }
         });
@@ -1054,7 +1046,7 @@ function generateRow(catTemplate, category, type) {
             infoboxes.forEach((infobox, index) =>
                 infobox.position = index + 1);
             
-            firstRow = document.querySelector(`.character-wrapper[data-index="${infoboxes[0].id}"]`);
+            firstRow = document.querySelector(`.row-wrapper[data-index="${infoboxes[0].id}"]`);
         }
     }
     const oldRows = JSON.parse(JSON.stringify(infoboxes));
@@ -1104,7 +1096,7 @@ function generateRow(catTemplate, category, type) {
         updateTable(template, newInfobox, null);
     }
     
-    const element = template.querySelector('.character-wrapper');
+    const element = template.querySelector('.row-wrapper');
     if (firstRow) {
         firstRow.parentNode.insertBefore(template, firstRow);
     } else {
@@ -1117,61 +1109,67 @@ function generateRow(catTemplate, category, type) {
 function updateCategory(row, category) {
     const editMode = editButton.textContent === '✔️';
     
-    row.querySelector('.character-wrapper').setAttribute('data-index', category.id);
-    const editorWrapper = row.querySelector('.infobox-name-controls');
-    const name = row.querySelector('.infobox-name');
-    const nameInput = row.querySelector('.name-input');
-    if (editMode) {
-        row.querySelector('.toggle-category-btn').style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
-        row.querySelector('.category-wrapper').classList.add('row-edit-mode');
-        nameInput.value = category.name;
-    } else {
-        row.querySelector('.category-wrapper').classList.remove('row-edit-mode');
-        name.textContent = category.name;
+    if (!row?.dataset?.index) {
+        row.querySelector('.row-wrapper').setAttribute('data-index', category.id);
+        const editorWrapper = row.querySelector('.infobox-name-controls');
+        const name = row.querySelector('.infobox-name');
+        const nameInput = row.querySelector('.name-input');
+        if (editMode) {
+            row.querySelector('.toggle-category-btn').style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
+            row.querySelector('.category-wrapper').classList.add('row-edit-mode');
+            nameInput.value = category.name;
+        } else {
+            row.querySelector('.category-wrapper').classList.remove('row-edit-mode');
+            name.textContent = category.name;
+        }
     }
 }
 
 function updateInfobox(row, infobox, oldElements) {
     const editMode = editButton.textContent === '✔️';
     
-    row.querySelector('.character-wrapper').setAttribute('data-index', infobox.id);
-    const name = row.querySelector('.infobox-name');
-    const bio = row.querySelector('.infobox-bio-text');
-    const nameInput = row.querySelector('.name-input');
-    const bioInput = row.querySelector('.bio-input');
-    if (editMode) {
-        row.querySelector('.control-room').style.display = 'block';
-        row.querySelector('.infobox-wrapper').classList.add('row-edit-mode');
-        nameInput.value = infobox.name;
-        bioInput.innerHTML = infobox.bio;
+    if (!row?.dataset?.index) {
+        row.querySelector('.row-wrapper').setAttribute('data-index', infobox.id);
+        const name = row.querySelector('.infobox-name');
+        const bio = row.querySelector('.infobox-bio-text');
+        const nameInput = row.querySelector('.name-input');
+        const bioInput = row.querySelector('.bio-input');
+        if (editMode) {
+            row.querySelector('.control-room').style.display = 'block';
+            row.querySelector('.infobox-wrapper').classList.add('row-edit-mode');
+            nameInput.value = infobox.name;
+            bioInput.innerHTML = infobox.bio;
+        } else {
+            row.querySelector('.infobox-wrapper').classList.remove('row-edit-mode');
+            name.textContent = infobox.name;
+            bio.innerHTML = infobox.bio;
+        }
+        bioInput.addEventListener('input', (event) => {
+            const element = event.target;
+            const elementActions = undoList.filter(undo => undo.element === element);
+            const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : bio.innerHTML;
+            
+            actionManager(element, element.innerHTML, lastText, 'text-change');
+        });
+        row.querySelector('.infobox-img').src = infobox.imgSrc;
     } else {
-        row.querySelector('.infobox-wrapper').classList.remove('row-edit-mode');
-        name.textContent = infobox.name;
-        bio.innerHTML = infobox.bio;
+        const sectionNodes = row.querySelectorAll('.section-wrapper');
+        oldElements.push(...sectionNodes);
     }
-    bioInput.addEventListener('input', (event) => {
-        const element = event.target;
-        const elementActions = undoList.filter(undo => undo.element === element);
-        const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : bio.innerHTML;
-        
-        actionManager(element, element.innerHTML, lastText, 'text-change');
-        infobox.bio = element.innerHTML;
-    });
-    row.querySelector('.infobox-img').src = infobox.imgSrc;
     const sections = infobox.sections;
     if (sections) {
         sections.sort((a, b) => a.position - b.position);
-        const sectionNodes = row.querySelectorAll('.section-wrapper');
-        oldElements.push(...sectionNodes);
-        sectionNodes.forEach(node => node.remove());
         sections.forEach(section => {
             let template;
-            const node = oldElements.find(node => node.dataset.index == section.id && node.classList.contains('section-wrapper'));
-            if (node) {
-                template = document.createDocumentFragment();
-                template.appendChild(node);
+            template = oldElements.find(node => node.dataset.index == section.id && node.classList.contains('section-wrapper'));
+            if (template) {
+                oldElements.splice(oldElements.indexOf(template), 1);
             } else {
-                template = document.getElementById('section-template').content.cloneNode(true);
+                if (section.text2) {
+                    template = document.getElementById('section-template').content.cloneNode(true);
+                } else {
+                    template = document.getElementById('section-template2').content.cloneNode(true);
+                }
             }
             updateSection(template, section);
             const rowDeleteCell = template.querySelector('.row-delete-cell');
@@ -1183,72 +1181,65 @@ function updateInfobox(row, infobox, oldElements) {
 function updateTextArea(row, textArea) {
     const editMode = editButton.textContent === '✔️';
     
-    row.querySelector('.character-wrapper').setAttribute('data-index', textArea.id);
-    const editorWrapper = row.querySelector('.infobox-name-controls');
-    const bio = row.querySelector('.infobox-bio-text');
-    const bioInput = row.querySelector('.bio-input');
-    if (editMode) {
-        row.querySelector('.text-area-wrapper').classList.add('row-edit-mode');
-        bioInput.innerHTML = textArea.bio;
-    } else {
-        row.querySelector('.text-area-wrapper').classList.remove('row-edit-mode');
-        bio.innerHTML = textArea.bio;
+    if (!row?.dataset?.index) {
+        row.querySelector('.row-wrapper').setAttribute('data-index', textArea.id);
+        const editorWrapper = row.querySelector('.infobox-name-controls');
+        const bio = row.querySelector('.infobox-bio-text');
+        const bioInput = row.querySelector('.bio-input');
+        if (editMode) {
+            row.querySelector('.text-area-wrapper').classList.add('row-edit-mode');
+            bioInput.innerHTML = textArea.bio;
+        } else {
+            row.querySelector('.text-area-wrapper').classList.remove('row-edit-mode');
+            bio.innerHTML = textArea.bio;
+        }
+        row.querySelector('.bio-input').addEventListener('input', (event) => {
+            const element = event.target;
+            const elementActions = undoList.filter(undo => undo.element === element);
+            const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : bioText.innerHTML;
+            
+            actionManager(element, element.innerHTML, lastText, 'text-change');
+        });
     }
-    row.querySelector('.bio-input').addEventListener('input', (event) => {
-        const element = event.target;
-        const elementActions = undoList.filter(undo => undo.element === element);
-        const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : bioText.innerHTML;
-        
-        actionManager(element, element.innerHTML, lastText, 'text-change');
-    });
 }
 
 function updateTable(element, table, oldElements) {
-    const editMode = editButton.textContent === '✔️';
-    
-    const rowNodes = element.querySelectorAll('.row-wrapper');
-    rowNodes.forEach(node => node.remove());
-    oldElements.push(...rowNodes);
-    element.querySelector('.character-wrapper').setAttribute('data-index', table.id);
-    if (!rowNodes.length) {
+    if (!element?.dataset?.index) {
+        const editMode = editButton.textContent === '✔️';
+        element.querySelector('.row-wrapper').setAttribute('data-index', table.id);
+        if (editMode) {
+            element.querySelector('.row-wrapper').classList.add('row-edit-mode');
+        } else {
+            element.querySelector('.row-wrapper').classList.remove('row-edit-mode');
+        }
         const rowDelete2Template = document.getElementById('row2-template').content.cloneNode(true);
-        const dataTemplate = document.getElementById('data-template').content.cloneNode(true);
         element.querySelector('.table-body').appendChild(rowDelete2Template);
-        dataTemplate.querySelector('.data-wrapper').classList.toggle('writeble-element');
-        element.querySelector('.row2-wrapper').appendChild(dataTemplate);
-        const infoTitle = 
-        element.querySelector('.row2-wrapper').querySelector('.info-title');
-        infoTitle.textContent = '';
+    } else {
+        const rowNodes = element.querySelectorAll('.mini-row-wrapper');
+        oldElements.push(...rowNodes);
     }
     const rows = table.rows;
     let firstRow = true;
     if (rows) {
         rows.sort((a, b) => a.position - b.position);
         rows.forEach(row => {
-            let template;
-            const node = oldElements ? oldElements.find(node => node.dataset.index == row.id && node.classList.contains('row-wrapper')) : null;
-            if (node) {
-                template = document.createDocumentFragment();
-                template.appendChild(node);
+            let template = oldElements ? oldElements.find(node => node.dataset.index == row.id && node.classList.contains('mini-row-wrapper')) : null;
+            if (template) {
+                oldElements.splice(oldElements.indexOf(template), 1);
             } else {
                 template = document.getElementById('row-template').content.cloneNode(true);
             }
             updateMiniRow(template, row, oldElements, true);
             element.querySelector('.table-body').appendChild(template);
         });
-        const rowDelete2Wrapper = element.querySelector('.row2-wrapper');
-        const rowDelete2Btns = rowDelete2Wrapper.querySelectorAll('.row-delete2-wrapper');
-        rowDelete2Btns.forEach(btn => btn.remove());
+        const rowDelete2Wrapper = element?.querySelector('.row2-wrapper');
+        const rowDelete2Btns = rowDelete2Wrapper?.querySelectorAll('.row-delete2-wrapper');
+        rowDelete2Btns?.forEach(btn => btn.remove());
         rows[0]?.data?.forEach(cell => {
             const rowDelete2Btn = document.getElementById('row-delete2-template').content.cloneNode(true);
             rowDelete2Btn.querySelector('.row-delete2-btn').setAttribute('data-index', cell.position);
             rowDelete2Wrapper.appendChild(rowDelete2Btn);
         });
-    }
-    if (editMode) {
-        element.querySelector('.character-wrapper').classList.add('row-edit-mode');
-    } else {
-        element.querySelector('.character-wrapper').classList.remove('row-edit-mode');
     }
 }
 
@@ -1276,7 +1267,7 @@ function generateMiniRow(row, infobox) {
     rows.push(newRow);
     
     updateMiniRow(template, newRow, null, firstRow);
-    const element = template.querySelector('.row-wrapper');
+    const element = template.querySelector('.mini-row-wrapper');
     row.querySelector('.table-body').appendChild(template);
     actionManager(element, rows, oldRows, 'element-change');
 }
@@ -1284,33 +1275,35 @@ function generateMiniRow(row, infobox) {
 function updateMiniRow(rowElement, row, oldElements, notClone) {
     const rowDeleteBtn = document.getElementById('row-delete-template').content.cloneNode(true);
     if (notClone) {
-        rowElement.querySelector('.row-wrapper').setAttribute('data-index', row.id);
-        const dataElements = rowElement.querySelectorAll('.data-wrapper');
-        dataElements.forEach(el => el.remove());
-        oldElements.push(...dataElements);
-        if (!dataElements.length) {
+        let parentNode;
+        if (!rowElement?.dataset?.index) {
+            rowElement.querySelector('.mini-row-wrapper').setAttribute('data-index', row.id);
             rowElement.querySelector('.row-body').appendChild(rowDeleteBtn);
+            parentNode = rowElement.querySelector('.row-body');
+        } else {
+            const dataElements = rowElement.querySelectorAll('.data-wrapper');
+            if (dataElements.length) {
+                oldElements.push(...dataElements);
+            }
+            parentNode = rowElement;
         }
-        
         const tableData = row.data;
         if (tableData) {
             tableData.sort((a, b) => a.position - b.position);
             tableData.forEach(cell => {
                 let template;
-                const node = oldElements ? oldElements.find(el => el.dataset.index == cell.id && el.classList.contains('data-wrapper')) : null;
-                if (node) {
-                    template = document.createDocumentFragment();
-                    template.appendChild(node);
-                    oldElements.splice(oldElements.indexOf(node), 1);
+                template = oldElements ? oldElements.find(el => el.dataset.index == cell.id && el.classList.contains('data-wrapper')) : null;
+                if (template) {
+                    oldElements.splice(oldElements.indexOf(template), 1);
                 } else {
                     template = document.getElementById('data-template').content.cloneNode(true);
                 }
                 updateTableData(template, cell, true);
-                rowElement.querySelector('.row-body').appendChild(template);
+                parentNode.appendChild(template);
             });
         }
     } else {
-        rowElement.querySelector('.row-wrapper').setAttribute('data-index', row.id);
+        rowElement.querySelector('.mini-row-wrapper').setAttribute('data-index', row.id);
         
         const dataWrappers = rowElement.querySelectorAll('.data-wrapper');
         
@@ -1365,23 +1358,25 @@ function generateTableData(tableElement, table) {
 }
 
 function updateTableData(template, tableData, notClone) {
-    if (notClone) {
-        template.querySelector('.data-wrapper').setAttribute('data-index', tableData.id);
-    } else {
-        template.setAttribute('data-index', tableData.id);
+    if (!template?.dataset?.index) {
+        if (notClone) {
+            template.querySelector('.data-wrapper').setAttribute('data-index', tableData.id);
+        } else {
+            template.setAttribute('data-index', tableData.id);
+        }
+        const infoTitle = template.querySelector('.info-title');
+        const infoInput = template.querySelector('.info-input');
+        infoTitle.innerHTML = tableData.text;
+        infoInput.innerHTML = tableData.text;
+        infoInput.addEventListener('input', (event) => {
+            const element = event.target;
+            const elementActions = undoList.filter(undo => undo.element === element);
+            const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoTitle.innerHTML;
+            
+            actionManager(element, element.innerHTML, lastText, 'text-change');
+            tableData.text = element.innerHTML;
+        });
     }
-    const infoTitle = template.querySelector('.info-title');
-    const infoInput = template.querySelector('.info-input');
-    infoTitle.innerHTML = tableData.text;
-    infoInput.innerHTML = tableData.text;
-    infoInput.addEventListener('input', (event) => {
-        const element = event.target;
-        const elementActions = undoList.filter(undo => undo.element === element);
-        const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoTitle.innerHTML;
-        
-        actionManager(element, element.innerHTML, lastText, 'text-change');
-        tableData.text = element.innerHTML;
-    });
 }
 
 function loadImage(event, element) {
@@ -1390,13 +1385,13 @@ function loadImage(event, element) {
         const reader = new FileReader();
         reader.onload = function(e) {
             element.imgSrc = e.target.result;
-            const row = document.querySelector(`.character-wrapper[data-index="${element.id}"]`);
+            const row = document.querySelector(`.row-wrapper[data-index="${element.id}"]`);
             row.querySelector('.infobox-img').src = element.imgSrc;
         };
         reader.readAsDataURL(file);
     } else {
         element.imgSrc = prompt('Enter the URL', 'https://');
-        const row = document.querySelector(`.character-wrapper[data-index="${element.id}"]`);
+        const row = document.querySelector(`.row-wrapper[data-index="${element.id}"]`);
         row.querySelector('.infobox-img').src = element.imgSrc;
     }
 }
@@ -1484,7 +1479,7 @@ function moveTableData(position, table, direction) {
     const oldRows = JSON.parse(JSON.stringify(infoboxes));
     rows.forEach(row => {
         const tableData = row.data;
-        const rowElement = document.querySelector(`.row-wrapper[data-index="${row.id}"]`);
+        const rowElement = document.querySelector(`.mini-row-wrapper[data-index="${row.id}"]`);
         tableData.forEach(cell => {
             if (cell.position == position) {
                 const dataElement = rowElement.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
@@ -1565,8 +1560,8 @@ function moveInfobox(row, infobox, direction) {
         categories.sort((a, b) => a.position - b.position);
         previousInfobox = categories[categories.indexOf(infobox) - 1];
         nextInfobox = categories[categories.indexOf(infobox) + 1];
-        previousRow = previousInfobox ? document.querySelector(`.character-wrapper[data-index="${previousInfobox.id}"]`) : null;
-        nextRow = nextInfobox ? document.querySelector(`.character-wrapper[data-index="${nextInfobox.id}"]`) : null;
+        previousRow = previousInfobox ? document.querySelector(`.row-wrapper[data-index="${previousInfobox.id}"]`) : null;
+        nextRow = nextInfobox ? document.querySelector(`.row-wrapper[data-index="${nextInfobox.id}"]`) : null;
     } else {
         previousRow = row.previousElementSibling;
         nextRow = row.nextElementSibling;
@@ -1611,7 +1606,7 @@ function moveInfobox(row, infobox, direction) {
 
 function allignCategory(row, category) {
     let id = category.id;
-    const infoboxTemplate = document.querySelectorAll('.character-wrapper');
+    const infoboxTemplate = document.querySelectorAll('.row-wrapper');
     const childsOfCat = infoboxes.filter(a => a.category === category.id);
     childsOfCat.sort((a, b) => a.position - b.position);
     let previousRow = row;
@@ -1619,7 +1614,7 @@ function allignCategory(row, category) {
     if (childsOfCat.length) {
         childsOfCat.forEach(child => {
             const index = child.id;
-            const childNode = document.querySelector(`.character-wrapper[data-index="${child.id}"]`);
+            const childNode = document.querySelector(`.row-wrapper[data-index="${child.id}"]`);
             
             childNode.style.display = 'block';
             childNode.parentNode.insertBefore(childNode, previousRow.nextElementSibling);
@@ -1643,8 +1638,8 @@ function toggleBio(row) {
 }
 
 // generates info cells for the infoboxes
-function generateSection(row, infobox, text) {
-    const template = document.getElementById('section-template').content.cloneNode(true);
+function generateSection(templateId, row, infobox, text) {
+    const template = document.getElementById(templateId).content.cloneNode(true);
     const newId = Date.now();
     const sections = infobox.sections;
     const newPosition = sections.length ? sections[sections.length - 1].position + 1 : 0;
@@ -1653,7 +1648,7 @@ function generateSection(row, infobox, text) {
     const newSection = {
         id: newId,
         text1: text ? text : 'Write here',
-        text2: 'Write here',
+        text2: templateId === 'section-template' ? 'Write here' : null,
         position: newPosition
     };
     infobox.sections.push(newSection);
@@ -1668,31 +1663,35 @@ function generateSection(row, infobox, text) {
 }
 
 function updateSection(template, section) {
-    template.querySelector('.section-wrapper').setAttribute('data-index', section.id);
-    const infoText = template.querySelector('.info-title');
-    const infoInput = template.querySelector('.info-input');
-    const valueText = template.querySelector('.value-cell');
-    const valueInput = template.querySelector('.value-input');
-    infoText.innerHTML = section.text1;
-    infoInput.innerHTML = section.text1;
-    valueText.innerHTML = section.text2;
-    valueInput.innerHTML = section.text2;
-    infoInput.addEventListener('input', (event) => {
-        const element = event.target;
-        const elementActions = undoList.filter(undo => undo.element === element);
-        const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoText.innerHTML;
-        
-        actionManager(element, element.innerHTML, lastText, 'text-change');
-        section.text1 = element.innerHTML;
-    });
-    valueInput.addEventListener('input', (event) => {
-        const element = event.target;
-        const elementActions = undoList.filter(undo => undo.element === element);
-        const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : valueText.innerHTML;
-        
-        actionManager(element, element.innerHTML, lastText, 'text-change');
-        section.text2 = element.innerHTML;
-    });
+    if (!template?.dataset?.index) {
+        template.querySelector('.section-wrapper').setAttribute('data-index', section.id);
+        const infoText = template.querySelector('.info-title');
+        const infoInput = template.querySelector('.info-input');
+        infoText.innerHTML = section.text1;
+        infoInput.innerHTML = section.text1;
+        infoInput.addEventListener('input', (event) => {
+            const element = event.target;
+            const elementActions = undoList.filter(undo => undo.element === element);
+            const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoText.innerHTML;
+            
+            actionManager(element, element.innerHTML, lastText, 'text-change');
+            section.text1 = element.innerHTML;
+        });
+        if (section.text2) {
+            const valueText = template.querySelector('.value-cell');
+            const valueInput = template.querySelector('.value-input');
+            valueText.innerHTML = section.text2;
+            valueInput.innerHTML = section.text2;
+            valueInput.addEventListener('input', (event) => {
+                const element = event.target;
+                const elementActions = undoList.filter(undo => undo.element === element);
+                const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : valueText.innerHTML;
+                
+                actionManager(element, element.innerHTML, lastText, 'text-change');
+                section.text2 = element.innerHTML;
+            });
+        }
+    }
 }
 
 function updateData(data) {
@@ -1735,7 +1734,7 @@ function loadState(oldElement) {
                     console.log("failed");
                 }
             } else {
-                const rowNodes = document.getElementById('row-list').querySelectorAll('.character-wrapper');
+                const rowNodes = document.getElementById('row-list').querySelectorAll('.row-wrapper');
                 const cellNodes = document.getElementById('info-list').querySelectorAll('.info-wrapper');
                 if (cellNodes.length) {
                     oldElements.push(...cellNodes);
@@ -1748,19 +1747,15 @@ function loadState(oldElement) {
                 } else if (oldElement.tagName) {
                     oldElements.push(oldElement);
                 }
-                document.getElementById('row-list').innerHTML = '';
                 document.getElementById('info-list').innerHTML = '';
             }
             
             infoboxes.sort((a, b) => a.position - b.position);
             
             infoboxes.forEach(infobox => {
-                let template;
-                
-                const node = oldElements ? oldElements.find(node => node.dataset.index == infobox.id && node.classList.contains('character-wrapper')) : null;
-                if (node) {
-                    template = document.createDocumentFragment();
-                    template.appendChild(node);
+                let template = oldElements ? oldElements.find(node => node.dataset.index == infobox.id && node.classList.contains('row-wrapper')) : null;
+                if (template) {
+                    oldElements.splice(oldElements.indexOf(template), 1);
                 }
                 if (infobox.type === 'category') {
                   template = template ? template : document.getElementById('category-template').content.cloneNode(true);
@@ -1782,11 +1777,9 @@ function loadState(oldElement) {
             cells.sort((a, b) => a.position - b.position);
             
             cells.forEach(cell => {
-                let template;
-                const node = oldElements ? oldElements.find(node => node.dataset.index == infobox.id && node.classList.contains('info-wrapper')) : null;
-                if (node) {
-                    template = document.createDocumentFragment();
-                    template.appendChild(node);
+                let template = oldElements ? oldElements.find(node => node.dataset.index == cell.id && node.classList.contains('info-wrapper')) : null;
+                if (template) {
+                    oldElements.splice(oldElements.indexOf(template), 1);
                 }
                 if (cell.text2) {
                     template = template ? template : document.getElementById('info-template').content.cloneNode(true);
@@ -1796,12 +1789,8 @@ function loadState(oldElement) {
                 updateCell(template, cell);
                 document.getElementById('info-list').appendChild(template);
             });
-            const writebleElements = document.querySelectorAll('.writeble-element');
-            if (!oldElement) {
-                writebleElements.forEach(el => {
-                    el.style.backgroundColor = '#F1e7dd';
-                });
-            }
+            // removing the leftover elements
+            oldElements.forEach(el => el.remove());
         }
     };
 }

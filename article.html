@@ -101,14 +101,14 @@
         <td class="row-delete-cell">
           <button class="row-delete-btn">🗑</button>
         </td>
-        <td class="cell1 writeble-element">
+        <td class="cell1 writable-element">
           <div class="info-title cell-text"></div>
           <div class="cell-input-wrapper">
             <div class="info-input" contenteditable="true"></div>
             <button class="cell-up-btn">⬆️</button>
           </div>
         </td>
-        <td class="cell2 writeble-element">
+        <td class="cell2 writable-element">
           <div class="value-cell cell-text"></div>
           <div class="cell-input-wrapper">
             <div class="value-input" contenteditable="true"></div>
@@ -122,7 +122,7 @@
         <td class="row-delete-cell">
           <button class="row-delete-btn">🗑</button>
         </td>
-        <td class="cell3 writeble-element" colspan="3">
+        <td class="cell3 writable-element" colspan="2">
           <div class="info-title cell-text text-center"></div>
           <div class="cell-input-wrapper">
             <div class="info-input text-center" contenteditable="true"></div>
@@ -133,7 +133,7 @@
       </tr>
     </template>
     <template id="category-template">
-      <div class="category-wrapper character-wrapper">
+      <div class="category-wrapper row-wrapper">
         <div class="infobox-profile">
           <div class="infobox-controls">
             <h3 class="infobox-name">New Category</h3>
@@ -153,7 +153,7 @@
       </div>
     </template>
     <template id="infobox-template">
-      <div class="infobox-wrapper character-wrapper">
+      <div class="infobox-wrapper row-wrapper">
         <button class="generate-preset-btn" style="font-weight: bold;">Preset</button>
         <div class="infobox-profile">
           <h3 class="infobox-name">New Infobox</h3>
@@ -171,10 +171,11 @@
         </div>
         <div class="infobox-bio">
           <div class="infobox-bio-text">New Infobox bio goes here...</div>
-          <div class="bio-input writeble-element" contenteditable="true">Write description about the subject here...</div>
+          <div class="bio-input writable-element" contenteditable="true">Write description about the subject here...</div>
           <div class="section-lists"></div>
           <div class="control-room" style="display: none;">
-            <button class="add-section-btn">➕️</button>
+            <button class="add-section-btn">➕️1️⃣</button>
+            <button class="add-section-btn2">➕️2️⃣</button>
           </div>
         </div>
         <div class="see-more text-center">
@@ -183,7 +184,7 @@
       </div>
     </template>
     <template id="text-template">
-      <div class="text-area-wrapper character-wrapper">
+      <div class="text-area-wrapper row-wrapper">
         <div class="infobox-profile">
           <div class="infobox-name-controls">
             <button class="move-up-btn">⬆️</button>
@@ -193,7 +194,7 @@
         </div>
         <div class="infobox-bio">
           <div class="infobox-bio-text">New Infobox bio goes here...</div>
-          <div class="bio-input writeble-element" contenteditable="true">Write description about the subject here...</div>
+          <div class="bio-input writable-element" contenteditable="true">Write description about the subject here...</div>
         </div>
         <div class="see-more text-center">
           <span class="see-more-btn">show more</span>
@@ -201,7 +202,7 @@
       </div>
     </template>
     <template id="table-template">
-      <div class="mini-table-wrapper character-wrapper">
+      <div class="mini-table-wrapper row-wrapper">
           <div class="infobox-profile">
             <div class="infobox-name-controls">
               <button class="move-up-btn">⬆️</button>
@@ -217,13 +218,17 @@
       </div>
     </template>
     <template id="row-template">
-      <tr class="row-wrapper row-body"></tr>
+      <tr class="mini-row-wrapper row-body"></tr>
     </template>
     <template id="row2-template">
-      <tr class="row2-wrapper row-body"></tr>
+      <tr class="row2-wrapper row-body">
+        <td class="data-wrapper cell1">
+          <div class="info-title"> </div>
+        </td>
+      </tr>
     </template>
     <template id="data-template">
-      <td class="data-wrapper cell1 writeble-element">
+      <td class="data-wrapper cell1 writable-element">
         <div class="info-title">Hello</div>
         <div class="cell-input-wrapper">
             <div class="info-input" contenteditable="true"></div>
@@ -249,17 +254,32 @@
         <div class="row-delete-cell">
           <button class="section-delete-btn">🗑</button>
         </div>
-        <div class="infobox-cell1 writeble-element">
+        <div class="infobox-cell1 writable-element">
           <div class="info-title cell-text"></div>
           <div class="cell-input-wrapper">
             <div class="info-input" contenteditable="true"></div>
             <button class="cell-up-btn">⬆️</button>
           </div>
         </div>
-        <div class="infobox-cell2 writeble-element">
+        <div class="infobox-cell2 writable-element">
           <div class="value-cell cell-text"></div>
           <div class="cell-input-wrapper">
             <div class="value-input" contenteditable="true"></div>
+            <button class="cell-down-btn">⬇️</button>
+          </div>
+        </div>
+      </div>
+    </template>
+    <template id="section-template2">
+      <div class="section-wrapper">
+        <div class="row-delete-cell">
+          <button class="section-delete-btn">🗑</button>
+        </div>
+        <div class="infobox-cell3 writable-element">
+          <div class="info-title cell-text"></div>
+          <div class="cell-input-wrapper">
+            <div class="info-input" contenteditable="true"></div>
+            <button class="cell-up-btn">⬆️</button>
             <button class="cell-down-btn">⬇️</button>
           </div>
         </div>

@@ -232,9 +232,11 @@ th, td {
   display: none;
 }
 
-.cell3 {
+.cell3, .infobox-cell3 {
   width: 100%;
+  background-color: #f4c458;
   padding: 5px;
+  border: 1px solid black;
   text-align: center;
   box-sizing: border-box;
 }
@@ -496,7 +498,7 @@ img {
 }
 
 .infobox-name {
-  display: inline;
+  display: block;
 }
 
 .cell-edit-mode #title-input {
@@ -513,6 +515,10 @@ img {
 .cell-edit-mode .cell-text,
 .cell-edit-mode #title {
   display: none;
+}
+
+.cell-edit-mode .writable-element {
+  background-color: white;
 }
 
 .row-edit-mode .row-delete-cell,
@@ -544,6 +550,10 @@ img {
 .row-edit-mode .info-title,
 .row-edit-mode .infobox-bio-text {
   display: none;
+}
+
+.row-edit-mode .writable-element {
+  background-color: white;
 }
 
 .table-scroll {
