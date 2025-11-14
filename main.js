@@ -1,5 +1,5 @@
 const dbName = 'gameData';
-const dbVersion = 5;
+const dbVersion = 6;
 
 let db;
 
@@ -106,7 +106,7 @@ function generateArticle(newId, newTitle) {
         title: newTitle,
         intro: 'Write intro here...',
         synopsis: 'Write synopsis here...',
-        poster: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
+        poster: 'https://i.ibb.co/jkvtj531/file-00000000b08861faaa5ae1d6be8c5b27.png',
         upperToolbar: false,
         infobox: false
     };
