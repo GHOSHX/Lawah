@@ -38,7 +38,10 @@
     </div>
     <div id="settings" style="display: none;">
       <div class="settings-section">
-        <h3>Settings</h3>
+        <div id="settings-header">
+            <h3>Settings</h3>
+            <button id="close-settings-btn">❌️</button>
+        </div>
         <hr>
         <p><b>Visuals</b></p>
       </div>
@@ -135,12 +138,12 @@
     <template id="category-template">
       <div class="category-wrapper row-wrapper">
         <div class="infobox-profile">
-          <div class="infobox-controls">
+          <div class="category-controls">
             <h3 class="infobox-name">New Category</h3>
             <input type="text" class="name-input" placeholder="Enter new name">
             <button class="toggle-category-btn toggle-btn"></button>
           </div>
-          <div class="infobox-name-controls">
+          <div class="row-controls">
             <button class="move-up-btn">⬆️</button>
             <button class="move-down-btn">⬇️</button>
             <button class="delete-btn">🗑</button>
@@ -158,7 +161,7 @@
         <div class="infobox-profile">
           <h3 class="infobox-name">New Infobox</h3>
           <input type="text" class="name-input" placeholder="Enter new name">
-          <div class="infobox-name-controls">
+          <div class="row-controls">
             <input type="file" class="upload-img" style="display: none;" accept="image/*">
             <button class="upload-img-btn">📷</button>
             <button class="infobox-img-btn img-file-btn">📷📁</button>
@@ -170,13 +173,13 @@
           <img class="infobox-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="New Infobox">
         </div>
         <div class="infobox-bio">
-          <div class="infobox-bio-text">New Infobox bio goes here...</div>
-          <div class="bio-input writable-element" contenteditable="true">Write description about the subject here...</div>
           <div class="section-lists"></div>
           <div class="control-room" style="display: none;">
             <button class="add-section-btn">➕️1️⃣</button>
             <button class="add-section-btn2">➕️2️⃣</button>
           </div>
+          <div class="infobox-bio-text">New Infobox bio goes here...</div>
+          <div class="bio-input writable-element" contenteditable="true">Write description about the subject here...</div>
         </div>
         <div class="see-more text-center">
           <span class="see-more-btn">show more</span>
@@ -186,7 +189,7 @@
     <template id="text-template">
       <div class="text-area-wrapper row-wrapper">
         <div class="infobox-profile">
-          <div class="infobox-name-controls">
+          <div class="row-controls">
             <button class="move-up-btn">⬆️</button>
             <button class="move-down-btn">⬇️</button>
             <button class="delete-btn">🗑</button>
@@ -204,7 +207,7 @@
     <template id="table-template">
       <div class="mini-table-wrapper row-wrapper">
           <div class="infobox-profile">
-            <div class="infobox-name-controls">
+            <div class="row-controls">
               <button class="move-up-btn">⬆️</button>
               <button class="move-down-btn">⬇️</button>
               <button class="delete-btn">🗑</button>

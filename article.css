@@ -3,7 +3,7 @@ body {
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: cover;
-  margin: 200px;
+  margin: 400px;
   margin-top: 0px;
   margin-bottom: 0px;
 }
@@ -143,6 +143,13 @@ th, td {
   padding: 5px;
 }
 
+#close-settings-btn {
+  background-color: #9e9e9e;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
 #settings {
   position: fixed;
   top: 50%;
@@ -158,6 +165,13 @@ th, td {
 
 .settings-section {
   text-align: center;
+}
+
+#settings-header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .toolbar-btn {
@@ -358,13 +372,13 @@ p {
     box-sizing: border-box;
 }
 
-.infobox-controls, .infobox-name-controls {
+.category-controls, .row-controls {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.infobox-name-controls button {
+.row-controls button {
   justify-content: center;
   align-items: center;
   width: 35px;
@@ -493,7 +507,7 @@ img {
   border: 1px solid black;
 }
 
-.cell-input-wrapper, #title-input, .generate-preset-btn, .infobox-name-controls, .row2-wrapper, .row-delete-wrapper, .row-delete2-wrapper, .name-input, .bio-input {
+.cell-input-wrapper, #title-input, .generate-preset-btn, .row-controls, .row2-wrapper, .row-delete-wrapper, .row-delete2-wrapper, .name-input, .bio-input {
   display: none;
 }
 
@@ -525,7 +539,7 @@ img {
 .row-edit-mode .generate-preset-btn,
 .row-edit-mode .cell-input-wrapper,
 .row-edit-mode .bio-input,
-.row-edit-mode .infobox-name-controls {
+.row-edit-mode .row-controls {
   display: block;
 }
 

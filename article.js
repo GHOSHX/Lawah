@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('enable-preset1').addEventListener('click', () => presetGenerateCell(1));
     document.getElementById('enable-preset2').addEventListener('click', () => presetGenerateCell(2));
+    document.getElementById('close-settings-btn').addEventListener('click', toggleSettings);
     document.getElementById('upper-toolbar-btn').addEventListener('click', function() {
         const toolbar = document.getElementById('toolbar');
         const introWrapper = document.getElementById('intro-wrapper');
@@ -183,35 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fileUploadBtn.addEventListener('click', () => {
       document.getElementById('upload-input').click();
     });
-    document.getElementById('upload-input').addEventListener('change', function () {
-      const file = this.files[0];
-      if (!file) return;
-    
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        try {
-          const uploadedData = JSON.parse(e.target.result);
-    
-          // Restore data
-          data = uploadedData.data;
-          infoboxes = uploadedData.characters || uploadedData.infoboxes;
-          cells = uploadedData.cells;
-    
-          // Update UI
-          updateData(data);
-          document.getElementById('row-list').innerHTML = '';
-          document.getElementById('info-list').innerHTML = '';
-          saveState(3); // persist back to IndexedDB
-          loadState(); // reload saved structures
-    
-          alert('File uploaded and data restored ✅');
-        } catch (err) {
-          alert('Invalid JSON file ❌');
-          console.error(err);
-        }
-      };
-      reader.readAsText(file);
-    });
+    document.getElementById('upload-input').addEventListener('change', uploadFile);
     downloadBtn.addEventListener('click', async () => {
       try {
         const articleData = {
@@ -691,7 +664,6 @@ function editInfobox(editMode) {
     infoboxTemplate.forEach(template => {
         const infoboxName = template.querySelector('.infobox-name');
         const infoboxNameInput = template.querySelector('.name-input');
-        const charControls = template.querySelector('.infobox-name-controls');
         const infoboxBio = template.querySelector('.infobox-bio-text');
         const infoboxBioInput = template.querySelector('.bio-input');
         const presetBtn = template.querySelector('.generate-preset-btn');
@@ -1111,7 +1083,7 @@ function updateCategory(row, category) {
     
     if (!row?.dataset?.index) {
         row.querySelector('.row-wrapper').setAttribute('data-index', category.id);
-        const editorWrapper = row.querySelector('.infobox-name-controls');
+        const editorWrapper = row.querySelector('.row-controls');
         const name = row.querySelector('.infobox-name');
         const nameInput = row.querySelector('.name-input');
         if (editMode) {
@@ -1183,7 +1155,7 @@ function updateTextArea(row, textArea) {
     
     if (!row?.dataset?.index) {
         row.querySelector('.row-wrapper').setAttribute('data-index', textArea.id);
-        const editorWrapper = row.querySelector('.infobox-name-controls');
+        const editorWrapper = row.querySelector('.row-controls');
         const bio = row.querySelector('.infobox-bio-text');
         const bioInput = row.querySelector('.bio-input');
         if (editMode) {
@@ -1793,6 +1765,36 @@ function loadState(oldElement) {
             oldElements.forEach(el => el.remove());
         }
     };
+}
+
+function uploadFile(event) {
+    const file = event.target.files[0];
+      if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        const uploadedData = JSON.parse(e.target.result);
+  
+        // Restore data
+        data = uploadedData.data;
+        infoboxes = uploadedData.characters || uploadedData.infoboxes;
+        cells = uploadedData.cells;
+  
+        // Update UI
+        updateData(data);
+        document.getElementById('row-list').innerHTML = '';
+        document.getElementById('info-list').innerHTML = '';
+        saveState(3); // persist back to IndexedDB
+        loadState(); // reload saved structures
+  
+        alert('File uploaded and data restored ✅');
+      } catch (err) {
+        alert('Invalid JSON file ❌');
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
 }
 
 function saveState(trigger) {
