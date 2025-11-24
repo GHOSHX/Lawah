@@ -1042,6 +1042,7 @@ function generateRow(elementNode, element, type) {
     let isClone;
     let firstRow;
     let clones = [];
+    const oldRows = JSON.parse(JSON.stringify(rows));
     const newId = Date.now();
     if (type === 'copy') {
         template = elementNode.cloneNode(true);
@@ -1072,8 +1073,6 @@ function generateRow(elementNode, element, type) {
         updateRow(template, element, type, isClone);
     }
     
-    const oldRows = JSON.parse(JSON.stringify(rows));
-    
     const rowElement = template.querySelector('.row-wrapper') || template;
     
     if (firstRow) {
@@ -1102,6 +1101,7 @@ function generateRow(elementNode, element, type) {
     if (!clones.length) {
         actionManager(rowElement, rows, oldRows, 'element-change');
     } else {
+        clones = clones.map(clone => clone.element);
         clones.push(rowElement);
         actionManager(clones, rows, oldRows, 'element-change');
     }
@@ -1233,8 +1233,7 @@ function updateInfobox(row, infobox, oldElements, isClone) {
     if (sections) {
         sections.sort((a, b) => a.position - b.position);
         sections.forEach(section => {
-            let template;
-            template = oldElements.find(node => node.dataset.index == section.id && node.dataset.parentId == section.parentId);
+            let template = oldElements.find(node => node.dataset.index == section.id && node.dataset.parentId == section.parentId);
             if (template) {
                 oldElements.splice(oldElements.indexOf(template), 1);
             } else {
