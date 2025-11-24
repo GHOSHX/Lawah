@@ -146,6 +146,7 @@
           <div class="row-controls">
             <button class="move-up-btn">⬆️</button>
             <button class="move-down-btn">⬇️</button>
+            <button class="copy-row-btn">Copy</button>
             <button class="delete-btn">🗑</button>
             <button class="toggle-add-btn2">➕️</button>
             <button class="add-infobox-btn2 row-add-btn2"></button>
@@ -168,6 +169,7 @@
             <button class="infobox-img-btn img-link-btn">📷🔗</button>
             <button class="move-up-btn">⬆️</button>
             <button class="move-down-btn">⬇️</button>
+            <button class="copy-row-btn">Copy</button>
             <button class="delete-btn">🗑</button>
           </div>
           <img class="infobox-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="New Infobox">
@@ -192,6 +194,7 @@
           <div class="row-controls">
             <button class="move-up-btn">⬆️</button>
             <button class="move-down-btn">⬇️</button>
+            <button class="copy-row-btn">Copy</button>
             <button class="delete-btn">🗑</button>
           </div>
         </div>
@@ -210,6 +213,7 @@
             <div class="row-controls">
               <button class="move-up-btn">⬆️</button>
               <button class="move-down-btn">⬇️</button>
+              <button class="copy-row-btn">Copy</button>
               <button class="delete-btn">🗑</button>
               <button class="add-row-btn">➕️1</button>
               <button class="add-data-btn">➕️2</button>
@@ -221,7 +225,13 @@
       </div>
     </template>
     <template id="row-template">
-      <tr class="mini-row-wrapper row-body"></tr>
+      <tr class="mini-row-wrapper">
+          <td class="row-delete-wrapper">
+            <button class="row-delete-btn">🗑</button>
+            <button class="row-up-btn">⬆️</button>
+            <button class="row-down-btn">⬇️</button>
+          </td>
+      </tr>
     </template>
     <template id="row2-template">
       <tr class="row2-wrapper row-body">
@@ -236,13 +246,6 @@
         <div class="cell-input-wrapper">
             <div class="info-input" contenteditable="true"></div>
         </div>
-      </td>
-    </template>
-    <template id="row-delete-template">
-      <td class="row-delete-wrapper">
-        <button class="row-delete-btn">🗑</button>
-        <button class="row-up-btn">⬆️</button>
-        <button class="row-down-btn">⬇️</button>
       </td>
     </template>
     <template id="row-delete2-template">
