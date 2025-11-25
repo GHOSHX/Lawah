@@ -524,18 +524,9 @@ function generateCell(templateId, text) {
 }
 
 function updateCell(template, cell) {
-    let cellNode;
-    if (template.querySelector('.info-wrapper')) {
-        cellNode = template.querySelector('.info-wrapper')
-    } else {
-        cellNode = template;
-    }
+    const cellNode = template.querySelector('.info-wrapper') || template;
     if (!cellNode.dataset.index) {
-        const editMode = editButton.textContent === '✔️';
         cellNode.setAttribute('data-index', cell.id);
-        if (editMode) {
-            cellNode.classList.add('cell-edit-mode');
-        }
         cellNode.querySelector('.info-title').innerHTML = cell.text1;
         cellNode.querySelector('.info-input').innerHTML = cell.text1;
         const infoTitle = cellNode.querySelector('.info-title');
@@ -702,7 +693,7 @@ function editRow(editMode) {
             const rowDelete2Wrapper = node.querySelector('.row2-wrapper');
             
             miniRows.forEach(miniRow => {
-                const miniRowNode = node.querySelector(`tr[data-index="${miniRow.id}"]`);
+                const miniRowNode = node.querySelector(`.mini-row-wrapper[data-index="${miniRow.id}"]`);
                 editTableData(miniRowNode, miniRow, editMode);
             });
         }
@@ -959,15 +950,12 @@ function handleRowClick(event) {
 
 function allignRows() {
     const rowNodes = document.querySelectorAll('.row-wrapper');
-    let previousPosition = -1;
           
-    rowNodes.forEach(node => {
-        const index = node.getAttribute('data-index');
-        const row = rows.find(row => row.id == index);
-        
-        row.position = previousPosition + 1;
-        previousPosition = row.position;
+    rowNodes.forEach((node, i) => {
+        const row = rows.find(row => row.id == node.dataset.index);
+        row.position = i;
     });
+    rows.sort((a, b) => a.position - b.position);
 }
 
 function handleRowInput(event) {
@@ -1016,7 +1004,7 @@ function toggleCategory(catNode, category) {
     const rowNodes = document.querySelectorAll('.row-wrapper');
     
     rowNodes.forEach(node => {
-        const index = node.getAttribute('data-index');
+        const index = node.dataset.index;
         const row = rows.find(row => row.id == index);
         
         if (row.category === id) {
@@ -1086,23 +1074,18 @@ function generateRow(elementNode, element, type) {
                 firstRow.parentNode.insertBefore(clone.element, firstRow.nextElementSibling);
                 firstRow = clone.element;
             });
+            clones = clones.map(clone => clone.element);
+            clones.push(rowElement);
         } else {
             firstRow.parentNode.insertBefore(template, firstRow);
         }
     } else {
         document.getElementById('row-list').appendChild(template);
     }
-    const rowNodes = document.querySelectorAll('.row-wrapper');
-    rowNodes.forEach((el, i) => {
-        const row = rows.find(row => row.id == el.dataset.index);
-        row.position = i;
-    });
-    rows.sort((a, b) => a.position - b.position);
+    allignRows();
     if (!clones.length) {
         actionManager(rowElement, rows, oldRows, 'element-change');
     } else {
-        clones = clones.map(clone => clone.element);
-        clones.push(rowElement);
         actionManager(clones, rows, oldRows, 'element-change');
     }
 } 
@@ -2020,7 +2003,7 @@ function presetGenerateSection(row, infobox) {
     
     presetSectionCells.forEach((cell, index) => {
         setTimeout(() => {
-            generateSection(row, infobox, `<b>${cell.text}</b>`);
+            generateSection('section-template', row, infobox, `<b>${cell.text}</b>`);
         }, index * 100);
     });
 }

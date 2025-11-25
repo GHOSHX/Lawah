@@ -23,6 +23,13 @@ html, body { height: 100%; margin: 0; }
   color: grey;
 }
 
+#warning {
+  background-color: #d99580;
+  border: 2px solid #e34f22;
+  margin: 4px;
+  padding: 4px;
+}
+
 #clear-all-btn {
   background-color: #ffe19c;
   padding: 7px;
