@@ -49,6 +49,19 @@ th, td {
   box-sizing: border-box;
 }
 
+.sub-category-wrapper {
+  width: 100%;
+  background-color: #f2b16f;
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.sub-category-wrapper h4 {
+  margin: 1%;
+}
+
 .infobox-wrapper {
   width: 100%;
   padding: 5px;

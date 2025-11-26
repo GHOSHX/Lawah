@@ -895,6 +895,8 @@ function handleRowClick(event) {
         presetGenerateSection(rowNode, row);
     } else if (target.classList.contains('toggle-category-btn')) {
         toggleCategory(rowNode, row);
+    } else if (target.classList.contains('add-sub-cat-btn')) {
+        generateRow(rowNode, row, 'sub-category');
     } else if (target.classList.contains('add-infobox-btn2')) {
         generateRow(rowNode, row, 'infobox');
     } else if (target.classList.contains('add-text-btn2')) {
@@ -1106,6 +1108,20 @@ function updateRow(template, row, type, isClone) {
         }
         rows.push(newRow);
         updateCategory(template, newRow, isClone);
+    } else if (type === 'sub-category') {
+        if (isClone) {
+            newRow = row;
+        } else {
+            newRow = {
+                id: newId,
+                name: 'Sub Category No.' + (rows.length ? rows.length + 1 : 1),
+                type: 'sub-category',
+                category: row ? row.id : null,
+                position: 0
+            };
+        }
+        rows.push(newRow);
+        updateSubCategory(template, newRow, isClone);
     } else if (type === 'infobox') {
         if (isClone) {
             newRow = row;
@@ -1172,6 +1188,28 @@ function updateCategory(row, category, isClone) {
         }
     } else if (isClone) {
         row.dataset.index = category.id;
+    }
+}
+
+function updateSubCategory(row, subCategory, isClone) {
+    const editMode = editButton.textContent === '✔️';
+    
+    if (row.querySelector('.row-wrapper')) {
+        row.querySelector('.row-wrapper').dataset.index = subCategory.id;
+        row.querySelector('.row-wrapper').dataset.category = subCategory.category;
+        const editorWrapper = row.querySelector('.row-controls');
+        const name = row.querySelector('.infobox-name');
+        const nameInput = row.querySelector('.name-input');
+        if (editMode) {
+            row.querySelector('.row-wrapper').classList.add('row-edit-mode');
+            nameInput.value = subCategory.name;
+        } else {
+            row.querySelector('.row-wrapper').classList.remove('row-edit-mode');
+            name.textContent = subCategory.name;
+        }
+    } else if (isClone) {
+        row.dataset.index = subCategory.id;
+        row.dataset.category = subCategory.category;
     }
 }
 
@@ -1791,6 +1829,9 @@ function loadState(oldElement) {
                 if (row.type === 'category') {
                   template = template ? template : document.getElementById('category-template').content.cloneNode(true);
                   updateCategory(template, row, false);
+                } else if (row.type === 'sub-category') {
+                  template = template ? template : document.getElementById('sub-category-template').content.cloneNode(true);
+                  updateSubCategory(template, row, false);
                 } else if (row.type === 'text area') {
                   template = template ? template : document.getElementById('text-template').content.cloneNode(true);
                   updateTextArea(template, row, false);
