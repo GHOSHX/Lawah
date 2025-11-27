@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addRow1Btn.addEventListener('click', () => generateRow(null, null, 'infobox'));
     document.getElementById('add-table-btn').addEventListener('click', () => generateRow(null, null, 'table'));
     addRow2Btn.addEventListener('click', () => generateRow(null, null, 'category'));
-    addRow3Btn.addEventListener('click', () => generateRow(null, null, 'text'));
+    addRow3Btn.addEventListener('click', () => generateRow(null, null, 'text-area'));
     toggleSynopsisBtn.addEventListener('click', () => toggleTable('table1', toggleSynopsisBtn));
     toggleInfoboxBtn.addEventListener('click', () => toggleTable('row-list', toggleInfoboxBtn));
     document.getElementById('delete-article-btn').addEventListener('click', () => {
@@ -1815,8 +1815,9 @@ function loadState(oldElement) {
                 } else if (row.type === 'table') {
                   template = template ? template : document.getElementById('table-template').content.cloneNode(true);
                   updateTable(template, row, oldElements);
-                } else if (row.type === 'infobox') {
+                } else {
                   template = template ? template : document.getElementById('infobox-template').content.cloneNode(true);
+                  row.type = 'infobox';
                   updateInfobox(template, row, oldElements);
                 }
                 
