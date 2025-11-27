@@ -1815,8 +1815,9 @@ function loadState(oldElement) {
                 } else if (row.type === 'table') {
                   template = template ? template : document.getElementById('table-template').content.cloneNode(true);
                   updateTable(template, row, oldElements);
-                } else if (row.type === 'infobox') {
+                } else {
                   template = template ? template : document.getElementById('infobox-template').content.cloneNode(true);
+                  row.type = 'infobox';
                   updateInfobox(template, row, oldElements);
                 }
                 
