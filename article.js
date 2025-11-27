@@ -900,7 +900,7 @@ function handleRowClick(event) {
     } else if (target.classList.contains('add-infobox-btn2')) {
         generateRow(rowNode, row, 'infobox');
     } else if (target.classList.contains('add-text-btn2')) {
-        generateRow(rowNode, row, 'text');
+        generateRow(rowNode, row, 'text-area');
     } else if (target.classList.contains('add-table-btn2')) {
         generateRow(rowNode, row, 'table');
     }else if (target.classList.contains('add-row-btn')) {
@@ -1035,14 +1035,15 @@ function generateRow(elementNode, element, type) {
     const oldRows = JSON.parse(JSON.stringify(rows));
     const newId = Date.now();
     if (type === 'copy') {
-        template = elementNode.cloneNode(true);
         type = element.type;
+        template = document.getElementById(`${type}-template`).content.cloneNode(true);
         if (type === 'category') {
             const childRows = rows.filter(row => row.category === element.id);
             const childRowNodes = document.querySelectorAll(`.row-wrapper[data-category="${element.id}"]`);
             firstRow = childRowNodes[childRowNodes.length - 1];
-            childRows.forEach((row, i) => {
-                clones.push({ element: childRowNodes[i].cloneNode(true), row: JSON.parse(JSON.stringify (row))});
+            childRows.forEach(row => {
+                const cloneTemplate = document.getElementById(`${row.type}-template`).content.cloneNode(true);
+                clones.push({ element: cloneTemplate, row: JSON.parse(JSON.stringify (row)) });
             });
         } else {
             firstRow = elementNode.nextElementSibling;
@@ -1068,15 +1069,16 @@ function generateRow(elementNode, element, type) {
     if (firstRow) {
         if (clones.length && type === 'category') {
             firstRow.parentNode.insertBefore(template, firstRow.nextElementSibling);
-            firstRow = template;
+            firstRow = rowElement;
             clones.forEach(clone => {
+                const cloneNode = clone.element.querySelector('.row-wrapper');
                 clone.row.id += newId;
                 clone.row.category = newId;
-                updateRow(clone.element, clone.row, clone.row.type, true);
-                firstRow.parentNode.insertBefore(clone.element, firstRow.nextElementSibling);
-                firstRow = clone.element;
+                updateRow(cloneNode, clone.row, clone.row.type, true);
+                firstRow.parentNode.insertBefore(cloneNode, firstRow.nextElementSibling);
+                firstRow = cloneNode;
             });
-            clones = clones.map(clone => clone.element);
+            clones = clones.map(clone => clone.element.querySelector('.row-wrapper'));
             clones.push(rowElement);
         } else {
             firstRow.parentNode.insertBefore(template, firstRow);
@@ -1107,7 +1109,7 @@ function updateRow(template, row, type, isClone) {
             };
         }
         rows.push(newRow);
-        updateCategory(template, newRow, isClone);
+        updateCategory(template, newRow);
     } else if (type === 'sub-category') {
         if (isClone) {
             newRow = row;
@@ -1121,10 +1123,13 @@ function updateRow(template, row, type, isClone) {
             };
         }
         rows.push(newRow);
-        updateSubCategory(template, newRow, isClone);
+        updateSubCategory(template, newRow);
     } else if (type === 'infobox') {
         if (isClone) {
             newRow = row;
+            newRow.sections.forEach(arr => {
+                arr.parentId = newRow.id;
+            });
         } else {
             newRow = {
                 id: newId,
@@ -1138,24 +1143,30 @@ function updateRow(template, row, type, isClone) {
             };
         }
         rows.push(newRow);
-        updateInfobox(template, newRow, [], isClone);
-    } else if (type === 'text' || type === 'text area') {
+        updateInfobox(template, newRow, []);
+    } else if (type === 'text-area') {
         if (isClone) {
             newRow = row;
         } else {
             newRow = {
                 id: newId,
                 bio: 'Write description about the subject here...',
-                type: 'text area',
+                type: 'text-area',
                 category: row ? row.id : null,
                 position: 0
             };
         }
         rows.push(newRow);
-        updateTextArea(template, newRow, isClone);
+        updateTextArea(template, newRow);
     } else if (type === 'table') {
         if (isClone) {
             newRow = row;
+            newRow.miniRows.forEach(row => {
+                row.parentId = newRow.id;
+                row.data.forEach(tableData => {
+                    tableData.parentId = row.id + '-' + row.parentId;
+                });
+            });
         } else {
             newRow = {
                 id: newId,
@@ -1166,54 +1177,51 @@ function updateRow(template, row, type, isClone) {
             };
         }
         rows.push(newRow);
-        updateTable(template, newRow, [], isClone);
+        updateTable(template, newRow, []);
     }
 }
 
-function updateCategory(row, category, isClone) {
+function updateCategory(row, category) {
     const editMode = editButton.textContent === '✔️';
+    const categoryNode = row.querySelector('.row-wrapper') || row;
     
-    if (row.querySelector('.row-wrapper')) {
+    if (!categoryNode.dataset.index) {
         row.querySelector('.row-wrapper').dataset.index = category.id;
-        const editorWrapper = row.querySelector('.row-controls');
-        const name = row.querySelector('.infobox-name');
-        const nameInput = row.querySelector('.name-input');
+        const editorWrapper = categoryNode.querySelector('.row-controls');
+        const name = categoryNode.querySelector('.infobox-name');
+        const nameInput = categoryNode.querySelector('.name-input');
         if (editMode) {
-            row.querySelector('.toggle-category-btn').style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
-            row.querySelector('.category-wrapper').classList.add('row-edit-mode');
+            categoryNode.querySelector('.toggle-category-btn').style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
+            categoryNode.classList.add('row-edit-mode');
             nameInput.value = category.name;
         } else {
-            row.querySelector('.category-wrapper').classList.remove('row-edit-mode');
+            categoryNode.classList.remove('row-edit-mode');
             name.textContent = category.name;
         }
-    } else if (isClone) {
-        row.dataset.index = category.id;
     }
 }
 
-function updateSubCategory(row, subCategory, isClone) {
+function updateSubCategory(row, subCategory) {
     const editMode = editButton.textContent === '✔️';
+    const subCatNode = row.querySelector('.row-wrapper') || row;
     
-    if (row.querySelector('.row-wrapper')) {
-        row.querySelector('.row-wrapper').dataset.index = subCategory.id;
-        row.querySelector('.row-wrapper').dataset.category = subCategory.category;
-        const editorWrapper = row.querySelector('.row-controls');
-        const name = row.querySelector('.infobox-name');
-        const nameInput = row.querySelector('.name-input');
+    if (!subCatNode.dataset.index) {
+        subCatNode.dataset.index = subCategory.id;
+        subCatNode.dataset.category = subCategory.category;
+        const editorWrapper = subCatNode.querySelector('.row-controls');
+        const name = subCatNode.querySelector('.infobox-name');
+        const nameInput = subCatNode.querySelector('.name-input');
         if (editMode) {
-            row.querySelector('.row-wrapper').classList.add('row-edit-mode');
+            subCatNode.classList.add('row-edit-mode');
             nameInput.value = subCategory.name;
         } else {
-            row.querySelector('.row-wrapper').classList.remove('row-edit-mode');
+            subCatNode.classList.remove('row-edit-mode');
             name.textContent = subCategory.name;
         }
-    } else if (isClone) {
-        row.dataset.index = subCategory.id;
-        row.dataset.category = subCategory.category;
     }
 }
 
-function updateInfobox(row, infobox, oldElements, isClone) {
+function updateInfobox(row, infobox, oldElements) {
     const infoboxNode = row.querySelector('.row-wrapper') || row;
     
     if (!infoboxNode.dataset.index) {
@@ -1238,15 +1246,6 @@ function updateInfobox(row, infobox, oldElements, isClone) {
         }
         infoboxNode.querySelector('.infobox-img').src = infobox.imgSrc;
     } else {
-        if (isClone) {
-            infoboxNode.dataset.index = infobox.id;
-            infoboxNode.dataset.category = infobox.category;
-            const sectionNodes = infoboxNode.querySelectorAll('.section-wrapper');
-            infobox.sections.forEach((arr, i) => {
-                arr.parentId = infobox.id;
-                sectionNodes[i].dataset.parentId = arr.parentId;
-            });
-        }
         const sectionNodes = row.querySelectorAll('.section-wrapper');
         oldElements.push(...sectionNodes);
     }
@@ -1264,38 +1263,34 @@ function updateInfobox(row, infobox, oldElements, isClone) {
                     template = document.getElementById('section-template2').content.cloneNode(true);
                 }
             }
-            // temporary
-            section.parentId = infobox.id;
-            updateSection(template, section, isClone);
+            updateSection(template, section);
             const rowDeleteCell = template.querySelector('.row-delete-cell');
             row.querySelector('.section-lists').appendChild(template);
         });
     }
 }
 
-function updateTextArea(row, textArea, isClone) {
+function updateTextArea(row, textArea) {
     const editMode = editButton.textContent === '✔️';
+    const textAreaNode = row.querySelector('.row-wrapper') || row;
     
-    if (row.querySelector('.row-wrapper')) {
-        row.querySelector('.row-wrapper').dataset.index = textArea.id;
-        row.querySelector('.row-wrapper').dataset.category = textArea.category;
-        const editorWrapper = row.querySelector('.row-controls');
+    if (!textAreaNode.dataset.index) {
+        textAreaNode.dataset.index = textArea.id;
+        textAreaNode.dataset.category = textArea.category;
+        const editorWrapper = textAreaNode.querySelector('.row-controls');
         const bio = row.querySelector('.infobox-bio-text');
-        const bioInput = row.querySelector('.bio-input');
+        const bioInput = textAreaNode.querySelector('.bio-input');
         if (editMode) {
-            row.querySelector('.text-area-wrapper').classList.add('row-edit-mode');
+            textAreaNode.classList.add('row-edit-mode');
             bioInput.innerHTML = textArea.bio;
         } else {
-            row.querySelector('.text-area-wrapper').classList.remove('row-edit-mode');
+            textAreaNode.classList.remove('row-edit-mode');
             bio.innerHTML = textArea.bio;
         }
-    } else if (isClone) {
-        row.dataset.index = textArea.id;
-        row.dataset.category = textArea.category;
     }
 }
 
-function updateTable(template, table, oldElements, isClone) {
+function updateTable(template, table, oldElements) {
     const tableNode = template.querySelector('.row-wrapper') || template;
     
     if (!tableNode.dataset.index) {
@@ -1312,20 +1307,6 @@ function updateTable(template, table, oldElements, isClone) {
         const rowDelete2Template = document.getElementById('row2-template').content.cloneNode(true);
         tableNode.querySelector('.table-body').appendChild(rowDelete2Template);
     } else {
-        if (isClone) {
-            tableNode.dataset.index = table.id;
-            tableNode.dataset.category = table.category;
-            const miniRowNodes = tableNode.querySelectorAll('.mini-row-wrapper');
-            table.miniRows.forEach((row, i) => {
-                row.parentId = table.id;
-                miniRowNodes[i].dataset.parentId = row.parentId;
-                const dataElements = miniRowNodes[i].querySelectorAll('.data-wrapper');
-                row.data.forEach((tableData, i) => {
-                    tableData.parentId = row.id + '-' + row.parentId;
-                    dataElements[i].dataset.parentId = tableData.parentId;
-                });
-            });
-        }
         const rowNodes = tableNode.querySelectorAll('.mini-row-wrapper');
         oldElements.push(...rowNodes);
     }
@@ -1340,9 +1321,7 @@ function updateTable(template, table, oldElements, isClone) {
             } else {
                 template = document.getElementById('row-template').content.cloneNode(true);
             }
-            // temporary
-            row.parentId = table.id;
-            updateMiniRow(template, row, oldElements, isClone);
+            updateMiniRow(template, row, oldElements);
             tableNode.querySelector('.table-body').appendChild(template);
         });
         const rowDelete2Wrapper = tableNode?.querySelector('.row2-wrapper');
@@ -1362,10 +1341,10 @@ function generateMiniRow(row, table) {
     const newId = Date.now();
     const newPosition = miniRows.length ? miniRows[miniRows.length - 1].position + 1 : 0;
     const oldRows = JSON.parse(JSON.stringify(rows));
-    let template;
+    const template = document.getElementById('row-template').content.cloneNode(true);
     let newRow;
     if (!isClone) {
-        template = document.getElementById('row-template').content.cloneNode(true);
+        
         newRow = {
             id: newId,
             data: [],
@@ -1373,24 +1352,22 @@ function generateMiniRow(row, table) {
             position: newPosition
         };
     } else {
-        const previousRow = row.querySelector(`tr[data-index="${miniRows[miniRows.length - 1].id}"]`);
-        template = previousRow.cloneNode(true);
         newRow = JSON.parse(JSON.stringify(miniRows[miniRows.length - 1]));
         newRow.id = newId;
         newRow.parentId = table.id;
     }
     miniRows.push(newRow);
     
-    updateMiniRow(template, newRow, [], false);
-    const element = isClone ? template : template.querySelector('.mini-row-wrapper');
+    updateMiniRow(template, newRow, []);
+    const element = template.querySelector('.mini-row-wrapper') || template;
     row.querySelector('.table-body').appendChild(template);
     actionManager(element, rows, oldRows, 'element-change');
 }
 
-function updateMiniRow(template, row, oldElements, isClone) {
+function updateMiniRow(template, row, oldElements) {
     const rowElement = template.querySelector('.mini-row-wrapper') || template;
     
-    if (!rowElement.dataset.index || Number(rowElement.dataset.index) !== row.id) {
+    if (!rowElement.dataset.index) {
         rowElement.dataset.index = row.id;
         rowElement.dataset.parentId = row.parentId;
     } else {
@@ -1410,9 +1387,7 @@ function updateMiniRow(template, row, oldElements, isClone) {
             } else {
                 template = document.getElementById('data-template').content.cloneNode(true);
             }
-            // temporary
-            cell.parentId = row.id + '-' + row.parentId;
-            updateTableData(template, cell, isClone);
+            updateTableData(template, cell);
             rowElement.appendChild(template);
         });
     }
@@ -1439,7 +1414,7 @@ function generateTableData(tableElement, table) {
         };
         row.data.push(newTableData);
         
-        updateTableData(template, newTableData, true);
+        updateTableData(template, newTableData);
         const infoTitle = template.querySelector('.info-title');
         const inputWrapper = template.querySelector('.cell-input-wrapper');
         
@@ -1457,10 +1432,10 @@ function generateTableData(tableElement, table) {
     actionManager(elements, rows, oldCells, 'element-change');
 }
 
-function updateTableData(template, tableData, isClone) {
+function updateTableData(template, tableData) {
     const dataNode = template.querySelector('.data-wrapper') || template;
     
-    if (!dataNode.dataset.index || isClone) {
+    if (!dataNode.dataset.index) {
         dataNode.dataset.index = tableData.id;
         dataNode.dataset.parentId = tableData.parentId;
         const infoTitle = dataNode.querySelector('.info-title');
@@ -1738,7 +1713,7 @@ function generateSection(templateId, row, infobox, text) {
     };
     infobox.sections.push(newSection);
     
-    updateSection(template, newSection, false);
+    updateSection(template, newSection);
     
     const bioElement = row.querySelector('.infobox-bio');
     const element = template.querySelector('.section-wrapper');
@@ -1747,17 +1722,19 @@ function generateSection(templateId, row, infobox, text) {
     bioElement.style.maxHeight = bioElement.scrollHeight + 'px';
 }
 
-function updateSection(template, section, isClone) {
-    if (template.querySelector('.section-wrapper')) {
-        template.querySelector('.section-wrapper').dataset.index = section.id;
-        template.querySelector('.section-wrapper').dataset.parentId = section.parentId;
+function updateSection(template, section) {
+    const sectionNode = template.querySelector('.section-wrapper') || template;
+    
+    if (!sectionNode.dataset.index) {
+        sectionNode.dataset.index = section.id;
+        sectionNode.dataset.parentId = section.parentId;
         const infoText = template.querySelector('.info-title');
-        const infoInput = template.querySelector('.info-input');
+        const infoInput = sectionNode.querySelector('.info-input');
         infoText.innerHTML = section.text1;
         infoInput.innerHTML = section.text1;
         if (section.text2) {
-            const valueText = template.querySelector('.value-cell');
-            const valueInput = template.querySelector('.value-input');
+            const valueText = sectionNode.querySelector('.value-cell');
+            const valueInput = sectionNode.querySelector('.value-input');
             valueText.innerHTML = section.text2;
             valueInput.innerHTML = section.text2;
         }
@@ -1828,20 +1805,19 @@ function loadState(oldElement) {
                 }
                 if (row.type === 'category') {
                   template = template ? template : document.getElementById('category-template').content.cloneNode(true);
-                  updateCategory(template, row, false);
+                  updateCategory(template, row);
                 } else if (row.type === 'sub-category') {
                   template = template ? template : document.getElementById('sub-category-template').content.cloneNode(true);
-                  updateSubCategory(template, row, false);
-                } else if (row.type === 'text area') {
-                  template = template ? template : document.getElementById('text-template').content.cloneNode(true);
-                  updateTextArea(template, row, false);
+                  updateSubCategory(template, row);
+                } else if (row.type === 'text-area' || row.type === 'text') {
+                  template = template ? template : document.getElementById('text-area-template').content.cloneNode(true);
+                  updateTextArea(template, row);
                 } else if (row.type === 'table') {
                   template = template ? template : document.getElementById('table-template').content.cloneNode(true);
-                  updateTable(template, row, oldElements, false);
-                } else {
+                  updateTable(template, row, oldElements);
+                } else if (row.type === 'infobox') {
                   template = template ? template : document.getElementById('infobox-template').content.cloneNode(true);
-                  row.type = 'infobox';
-                  updateInfobox(template, row, oldElements, false);
+                  updateInfobox(template, row, oldElements);
                 }
                 
                 document.getElementById('row-list').appendChild(template);
