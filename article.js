@@ -1802,22 +1802,18 @@ function loadState(oldElement) {
                 let template = oldElements?.find(node => node.dataset.index == row.id);
                 if (template) {
                     oldElements.splice(oldElements.indexOf(template), 1);
+                } else {
+                    template = document.getElementById(`${row.type}-template`).content.cloneNode(true);
                 }
                 if (row.type === 'category') {
-                  template = template ? template : document.getElementById('category-template').content.cloneNode(true);
                   updateCategory(template, row);
                 } else if (row.type === 'sub-category') {
-                  template = template ? template : document.getElementById('sub-category-template').content.cloneNode(true);
                   updateSubCategory(template, row);
                 } else if (row.type === 'text-area' || row.type === 'text') {
-                  template = template ? template : document.getElementById('text-area-template').content.cloneNode(true);
                   updateTextArea(template, row);
                 } else if (row.type === 'table') {
-                  template = template ? template : document.getElementById('table-template').content.cloneNode(true);
                   updateTable(template, row, oldElements);
-                } else {
-                  template = template ? template : document.getElementById('infobox-template').content.cloneNode(true);
-                  row.type = 'infobox';
+                } else if (row.type === 'infobox') {
                   updateInfobox(template, row, oldElements);
                 }
                 
