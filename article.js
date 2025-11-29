@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const articleData = {
           articleId: currentArticleId,
           data: data,
-          rows: infoboxes || rows,
+          rows: rows,
           cells: cells
         };
         const jsonContent = JSON.stringify(articleData, null, 2);
