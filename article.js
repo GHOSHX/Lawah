@@ -272,7 +272,7 @@ function actionManager(element, newData, oldData, type) {
         const previousAction = elementActions[elementActions.length - 1];
         if (elementActions.length) {
             const targetText = `${previousAction.tempText.selectedText} `;
-            if (selectedText.replace(/\u00A0/g, ' ') === targetText) {
+            if (selectedText.replace(/\u00A0/g, ' ') === targetText || selectedText.length < targetText.length - 1) {
                 previousAction.newData = previousAction.tempText.newData;
             } else {
                 previousAction.tempText.newData = newData;
