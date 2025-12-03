@@ -330,7 +330,6 @@ function undoManager() {
     
     if (type === 'text-change') {
         element.innerHTML = previousAction.oldData;
-        element.focus();
     } else if (type === 'element-change') {
         const newArray = previousAction.newData;
         const oldArray = previousAction.oldData;
@@ -356,7 +355,6 @@ function redoManager() {
     
     if (type === 'text-change') {
         element.innerHTML = previousAction.newData;
-        element.focus();
     } else if (type === 'element-change') {
         const newArray = previousAction.newData;
         const oldArray = previousAction.oldData;
