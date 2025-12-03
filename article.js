@@ -272,7 +272,9 @@ function actionManager(element, newData, oldData, type) {
         const previousAction = elementActions[elementActions.length - 1];
         if (elementActions.length) {
             const targetText = `${previousAction.tempText.selectedText} `;
-            if (selectedText.replace(/\u00A0/g, ' ') === targetText || selectedText.length < targetText.length - 1) {
+            
+            if (selectedText.replace(/\u00A0/g, ' ') === targetText || previousAction.tempText.selectedText.length > selectedText.length || selectedText.length > previousAction.tempText.selectedText.length + 14) {
+                console.log('w')
                 previousAction.newData = previousAction.tempText.newData;
             } else {
                 previousAction.tempText.newData = newData;
@@ -328,6 +330,7 @@ function undoManager() {
     
     if (type === 'text-change') {
         element.innerHTML = previousAction.oldData;
+        element.focus();
     } else if (type === 'element-change') {
         const newArray = previousAction.newData;
         const oldArray = previousAction.oldData;
@@ -353,6 +356,7 @@ function redoManager() {
     
     if (type === 'text-change') {
         element.innerHTML = previousAction.newData;
+        element.focus();
     } else if (type === 'element-change') {
         const newArray = previousAction.newData;
         const oldArray = previousAction.oldData;
@@ -1072,13 +1076,16 @@ function generateRow(elementNode, element, type) {
             firstRow = rowElement;
             clones.forEach(clone => {
                 const cloneNode = clone.element.querySelector('.row-wrapper');
-                clone.row.id += newId;
+                console.log(clone.row.id);
+                clone.row.id++;
+                console.log(clone.row.id);
                 clone.row.category = newId;
                 updateRow(cloneNode, clone.row, clone.row.type, true);
+                clone.element = cloneNode;
                 firstRow.parentNode.insertBefore(cloneNode, firstRow.nextElementSibling);
                 firstRow = cloneNode;
             });
-            clones = clones.map(clone => clone.element.querySelector('.row-wrapper'));
+            clones = clones.map(clone => clone.element);
             clones.push(rowElement);
         } else {
             firstRow.parentNode.insertBefore(template, firstRow);
