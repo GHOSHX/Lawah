@@ -1072,10 +1072,10 @@ function generateRow(elementNode, element, type) {
         if (clones.length && type === 'category') {
             firstRow.parentNode.insertBefore(template, firstRow.nextElementSibling);
             firstRow = rowElement;
-            clones.forEach(clone => {
+            clones.forEach((clone, i) => {
                 const cloneNode = clone.element.querySelector('.row-wrapper');
                 console.log(clone.row.id);
-                clone.row.id++;
+                clone.row.id = newId + i;
                 console.log(clone.row.id);
                 clone.row.category = newId;
                 updateRow(cloneNode, clone.row, clone.row.type, true);

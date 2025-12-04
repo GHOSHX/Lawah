@@ -341,6 +341,13 @@ th, td {
   background-position: center;
 }
 
+.add-sub-cat-btn {
+  background-image: url(https://i.ibb.co/ZRDG8y8x/20251204-053718.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
 .add-text-btn2 {
   border: 2px solid black;
   box-sizing: border-box;
