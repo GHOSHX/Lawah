@@ -1119,6 +1119,15 @@ function generateRow(elementNode, element, type) {
 function updateRow(template, row, type, isClone) {
     const newId = Date.now();
     let newRow;
+    let categoryId = null;
+    let subCategoryId = null;
+    if (row?.type === 'category') {
+        categoryId = row.id;
+    } else if (row?.type === 'sub-category') {
+        categoryId = row.category;
+        subCategoryId = row.id;
+    }
+    
     if (type === 'category') {
         if (isClone) {
             newRow = row;
@@ -1140,7 +1149,7 @@ function updateRow(template, row, type, isClone) {
                 id: newId,
                 name: 'Sub Category No.' + (rows.length ? rows.length + 1 : 1),
                 type: 'sub-category',
-                category: row ? row.id : null,
+                category: categoryId,
                 position: 0
             };
         }
@@ -1159,8 +1168,8 @@ function updateRow(template, row, type, isClone) {
                 bio: 'Write description about the subject here...',
                 imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
                 type: 'infobox',
-                category: row ? row.id : null,
-                subCategory: null,
+                category: categoryId,
+                subCategory: subCategoryId,
                 sections: [],
                 position: 0
             };
@@ -1175,8 +1184,8 @@ function updateRow(template, row, type, isClone) {
                 id: newId,
                 bio: 'Write description about the subject here...',
                 type: 'text-area',
-                category: row ? row.id : null,
-                subCategory: null,
+                category: categoryId,
+                subCategory: subCategoryId,
                 position: 0
             };
         }
@@ -1195,8 +1204,8 @@ function updateRow(template, row, type, isClone) {
             newRow = {
                 id: newId,
                 type: 'table',
-                category: row ? row.id : null,
-                subCategory: null,
+                category: categoryId,
+                subCategory: subCategoryId,
                 miniRows: [],
                 position: 0
             };
