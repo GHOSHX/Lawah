@@ -80,9 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
     addRow3Btn.addEventListener('click', () => generateRow(null, null, 'text-area'));
     toggleSynopsisBtn.addEventListener('click', () => toggleTable('table1', toggleSynopsisBtn));
     toggleInfoboxBtn.addEventListener('click', () => toggleTable('row-list', toggleInfoboxBtn));
-    document.getElementById('delete-article-btn').addEventListener('click', () => {
+    document.getElementById('reset-article-btn').addEventListener('click', () => {
         if (confirm('Are you sure you want to delete this saved article?')) {
-            deleteElementFromArticle();
+            resetArticle();
         }
     });
     document.getElementById('enable-preset1').addEventListener('click', () => presetGenerateCell(1));
@@ -272,9 +272,8 @@ function actionManager(element, newData, oldData, type) {
         const previousAction = elementActions[elementActions.length - 1];
         if (elementActions.length) {
             const targetText = `${previousAction.tempText.selectedText} `;
-            
-            if (selectedText.replace(/\u00A0/g, ' ') === targetText || previousAction.tempText.selectedText.length > selectedText.length || selectedText.length > previousAction.tempText.selectedText.length + 14) {
-                console.log('w')
+            if (selectedText.replace(/\u00A0/g, ' ') === targetText || previousAction.tempText.selectedText.length > selectedText.length || selectedText.length > targetText.length + 13) {
+                console.log('w');
                 previousAction.newData = previousAction.tempText.newData;
             } else {
                 previousAction.tempText.newData = newData;
@@ -1045,18 +1044,21 @@ function generateRow(elementNode, element, type) {
     const newId = Date.now();
     if (type === 'copy') {
         type = element.type;
+        isClone = true;
         template = document.getElementById(`${type}-template`).content.cloneNode(true);
-        if (type === 'category') {
-            const childRows = rows.filter(row => row.category === element.id);
-            const childRowNodes = document.querySelectorAll(`.row-wrapper[data-category="${element.id}"]`);
-            firstRow = childRowNodes[childRowNodes.length - 1];
-            childRows.forEach(row => {
-                const cloneTemplate = document.getElementById(`${row.type}-template`).content.cloneNode(true);
-                clones.push({ element: cloneTemplate, row: JSON.parse(JSON.stringify (row)) });
-            });
-        } else if (type === 'sub-category') {
-            const childRows = rows.filter(row => row.subCategory === element.id);
-            const childRowNodes = document.querySelectorAll(`.row-wrapper[data-sub-category="${element.id}"]`);
+        const clone = JSON.parse(JSON.stringify(element));
+        clone.id = newId;
+        updateRow(template, clone, type, isClone);
+        if (type === 'category' || 'sub-category') {
+            let childRows;
+            let childRowNodes;
+            if (type === 'category') {
+                childRows = rows.filter(row => row.category === element.id);
+                childRowNodes = document.querySelectorAll(`.row-wrapper[data-category="${element.id}"]`);
+            } else {
+                childRows = rows.filter(row => row.subCategory === element.id);
+                childRowNodes = document.querySelectorAll(`.row-wrapper[data-sub-category="${element.id}"]`);
+            }
             firstRow = childRowNodes[childRowNodes.length - 1];
             childRows.forEach(row => {
                 const cloneTemplate = document.getElementById(`${row.type}-template`).content.cloneNode(true);
@@ -1065,10 +1067,6 @@ function generateRow(elementNode, element, type) {
         } else {
             firstRow = elementNode.nextElementSibling;
         }
-        isClone = true;
-        const clone = JSON.parse(JSON.stringify(element));
-        clone.id = newId;
-        updateRow(template, clone, type, isClone);
     } else {
         template = document.getElementById(`${type}-template`).content.cloneNode(true);
         
@@ -1081,10 +1079,10 @@ function generateRow(elementNode, element, type) {
         updateRow(template, element, type, isClone);
     }
     
-    const rowElement = template.querySelector('.row-wrapper') || template;
+    const rowElement = template.querySelector('.row-wrapper');
     
     if (firstRow) {
-        if (clones.length && type === 'category' || type === 'sub-category') {
+        if (clones.length) {
             firstRow.parentNode.insertBefore(template, firstRow.nextElementSibling);
             firstRow = rowElement;
             clones.forEach((clone, i) => {
@@ -1818,6 +1816,11 @@ function loadState(oldElement) {
                     console.log("failed");
                 }
             } else {
+                if (data.id) {
+                    updateData(data);
+                } else {
+                    console.log("failed");
+                }
                 const rowNodes = document.getElementById('row-list').querySelectorAll('.row-wrapper');
                 const cellNodes = document.getElementById('info-list').querySelectorAll('.info-wrapper');
                 if (cellNodes.length) {
@@ -1927,8 +1930,20 @@ function saveState(trigger) {
     };
 }
 
-function deleteElementFromArticle() {
-    window.location.href = `index.html?articleId=${currentArticleId}`;
+function resetArticle() {
+    const newData = {
+        id: currentArticleId,
+        title: 'New Page',
+        intro: 'Write intro here...',
+        synopsis: 'Write synopsis here...',
+        poster: 'https://i.ibb.co/jkvtj531/file-00000000b08861faaa5ae1d6be8c5b27.png',
+        upperToolbar: false,
+        infobox: false
+    };
+    data = newData;
+    rows = [];
+    cells = [];
+    loadState(true);
 }
 
 function deleteElement(row, element, array, type) {

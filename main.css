@@ -1,5 +1,15 @@
 html, body { height: 100%; margin: 0; }
 
+#logo {
+  width: 15%;
+}
+
+@media (max-width: 600px) {
+  #logo {
+    width: 35%;
+  }
+}
+
 #tutorial-page-btn {
   margin: 4px;
   padding: 7px 7px;

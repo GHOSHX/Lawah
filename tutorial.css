@@ -36,3 +36,22 @@
 ul {
   margin: 1%;
 }
+
+img {
+  border: 1px solid black;
+}
+
+#clear-all-btn {
+  background-color: #ffe19c;
+  padding: 7px;
+}
+
+#create-section-btn, #upload-file-btn {
+  background-color: #ffe19c;
+  padding: 7px 15px;
+}
+
+#edit-section-btn, #delete-section-btn {
+  background-color: #ffe19c;
+  padding: 10px;
+}
