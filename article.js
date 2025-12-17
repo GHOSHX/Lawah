@@ -1816,11 +1816,6 @@ function loadState(oldElement) {
                     console.log("failed");
                 }
             } else {
-                if (data.id) {
-                    updateData(data);
-                } else {
-                    console.log("failed");
-                }
                 const rowNodes = document.getElementById('row-list').querySelectorAll('.row-wrapper');
                 const cellNodes = document.getElementById('info-list').querySelectorAll('.info-wrapper');
                 if (cellNodes.length) {
@@ -1943,6 +1938,7 @@ function resetArticle() {
     data = newData;
     rows = [];
     cells = [];
+    updateData(data);
     loadState(true);
 }
 
