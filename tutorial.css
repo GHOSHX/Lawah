@@ -1,0 +1,57 @@
+#add-infobox-btn {
+  background-image: url(https://i.ibb.co/jvZpGgFd/20251024-213808.png);
+  background-size: contain;
+  background-position: center;
+  width: 35px;
+  height: 25px;
+}
+
+#add-category-btn {
+  background-image: url(https://i.ibb.co/Xk566hdf/20251025-114655.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  width: 35px;
+  height: 25px;
+}
+
+#add-text-btn {
+  width: 35px;
+  height: 25px;
+  padding: 0;
+  margin: 2px;
+  border: 2px solid black;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+#add-table-btn {
+  background-image: url(https://i.ibb.co/W4T8G4rP/20251024-122856.png);
+  background-size: contain;
+  background-position: center;
+  width: 35px;
+  height: 25px;
+}
+
+ul {
+  margin: 1%;
+}
+
+img {
+  border: 1px solid black;
+}
+
+#clear-all-btn {
+  background-color: #ffe19c;
+  padding: 7px;
+}
+
+#create-section-btn, #upload-file-btn {
+  background-color: #ffe19c;
+  padding: 7px 15px;
+}
+
+#edit-section-btn, #delete-section-btn {
+  background-color: #ffe19c;
+  padding: 10px;
+}

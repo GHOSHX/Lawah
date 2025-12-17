@@ -1,5 +1,21 @@
 html, body { height: 100%; margin: 0; }
 
+#logo {
+  width: 15%;
+}
+
+@media (max-width: 600px) {
+  #logo {
+    width: 35%;
+  }
+}
+
+#tutorial-page-btn {
+  margin: 4px;
+  padding: 7px 7px;
+  background-color: #ffe19c;
+}
+
 #home-wrapper {
   margin-top: 8px;
   display: flex;
@@ -17,9 +33,17 @@ html, body { height: 100%; margin: 0; }
   color: grey;
 }
 
+#warning {
+  background-color: #d99580;
+  border: 2px solid #e34f22;
+  margin: 4px;
+  padding: 4px;
+}
+
 #clear-all-btn {
   background-color: #ffe19c;
   padding: 7px;
+  display: none;
 }
 
 #create-section-btn, #upload-file-btn {

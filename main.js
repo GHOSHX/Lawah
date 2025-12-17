@@ -1,5 +1,5 @@
 const dbName = 'gameData';
-const dbVersion = 5;
+const dbVersion = 6;
 
 let db;
 
@@ -28,6 +28,9 @@ let sections = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     openDB();
+    document.getElementById('tutorial-page-btn').addEventListener('click', () => {
+        window.location.href = 'tutorial.html';
+    });
     document.getElementById('pic-toggle-btn').addEventListener('click', () => {
         const isVisible = document.getElementById('home-pic1').style.display !== 'none';
         
@@ -103,7 +106,9 @@ function generateArticle(newId, newTitle) {
         title: newTitle,
         intro: 'Write intro here...',
         synopsis: 'Write synopsis here...',
-        poster: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019'
+        poster: 'https://i.ibb.co/jkvtj531/file-00000000b08861faaa5ae1d6be8c5b27.png',
+        upperToolbar: false,
+        infobox: false
     };
     
     const newArticle = {

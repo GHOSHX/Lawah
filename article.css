@@ -1,10 +1,91 @@
-html, body { margin: 0; }
-
 body {
   background-image:url('https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTEyL3Jhd3BpeGVsb2ZmaWNlM19hYnN0cmFjdF9nZW9tZXRyaWNfZmx1aWRfYmxhY2tfY29sb3JfZ3JhZGllbnRfYl9mNWYxMTRjMC01MTVlLTRkZTctYjAxMi05ZDFkODljYzEyODBfMS5qcGc.jpg');
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: cover;
+  margin: 300px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+@media (max-width: 600px) {
+  html, body { margin: 0; }
+}
+
+table, th, td {
+  width: 100%;
+  border-right: 1px solid black;
+  border-left: 1px solid black;
+  border-collapse: collapse;
+}
+
+table {
+  background-color: #F1e7dd;
+}
+
+th, td {
+  padding: 5px;
+  text-align: left;
+}
+
+#row-list {
+  display: none;
+  max-width: 100%;
+  border-right: 1px solid black;
+  border-left: 1px solid black;
+  background-color: #F1e7dd;
+}
+
+.row-list-edit-mode {
+  margin-bottom: 41px;
+}
+
+.category-wrapper {
+  width: 100%;
+  background-color: #f4c458;
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.sub-category-wrapper {
+  width: 100%;
+  background-color: #f2b16f;
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.sub-category-wrapper h4 {
+  margin: 1%;
+}
+
+.infobox-wrapper {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.infobox-wrapper h4 {
+  margin: 1%;
+}
+
+.text-area-wrapper {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.mini-table-wrapper {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.writeble-element {
+  background-color: white;
 }
 
 #toolbar {
@@ -12,7 +93,7 @@ body {
   right: 0;
   left: 0;
   background-color: #fe9821;
-  padding: 7px;
+  padding: 5px;
   display: flex;
   justify-content: flex-start; /* Changed from center */
   align-items: center;
@@ -31,6 +112,10 @@ body {
 .bottom {
   bottom: 0px;
   border-top: 2px solid black;
+}
+
+#infobox {
+  display: none;
 }
 
 #toolbar::-webkit-scrollbar {
@@ -75,6 +160,13 @@ body {
   padding: 5px;
 }
 
+#close-settings-btn {
+  background-color: #9e9e9e;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
 #settings {
   position: fixed;
   top: 50%;
@@ -92,6 +184,13 @@ body {
   text-align: center;
 }
 
+#settings-header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .toolbar-btn {
   padding: 2px 8px;
 }
@@ -100,12 +199,9 @@ body {
   display: none;
 }
 
-.infobox-img-btn {
-  display: none;
-}
-
-.img-btn {
-  display: none;
+#intro-wrapper {
+  padding: 5px;
+  box-sizing: border-box;
 }
 
 .intro-wrapper1 {
@@ -114,23 +210,6 @@ body {
 
 .intro-wrapper2 {
   margin-top: 83px;
-}
-
-#control-room2 {
-  margin-bottom: 39px;
-}
-
-table, th, td {
-  width: 100%;
-  border: 1px solid black;
-  border-collapse: collapse;
-  background-color: #F1e7dd;
-}
-
-th, td {
-  width: 50%;
-  padding: 5px;
-  text-align: left;
 }
 
 #title-input {
@@ -161,7 +240,7 @@ th, td {
 
 .cell1, .infobox-cell1 {
   width: 42%;
-  padding: 5px;
+  padding: 7px;
   border: 1px solid black;
   border-right: 0;
   box-sizing: border-box;
@@ -169,24 +248,115 @@ th, td {
 
 .cell2, .infobox-cell2 {
   width: 58%;
-  padding: 5px;
+  padding: 7px;
   border: 1px solid black;
   border-left: 0;
   box-sizing: border-box;
 }
 
-.infobox-cell1, .infobox-cell2 {
-  background-color: white;
+.row-delete-cell {
+  width: 12%;
+  padding: 5px;
+  border: 1px solid black;
+  border-right: 0px;
+  box-sizing: border-box;
+  display: none;
 }
 
-.cell3, .category {
+.cell3, .infobox-cell3 {
   width: 100%;
+  background-color: #f4c458;
   padding: 5px;
+  border: 1px solid black;
+  text-align: center;
   box-sizing: border-box;
 }
 
-.text-area {
-  width: 500px;
+#undo-btn {
+  background-image: url(https://i.ibb.co/yc3BYGvX/Ic-undo-48px-svg.png);
+  background-color: transparent;
+  background-size: cover;
+  border: 0px;
+}
+
+#redo-btn {
+  background-image: url(https://i.ibb.co/4wh8F546/20251101-140141.png);
+  background-color: transparent;
+  background-size: cover;
+  border: 0px;
+}
+
+#toolbar button {
+  justify-content: center;
+  align-items: center;
+  width: 27px;
+  height: 27px;
+  padding: 0px;
+  margin: 1px;
+  vertical-align: middle;
+}
+
+#toolbar .img-btn {
+  display: none;
+  width: 40px;
+}
+
+.toggle-btn {
+  background-image: url(https://i.ibb.co/6q919Xb/20251024-055350.png);
+  background-color: transparent;
+  background-size: cover;
+  width: 25px;
+  height: 15px;
+  border: 0px;
+}
+
+#add-infobox-btn {
+  background-image: url(https://i.ibb.co/jvZpGgFd/20251024-213808.png);
+  background-size: contain;
+  background-position: center;
+}
+
+#add-table-btn {
+  background-image: url(https://i.ibb.co/W4T8G4rP/20251024-122856.png);
+  background-size: contain;
+  background-position: center;
+}
+
+#add-text-btn {
+  border: 2px solid black;
+  box-sizing: border-box;
+}
+
+#add-category-btn {
+  background-image: url(https://i.ibb.co/Xk566hdf/20251025-114655.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+.add-infobox-btn2 {
+  background-image: url(https://i.ibb.co/jvZpGgFd/20251024-213808.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+.add-sub-cat-btn {
+  background-image: url(https://i.ibb.co/ZRDG8y8x/20251204-053718.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+.add-text-btn2 {
+  border: 2px solid black;
+  box-sizing: border-box;
+}
+
+.add-table-btn2 {
+  background-image: url(https://i.ibb.co/W4T8G4rP/20251024-122856.png);
+  background-size: contain;
+  background-position: center;
 }
 
 #info-list {
@@ -206,11 +376,11 @@ th, td {
   text-align: center;
 }
 
-.category {
-  background-color: #f4c458;
+h3 {
+  margin: 1%;
 }
 
-h3 {
+ul {
   margin: 1%;
 }
 
@@ -230,10 +400,46 @@ p {
     box-sizing: border-box;
 }
 
-.infobox-controls, .infobox-name-controls {
+.category-controls, .row-controls {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.row-controls button {
+  justify-content: center;
+  align-items: center;
+  width: 35px;
+  height: 25px;
+  padding: 0px;
+  margin: 2px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  vertical-align: middle;
+}
+
+#control-room2 button {
+  justify-content: center;
+  align-items: center;
+  width: 35px;
+  height: 25px;
+  padding: 0px;
+  margin: 2px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  vertical-align: middle;
+}
+
+.infobox-img-btn {
+  display: none;
+}
+
+.row-add-btn {
+  display: none;
+}
+
+.row-add-btn2 {
+  display: none;
 }
 
 .info-cell {
@@ -265,9 +471,10 @@ p {
 }
 
 .description {
-  width: 97%;
+  width: 100%;
   border: 1px solid black;
   padding: 5px;
+  box-sizing: border-box;
   background-color: white;
 }
 
@@ -313,4 +520,97 @@ img {
   cursor: pointer;
   color: blue;
   margin-top: 1px;
+}
+
+.data-wrapper {
+  width: 40%;
+}
+
+.row-delete2-wrapper {
+  border: 1px solid black;
+}
+
+.row-delete-wrapper {
+  width: 10%;
+  border: 1px solid black;
+}
+
+.cell-input-wrapper, #title-input, .generate-preset-btn, .row-controls, .row2-wrapper, .row-delete-wrapper, .row-delete2-wrapper, .name-input, .bio-input {
+  display: none;
+}
+
+.infobox-name {
+  display: block;
+}
+
+.cell-edit-mode #title-input {
+  display: inline;
+}
+
+.cell-edit-mode .row-delete-cell {
+  display: table-cell;
+}
+.cell-edit-mode .cell-input-wrapper {
+  display: block;
+}
+
+.cell-edit-mode .cell-text,
+.cell-edit-mode #title {
+  display: none;
+}
+
+.cell-edit-mode .writable-element {
+  background-color: white;
+}
+
+.row-edit-mode .row-delete-cell,
+.row-edit-mode .generate-preset-btn,
+.row-edit-mode .cell-input-wrapper,
+.row-edit-mode .bio-input,
+.row-edit-mode .row-controls {
+  display: block;
+}
+
+.row-edit-mode .name-input {
+  display: inline;
+}
+
+.row-edit-mode .row2-wrapper {
+  display: table-row;
+}
+
+.row-edit-mode .row-delete2-wrapper {
+  display: table-cell;
+}
+
+.row-edit-mode .row-delete-wrapper {
+  display: table-cell;
+}
+
+.row-edit-mode .infobox-name,
+.row-edit-mode .cell-text,
+.row-edit-mode .info-title,
+.row-edit-mode .infobox-bio-text {
+  display: none;
+}
+
+.row-edit-mode .writable-element {
+  background-color: white;
+}
+
+.table-scroll {
+  max-width: 97vw;
+  overflow-x: auto; /* Enables horizontal scroll */
+  overflow-y: hidden; /* Prevents vertical scroll */
+  white-space: nowrap; /* Prevents wrapping */
+  scrollbar-width: thin; /* For Firefox */
+}
+
+.table-scroll::-webkit-scrollbar {
+  height: 6px; /* Small scrollbar height */
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
 }
