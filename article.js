@@ -352,14 +352,7 @@ function undoManager() {
             loadState(true);
         }
     } else if (type === 'image-change') {
-        if (element.classList.contains('infobox-wrapper')) {
-            const row = rows.find(row => row.id == element.dataset.index);
-            row.imgSrc = previousAction.oldData;
-            element.querySelector('.infobox-img').src = row.imgSrc;
-        } else {
-            data.poster = previousAction.oldData;
-            element.src = data.poster;
-        }
+            element.src = previousAction.oldData;
     }
     redoList.push(previousAction);
 }
@@ -386,14 +379,7 @@ function redoManager() {
             loadState(true);
         }
     } else if (type === 'image-change') {
-        if (element.classList.contains('infobox-wrapper')) {
-            const row = rows.find(row => row.id == element.dataset.index);
-            row.imgSrc = previousAction.newData;
-            element.querySelector('.infobox-img').src = row.imgSrc;
-        } else {
-            data.poster = previousAction.newData;
-            element.src = data.poster;
-        }
+        element.src = previousAction.newData;
     }
     undoList.push(previousAction);
 }
@@ -582,6 +568,7 @@ function editArticle() {
     const introText = document.getElementById('intro');
     const synopsisText = document.getElementById('synopsis-text');
     const titleInput = document.getElementById('title-input');
+    const poster = document.getElementById('poster');
     const introInput = document.getElementById('intro-input');
     const synopsisInput = document.getElementById('synopsis-text-input');
     const introWrapper = document.getElementById('intro-wrapper');
@@ -631,6 +618,7 @@ function editArticle() {
             mainInfobox.classList.toggle('cell-edit-mode');
             data.title = titleInput.value;
             data.intro = introInput.innerHTML;
+            data.poster = poster.src;
             data.synopsis = synopsisInput.innerHTML;
             title.textContent = data.title;
             introText.innerHTML = data.intro;
@@ -679,6 +667,7 @@ function editRow(editMode) {
     rowNodes.forEach(node => {
         const nameText = node.querySelector('.infobox-name');
         const nameInput = node.querySelector('.name-input');
+        const infoboxImg = node.querySelector('.infobox-img');
         const bioText = node.querySelector('.infobox-bio-text');
         const bioInput = node.querySelector('.bio-input');
         const presetBtn = node.querySelector('.generate-preset-btn');
@@ -711,6 +700,10 @@ function editRow(editMode) {
                     row.name = nameInput.value;
                     nameText.textContent = nameInput.value;
                 }
+            }
+            
+            if (infoboxImg) {
+                row.imgSrc = infoboxImg.src;
             }
             
             if (bioText) {
@@ -1511,9 +1504,10 @@ function loadImage(event, element) {
     function setImage(src) {
         const oldSrc = element.imgSrc;
         const row = document.querySelector(`.row-wrapper[data-index="${element.id}"]`);
+        const infoboxImg = row.querySelector('.infobox-img');
         element.imgSrc = src;
-        row.querySelector('.infobox-img').src = src;
-        actionManager(row, src, oldSrc, 'image-change');
+        infoboxImg.src = src;
+        actionManager(infoboxImg, src, oldSrc, 'image-change');
     }
     
     if (event) {
