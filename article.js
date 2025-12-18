@@ -237,9 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
     inputPoster.addEventListener('change', function () {
       const reader = new FileReader();
       reader.onload = function(e) {
+        const oldPoster = data.poster;
         data.poster = e.target.result;
-        document.getElementById('poster').src = data.poster;
-        saveState(4);
+        const poster = document.getElementById('poster');
+        poster.src = data.poster;
+        actionManager(poster, data.poster, oldPoster, 'image-change');
       }
       
       reader.readAsDataURL(this.files[0]);
@@ -301,7 +303,14 @@ function actionManager(element, newData, oldData, type) {
           type,
           element
         };
-    }
+    } else if (type === 'image-change') {
+        newAction = {
+          newData,
+          oldData,
+          type,
+          element
+        };
+    };
     undoList.push(newAction);
     
     redoList = [];
@@ -342,6 +351,15 @@ function undoManager() {
         } else {
             loadState(true);
         }
+    } else if (type === 'image-change') {
+        if (element.classList.contains('infobox-wrapper')) {
+            const row = rows.find(row => row.id == element.dataset.index);
+            row.imgSrc = previousAction.oldData;
+            element.querySelector('.infobox-img').src = row.imgSrc;
+        } else {
+            data.poster = previousAction.oldData;
+            element.src = data.poster;
+        }
     }
     redoList.push(previousAction);
 }
@@ -366,6 +384,15 @@ function redoManager() {
             loadState(element);
         } else {
             loadState(true);
+        }
+    } else if (type === 'image-change') {
+        if (element.classList.contains('infobox-wrapper')) {
+            const row = rows.find(row => row.id == element.dataset.index);
+            row.imgSrc = previousAction.newData;
+            element.querySelector('.infobox-img').src = row.imgSrc;
+        } else {
+            data.poster = previousAction.newData;
+            element.src = data.poster;
         }
     }
     undoList.push(previousAction);
@@ -1481,19 +1508,22 @@ function updateTableData(template, tableData) {
 }
 
 function loadImage(event, element) {
+    function setImage(src) {
+        const oldSrc = element.imgSrc;
+        const row = document.querySelector(`.row-wrapper[data-index="${element.id}"]`);
+        element.imgSrc = src;
+        row.querySelector('.infobox-img').src = src;
+        actionManager(row, src, oldSrc, 'image-change');
+    }
+    
     if (event) {
         const file = event.target.files[0];
         const reader = new FileReader();
-        reader.onload = function(e) {
-            element.imgSrc = e.target.result;
-            const row = document.querySelector(`.row-wrapper[data-index="${element.id}"]`);
-            row.querySelector('.infobox-img').src = element.imgSrc;
-        };
+        reader.onload = e => setImage(e.target.result);
         reader.readAsDataURL(file);
     } else {
-        element.imgSrc = prompt('Enter the URL', 'https://');
-        const row = document.querySelector(`.row-wrapper[data-index="${element.id}"]`);
-        row.querySelector('.infobox-img').src = element.imgSrc;
+        const url = prompt('Enter the URL', 'https://');
+        if (url) setImage(url);
     }
 }
 
