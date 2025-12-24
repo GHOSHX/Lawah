@@ -25,6 +25,7 @@ function openDB() {
 
 let articles = [];
 let sections = [];
+let tutorialComplete = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     openDB();
@@ -62,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const newArticle = {
               articleId: newId,
               data: uploadedData.data,
-              characters: uploadedData.characters || uploadedData.infoboxes,
+              rows: uploadedData.infoboxes || uploadedData.rows,
               cells: uploadedData.cells
           };
           articles.push(newArticle);
@@ -114,7 +115,7 @@ function generateArticle(newId, newTitle) {
     const newArticle = {
         articleId: newId,
         data: newData,
-        characters: [],
+        rows: [],
         cells: []
     };
     articles.push(newArticle);
@@ -188,10 +189,15 @@ function deleteSection(wrapper, section) {
 
 function loadState() {
     const savedSections = JSON.parse(localStorage.getItem('sections'));
+    tutorialComplete = localStorage.getItem('tutorial-complete') === 'true';
     const transaction = db.transaction(['articles'], 'readonly');
     const articleStore = transaction.objectStore('articles');
     
     articleStore.getAll().onsuccess = function(event) {
+        if (!tutorialComplete) {
+            window.location.href = 'tutorial.html';
+        }
+        
         articles = event.target.result;
         articles.forEach(article => {
           console.log('Article: ' + article.articleId);
@@ -217,6 +223,7 @@ function loadState() {
 
 function saveState() {
     localStorage.setItem('sections', JSON.stringify(sections));
+    
     const transaction = db.transaction(['articles'], 'readwrite');
     
     const articleStore = transaction.objectStore('articles');

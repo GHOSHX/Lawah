@@ -1831,7 +1831,8 @@ function loadState(oldElement) {
             let oldElements = [];
             if (!oldElement) {
                 data = articleData.data;
-                rows = articleData.characters;
+                rows = articleData.characters || articleData.rows;
+                console.log(rows);
                 cells = articleData.cells;
                 
                 if (data.id) {
@@ -1858,6 +1859,9 @@ function loadState(oldElement) {
             rows.sort((a, b) => a.position - b.position);
             
             rows.forEach(row => {
+                if (!row.type) {
+                  row.type = 'infobox';
+                }
                 let template = oldElements?.find(node => node.dataset.index == row.id);
                 if (template) {
                     oldElements.splice(oldElements.indexOf(template), 1);
@@ -1938,7 +1942,7 @@ function saveState(trigger) {
     const articleData = {
         articleId: currentArticleId,
         data: data,
-        characters: rows,
+        rows: rows,
         cells: cells,
     };
     articleStore.put(articleData);
