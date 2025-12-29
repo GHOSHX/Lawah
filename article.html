@@ -29,11 +29,12 @@
         <h3>Lawah Article Editor</h3>
       </div>
       <div id="control-wrapper">
-        <button id="edit-infobox" class="control-btn">✏️</button>
+        <button id="edit-article-btn" class="control-btn">✏️</button>
         <button id="reset-article-btn" class="control-btn">🧹</button>
         <button id="file-upload-btn" class="control-btn">️📁</button>
         <button id="download-btn" class="control-btn">💾</button>
         <button id="settings-btn" class="control-btn">⚙️</button>
+        <button id="toggle-sidebar-btn" class="control-btn">≡≡</button>
       </div>
     </div>
     <div id="settings" style="display: none;">
@@ -54,50 +55,62 @@
       <button id="enable-preset1"><b>Preset 1</b></button>
       <button id="enable-preset2"><b>Preset 2</b></button>
     </div>
-    <div class="description intro-wrapper1" id="intro-wrapper">
-      <p id="intro">Intro</p>
-      <div id="intro-input" contenteditable="true" style="display: none;"></div>
-    </div>
-    <table class="center-table" id="infobox">
-      <thead>
-        <tr>
-          <td colspan="3" style="text-align: center;">
-            <h2 id="title">title</h2>
-            <input type="text" id="title-input" placeholder="Enter new title">
-            <br>
-            <input type="file" id="poster-input" accept="image/*" style="display: none;">
-            <a id="change-poster">
-              <img src="https://i.ibb.co/jkvtj531/file-00000000b08861faaa5ae1d6be8c5b27.png" alt="Article Poster" id="poster" width="100%">
-            </a>
-          </td>
-        </tr>
-      </thead>
-      <tbody id="info-list"></tbody>
-    </table>
-    <div class="control-room" style="display: none;">
-      <button id="add-info-btn1">➕️1️⃣</button>
-      <button id="add-info-btn2">➕️2️⃣</button>
-    </div>
-    <div class="section">
-      <h3>SYNOPSIS</h3>
-      <button id="toggle-synopsis-btn" class="toggle-btn"></button>
-    </div>
-    <div class="description" id="table1" style="display: none;">
-      <p id="synopsis-text">Text</p>
-      <div id="synopsis-text-input" contenteditable="true" style="display: none;"></div>
-    </div>
-    <div class="section">
-      <h3>ROWS</h3>
-      <button id="toggle-infobox-btn" class="toggle-btn"></button>
-    </div>
-    <div id="control-room2" class="control-room" style="display: none;">
-      <button id="toggle-add-btn">➕️</button>
-      <button id="add-category-btn" class="row-add-btn"></button>
-      <button id="add-infobox-btn" class="row-add-btn"></button>
-      <button id="add-text-btn" class="row-add-btn"><b>Text</b></button>
-      <button id="add-table-btn" class="row-add-btn"></button>
-    </div>
-    <div class="center-table" id="row-list">
+    <div id="container" class="intro-wrapper1">
+      <div id="sidebar">
+        <h3>Your articles</h3>
+        <div id="article-list"></div>
+      </div>
+      <div id="content">
+        <div id="main-content">
+          <div class="description" id="intro-wrapper">
+            <p id="intro">Intro</p>
+            <div id="intro-input" contenteditable="true" style="display: none;"></div>
+          </div>
+          <div id="main-infobox-wrapper">
+            <table class="center-table" id="infobox">
+              <thead>
+                <tr>
+                  <td colspan="3" style="text-align: center;">
+                    <h2 id="title">title</h2>
+                    <input type="text" id="title-input" placeholder="Enter new title">
+                    <br>
+                    <input type="file" id="poster-input" accept="image/*" style="display: none;">
+                    <a id="change-poster">
+                      <img src="https://i.ibb.co/jkvtj531/file-00000000b08861faaa5ae1d6be8c5b27.png" alt="Article Poster" id="poster" width="100%">
+                    </a>
+                  </td>
+                </tr>
+              </thead>
+              <tbody id="info-list"></tbody>
+            </table>
+            <div class="control-room" style="display: none;">
+              <button id="add-info-btn1"></button>
+              <button id="add-info-btn2"></button>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <h3>SYNOPSIS</h3>
+          <button id="toggle-synopsis-btn" class="toggle-btn"></button>
+        </div>
+        <div class="description" id="table1" style="display: none;">
+          <p id="synopsis-text">Text</p>
+          <div id="synopsis-text-input" contenteditable="true" style="display: none;"></div>
+        </div>
+        <div class="section">
+          <h3>SECTIONS</h3>
+          <button id="toggle-infobox-btn" class="toggle-btn"></button>
+        </div>
+        <div id="control-room2" class="control-room" style="display: none;">
+          <button id="toggle-add-btn">➕️</button>
+          <button id="add-category-btn" class="row-add-btn"></button>
+          <button id="add-infobox-btn" class="row-add-btn"></button>
+          <button id="add-text-btn" class="row-add-btn"><b>Text</b></button>
+          <button id="add-table-btn" class="row-add-btn"></button>
+        </div>
+        <div class="center-table" id="row-list">
+        </div>
+      </div>
     </div>
     <template id="info-template">
       <tr class="cell-wrapper info-wrapper">
@@ -177,8 +190,8 @@
     </template>
     <template id="infobox-template">
       <div class="infobox-wrapper row-wrapper">
-        <button class="generate-preset-btn" style="font-weight: bold;">Preset</button>
         <div class="infobox-profile">
+          <button class="generate-preset-btn" style="font-weight: bold;">Preset</button>
           <h4 class="infobox-name">New Infobox</h4>
           <input type="text" class="name-input" placeholder="Enter new name">
           <div class="row-controls">
@@ -192,18 +205,20 @@
             <button class="delete-btn">🗑</button>
           </div>
           <img class="infobox-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019" alt="New Infobox">
-        </div>
-        <div class="infobox-bio">
           <div class="section-lists"></div>
           <div class="control-room" style="display: none;">
-            <button class="add-section-btn">➕️1️⃣</button>
-            <button class="add-section-btn2">➕️2️⃣</button>
+            <button class="add-section-btn"></button>
+            <button class="add-section-btn2"></button>
           </div>
-          <div class="infobox-bio-text">New Infobox bio goes here...</div>
-          <div class="bio-input writable-element" contenteditable="true">Write description about the subject here...</div>
         </div>
-        <div class="see-more text-center">
-          <span class="see-more-btn">show more</span>
+        <div class="bio-container">
+          <div class="infobox-bio">
+            <div class="infobox-bio-text">New Infobox bio goes here...</div>
+            <div class="bio-input writable-element" contenteditable="true">Write description about the subject here...</div>
+          </div>
+          <div class="see-more text-center">
+            <span class="see-more-btn">show more</span>
+          </div>
         </div>
       </div>
     </template>
@@ -308,6 +323,11 @@
             <button class="cell-down-btn">⬇️</button>
           </div>
         </div>
+      </div>
+    </template>
+    <template id="article-templete">
+      <div class="article-section">
+        <b class="article-title">title</b>
       </div>
     </template>
   </body>

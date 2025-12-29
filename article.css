@@ -3,13 +3,117 @@ body {
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: cover;
-  margin: 300px;
+  margin: 0;
+}
+
+#container {
+  display: flex;
+  min-height: 100vh;
   margin-top: 0px;
   margin-bottom: 0px;
 }
 
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 250px;
+  background-color: gray;
+  padding: 7px;
+  z-index: 800;
+}
+
+.infobox-wrapper {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 601px) {
+  #toggle-sidebar-btn {
+    display: none;
+  }
+  
+  .top {
+    top: 60px;
+    border-bottom: 2px solid black;
+  }
+  
+  #content {
+    margin-left: 263px;
+  }
+  
+  #main-content {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    background-color: white;
+  }
+  
+  #intro-wrapper, #main-infobox-wrapper {
+    flex: 1 1 50%;
+    box-sizing: border-box;
+  }
+  
+  .infobox-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  
+  .infobox-wrapper .infobox-profile {
+    width: 35%;
+    box-sizing: border-box;
+  }
+  
+  .infobox-wrapper .bio-container {
+    flex: 1;
+    box-sizing: border-box;
+  }
+  
+  .intro-wrapper1 #content,
+  .intro-wrapper1 #sidebar {
+    margin-top: 50px;
+  }
+  
+  .intro-wrapper2 #content,
+  .intro-wrapper2 #sidebar {
+    margin-top: 93px;
+  }
+}
+
 @media (max-width: 600px) {
-  html, body { margin: 0; }
+  #container {
+    margin: 0;
+  }
+  
+  #sidebar {
+    display: none;
+  }
+  
+  #toggle-sidebar-btn {
+    display: block;
+  }
+  
+  .top {
+    top: 45px;
+    border-bottom: 2px solid black;
+  }
+  
+  .infobox-wrapper {
+    display: block;
+  }
+  
+  .intro-wrapper1 #content,
+  .intro-wrapper1 #sidebar {
+    margin-top: 44px;
+  }
+  
+  .intro-wrapper2 #content,
+  .intro-wrapper2 #sidebar {
+    margin-top: 83px;
+  }
 }
 
 table, th, td {
@@ -62,11 +166,7 @@ th, td {
   margin: 1%;
 }
 
-.infobox-wrapper {
-  width: 100%;
-  padding: 5px;
-  box-sizing: border-box;
-}
+
 
 .infobox-wrapper h4 {
   margin: 1%;
@@ -102,11 +202,7 @@ th, td {
   overflow-y: hidden; /* Prevents vertical scroll */
   white-space: nowrap; /* Prevents wrapping */
   scrollbar-width: thin; /* For Firefox */
-}
-
-.top {
-  top: 45px;
-  border-bottom: 2px solid black;
+  z-index: 950;
 }
 
 .bottom {
@@ -116,6 +212,7 @@ th, td {
 
 #infobox {
   display: none;
+  border-top: 1px solid black;
 }
 
 #toolbar::-webkit-scrollbar {
@@ -135,6 +232,7 @@ th, td {
   left: 0;
   background-color: #fe9821;
   border-bottom: 2px solid black;
+  z-index: 1000;
 }
 
 #header {
@@ -153,6 +251,42 @@ th, td {
   justify-content: flex-end;
   align-items: center;
   box-sizing: border-box;
+}
+
+#add-info-btn1 {
+  background-image: url(https://i.ibb.co/Dm66scJ/20251219-091959.png);
+  background-color: transparent;
+  background-size: cover;
+  width: 55px;
+  height: 25px;
+  background-position: center;
+}
+
+#add-info-btn2 {
+  background-image: url(https://i.ibb.co/B54n0f00/20251219-091747.png);
+  background-color: transparent;
+  background-size: cover;
+  width: 55px;
+  height: 25px;
+  background-position: center;
+}
+
+.add-section-btn {
+  background-image: url(https://i.ibb.co/Dm66scJ/20251219-091959.png);
+  background-color: transparent;
+  background-size: cover;
+  width: 55px;
+  height: 25px;
+  background-position: center;
+}
+
+.add-section-btn2 {
+  background-image: url(https://i.ibb.co/B54n0f00/20251219-091747.png);
+  background-color: transparent;
+  background-size: cover;
+  width: 55px;
+  height: 25px;
+  background-position: center;
 }
 
 .control-btn {
@@ -178,6 +312,7 @@ th, td {
   border: 2px solid black;
   height: 500px;
   background-color: grey;
+  z-index: 900;
 }
 
 .settings-section {
@@ -204,12 +339,10 @@ th, td {
   box-sizing: border-box;
 }
 
-.intro-wrapper1 {
-  margin-top: 44px;
-}
-
-.intro-wrapper2 {
-  margin-top: 83px;
+.article-section {
+  background-color: #f4c458;
+  padding: 7px;
+  border: 1px solid black;
 }
 
 #title-input {
@@ -376,6 +509,10 @@ th, td {
   text-align: center;
 }
 
+.infobox-profile .section-lists {
+  text-align: left;
+}
+
 h3 {
   margin: 1%;
 }
@@ -472,7 +609,6 @@ p {
 
 .description {
   width: 100%;
-  border: 1px solid black;
   padding: 5px;
   box-sizing: border-box;
   background-color: white;
