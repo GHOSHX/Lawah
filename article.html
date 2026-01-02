@@ -34,7 +34,6 @@
         <button id="file-upload-btn" class="control-btn">️📁</button>
         <button id="download-btn" class="control-btn">💾</button>
         <button id="settings-btn" class="control-btn">⚙️</button>
-        <button id="toggle-sidebar-btn" class="control-btn">≡≡</button>
       </div>
     </div>
     <div id="settings" style="display: none;">
@@ -48,6 +47,7 @@
       </div>
       <button id="upper-toolbar-btn"><b>Upper Toolbar: Off</b></button>
       <button id="infobox-toggle-btn"><b>Main Infobox: Hide</b></button>
+      <button id="show-code-btn"><b>Show Code</b></button>
       <hr>
       <div class="settings-section">
         <p><b>Presets</b></p>
@@ -57,12 +57,20 @@
     </div>
     <div id="container" class="intro-wrapper1">
       <div id="sidebar">
-        <h3>Your articles</h3>
-        <div id="article-list"></div>
+        <div id="sidebar-content">
+          <h3 id="main-page-btn">Main Page</h3>
+          <hr>
+          <h3>Your Articles</h3>
+          <div id="article-list"></div>
+          <hr>
+          <h3 id="tutorial-page-btn">How To Use</h3>
+        </div>
+        <div id="sidebar-toggle-btn">▶</div>
       </div>
       <div id="content">
         <div id="main-content">
           <div class="description" id="intro-wrapper">
+            <textarea id="show-code"></textarea>
             <p id="intro">Intro</p>
             <div id="intro-input" contenteditable="true" style="display: none;"></div>
           </div>

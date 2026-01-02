@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('enable-preset1').addEventListener('click', () => presetGenerateCell(1));
     document.getElementById('enable-preset2').addEventListener('click', () => presetGenerateCell(2));
     document.getElementById('close-settings-btn').addEventListener('click', toggleSettings);
-    document.getElementById('upper-toolbar-btn').addEventListener('click', function() {
+    document.getElementById('upper-toolbar-btn').addEventListener('click', function () {
         const toolbar = document.getElementById('toolbar');
         const container = document.getElementById('container');
         
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         saveState(1);
     });
-    document.getElementById('infobox-toggle-btn').addEventListener('click', function() {
+    document.getElementById('infobox-toggle-btn').addEventListener('click', function () {
         const mainInfobox = document.getElementById('infobox');
         const presetBtn1 = document.getElementById('enable-preset1');
         const presetBtn2 = document.getElementById('enable-preset2');
@@ -132,6 +132,16 @@ document.addEventListener('DOMContentLoaded', () => {
             data.infobox = false;
         }
         saveState(2);
+    });
+    document.getElementById('show-code-btn').addEventListener('click', () => {
+        document.getElementById('show-code').style.display = 'block';
+        const clone = document.getElementById('content').cloneNode(true);
+        
+        clone.querySelectorAll('img').forEach(img => {
+            img.setAttribute('src', '[REDACTED]');
+        });
+        
+        document.getElementById('show-code').value = clone.innerHTML;
     });
     document.getElementById('undo-btn').addEventListener('click', undoManager);
     document.getElementById('redo-btn').addEventListener('click', redoManager);
@@ -181,12 +191,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('bullet-list-btn').addEventListener('click', () => styleText('ul'));
     editButton.addEventListener('click', editArticle);
-    document.getElementById('toggle-sidebar-btn').addEventListener('click', () => {
-        const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebar-toggle-btn').addEventListener('click', function () {
+        const sidebar = document.getElementById('sidebar-content');
         if (getComputedStyle(sidebar).display.includes('none')) {
             sidebar.style.display = 'block';
+            this.innerHTML = '◀';
         } else {
             sidebar.style.display = 'none';
+            this.innerHTML = '▶';
         }
     })
     fileUploadBtn.addEventListener('click', () => {
@@ -253,6 +265,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       reader.readAsDataURL(this.files[0]);
+    });
+    document.getElementById('main-page-btn').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+    document.getElementById('tutorial-page-btn').addEventListener('click', () => {
+        window.location.href = 'tutorial.html';
     });
     document.getElementById('article-list').addEventListener('click', handleArticleClick);
     document.getElementById('info-list').addEventListener('click', handleCellClick);

@@ -15,13 +15,41 @@ body {
 
 #sidebar {
   position: fixed;
+  display: flex;
   top: 0;
   left: 0;
-  height: 100vh;
   width: 250px;
-  background-color: gray;
-  padding: 7px;
   z-index: 800;
+  pointer-events: none;
+}
+
+#sidebar-content {
+  height: 100vh;
+  padding: 7px;
+  background-color: gray;
+  pointer-events: auto;
+}
+
+#sidebar-toggle-btn {
+  margin-top: 400px;
+  width: 7%;
+  height: 20px;
+  padding: 7px;
+  background-color: gray;
+  pointer-events: auto;
+}
+
+#show-code {
+  display: none;
+  white-space: pre;
+  overflow-x: auto;
+  overflow-y: auto;
+  resize: both;
+  width: 100%;
+  height: 400px;
+  background-color: black;
+  color: white;
+  box-sizing: border-box;
 }
 
 .infobox-wrapper {
@@ -41,7 +69,7 @@ body {
   }
   
   #content {
-    margin-left: 263px;
+    margin-left: 250px;
   }
   
   #main-content {
@@ -54,6 +82,14 @@ body {
   #intro-wrapper, #main-infobox-wrapper {
     flex: 1 1 50%;
     box-sizing: border-box;
+  }
+  
+  #sidebar-content {
+    width: 100%;
+  }
+  
+  #sidebar-toggle-btn {
+    display: none;
   }
   
   .infobox-wrapper {
@@ -88,12 +124,9 @@ body {
     margin: 0;
   }
   
-  #sidebar {
+  #sidebar-content {
     display: none;
-  }
-  
-  #toggle-sidebar-btn {
-    display: block;
+    width: 93%;
   }
   
   .top {
@@ -291,6 +324,8 @@ th, td {
 
 .control-btn {
   border-radius: 4px;
+  width: 30px;
+  height: 30px;
   padding: 5px;
 }
 
