@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('home-pic2').style.display = 'none';
         }
     });
-    document.getElementById('create-section-btn').addEventListener('click', () => generateSection(null, null));
+    document.getElementById('create-section-btn').addEventListener('click', () => generateArticle);
     document.getElementById('article-list').addEventListener('click', handleSectionClick);
     document.getElementById('upload-file-btn').addEventListener('click', () => {
       document.getElementById('upload-input').click();
@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const uploadedData = JSON.parse(e.target.result);
           
+          const template = document.getElementById('section-template').content.cloneNode(true);
           const newId = Date.now();
           
           // Restore data
@@ -67,8 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
               cells: uploadedData.cells
           };
           articles.push(newArticle);
-          generateSection(newId, uploadedData.data.title);
           
+          updateSection(template, newArticle);
+          document.getElementById('article-list').appendChild(template);
+          document.getElementById('clear-all-btn').style.display = 'inline';
+          saveState();
     
           alert('File uploaded and data restored ✅');
         } catch (err) {
@@ -80,31 +84,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function generateSection(id, title) {
+function generateArticle() {
     const template = document.getElementById('section-template').content.cloneNode(true);
     const newId = Date.now();
     const articleNum = sections.length + 1;
-    console.log(id);
     
-    const newSection = {
-        id: id ? id : newId,
-        text: title ? title : 'Article ' + articleNum
-    };
-    sections.push(newSection);
-    
-    updateSection(template, newSection);
-    if (!id) {
-      generateArticle(newSection.id, newSection.text);
-    }
-    document.getElementById('article-list').appendChild(template);
-    document.getElementById('clear-all-btn').style.display = 'inline';
-    saveState();
-}
-
-function generateArticle(newId, newTitle) {
     const newData = {
         id: newId,
-        title: newTitle,
+        title: 'Article ' + articleNum,
         intro: 'Write intro here...',
         synopsis: 'Write synopsis here...',
         poster: 'https://i.ibb.co/jkvtj531/file-00000000b08861faaa5ae1d6be8c5b27.png',
@@ -119,18 +106,23 @@ function generateArticle(newId, newTitle) {
         cells: []
     };
     articles.push(newArticle);
+    
+    updateSection(template, newArticle);
+    document.getElementById('article-list').appendChild(template);
+    document.getElementById('clear-all-btn').style.display = 'inline';
+    saveState();
 }
 
 function updateSection(template, section) {
-    template.querySelector('.section-wrapper').setAttribute('data-index', section.id);
-    template.querySelector('.title').textContent = section.text;
+    template.querySelector('.section-wrapper').setAttribute('data-index', section.articleId);
+    template.querySelector('.title').textContent = section.data.title;
 }
 
 function handleSectionClick (event) {
     const target = event.target;
     const wrapper = target.closest('.section-wrapper');
     const index = wrapper.dataset.index;
-    const section = sections.find(sec => sec.id == index);
+    const section = articles.find(sec => sec.articleId == index);
     if (target.classList.contains('article-open-btn') || target.classList.contains('title')) {
         const title = wrapper.querySelector('.title').textContent;
         const sectionsParam = encodeURIComponent(JSON.stringify(sections));
@@ -155,8 +147,8 @@ function editSection(section, element, target) {
     } else {
         titleInput.style.display = 'none';
         title.style.display = 'block';
-        section.text = titleInput.value;
-        title.textContent = section.text;
+        section.data.title = titleInput.value;
+        title.textContent = section.data.title;
         target.textContent = '✏️';
     }
     saveState();
@@ -167,15 +159,14 @@ function deleteSection(wrapper, section) {
     
     const articleStore = transaction.objectStore('articles');
     
-    articleStore.get(section.id).onsuccess = function(event) {
+    articleStore.get(section.articleId).onsuccess = function(event) {
         const articleData = event.target.result;
         
         if (articleData) {
             if (confirm('Are you sure you want to delete this article?')) {
                 wrapper.remove();
-                articles = articles.filter(article => article.articleId !== section.id);
-                sections.splice(sections.indexOf(section), 1);
-                articleStore.delete(articleData.articleId);
+                articles = articles.filter(article => article.articleId !== section.articleId);
+                articleStore.delete(section.articleId);
                 
                 if (articles.length === 0) {
                     document.getElementById('clear-all-btn').style.display = 'none';
@@ -203,18 +194,15 @@ function loadState() {
           console.log('Article: ' + article.articleId);
         });
         
-        if (savedSections && savedSections.length > 0) {
+        if (articles && articles.length > 0) {
             document.getElementById('clear-all-btn').style.display = 'inline';
             
-            savedSections.forEach(section => {
-                const article = articles.find(a => a.articleId == section.id)
-                
+            articles.forEach(article => {
                 if (article) {
                   const template = document.getElementById('section-template').content.cloneNode(true);
-                  updateSection(template, section);
-                  console.log('Section: ' + section.id);
+                  updateSection(template, article);
+                  console.log('Section: ' + article.articleId);
                   document.getElementById('article-list').appendChild(template);
-                  sections.push(section);
                 }
             });
         }

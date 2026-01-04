@@ -595,6 +595,7 @@ function editArticle() {
     const synopsisText = document.getElementById('synopsis-text');
     const titleInput = document.getElementById('title-input');
     const poster = document.getElementById('poster');
+    const articleTitle = document.querySelector(`.article-section[data-id="${currentArticleId}"]`).querySelector('.article-title');
     const introInput = document.getElementById('intro-input');
     const synopsisInput = document.getElementById('synopsis-text-input');
     const container = document.getElementById('container');
@@ -643,6 +644,7 @@ function editArticle() {
             }
             mainInfobox.classList.toggle('cell-edit-mode');
             data.title = titleInput.value;
+            articleTitle.textContent = data.title;
             data.intro = introInput.innerHTML;
             data.poster = poster.src;
             data.synopsis = synopsisInput.innerHTML;
@@ -1863,96 +1865,103 @@ function updateData(data) {
 }
 
 function loadState(oldElement) {
-    const transaction = db.transaction(['articles'], 'readonly');
-    const articleStore = transaction.objectStore('articles');
-    
-    articleStore.get(currentArticleId).onsuccess = function(event) {
-        const articleData = event.target.result;
+    function loadElements(oldElements) {
+        rows.sort((a, b) => a.position - b.position);
+            
+        rows.forEach(row => {
+            if (!row.type) {
+              row.type = 'infobox';
+            }
+            let template = oldElements?.find(node => node.dataset.index == row.id);
+            if (template) {
+                oldElements.splice(oldElements.indexOf(template), 1);
+            } else {
+                template = document.getElementById(`${row.type}-template`).content.cloneNode(true);
+            }
+            if (row.type === 'category') {
+              updateCategory(template, row);
+            } else if (row.type === 'sub-category') {
+              updateSubCategory(template, row);
+            } else if (row.type === 'text-area' || row.type === 'text') {
+              updateTextArea(template, row);
+            } else if (row.type === 'table') {
+              updateTable(template, row, oldElements);
+            } else if (row.type === 'infobox') {
+              updateInfobox(template, row, oldElements);
+            }
+            
+            document.getElementById('row-list').appendChild(template);
+        });
         
-        if (articleData) {
-            // doesn't load the saved data if undo is true.
-            let oldElements = [];
-            if (!oldElement) {
+        cells.sort((a, b) => a.position - b.position);
+        
+        cells.forEach(cell => {
+            let template = oldElements ? oldElements.find(node => node.dataset.index == cell.id && node.classList.contains('info-wrapper')) : null;
+            if (template) {
+                oldElements.splice(oldElements.indexOf(template), 1);
+            }
+            if (cell.text2) {
+                template = template ? template : document.getElementById('info-template').content.cloneNode(true);
+            } else {
+                template = template ? template : document.getElementById('info-template2').content.cloneNode(true);
+            }
+            updateCell(template, cell);
+            document.getElementById('info-list').appendChild(template);
+        });
+        // removing the leftover elements
+        oldElements.forEach(el => el.remove());
+    }
+    
+    if (oldElement) {
+        let oldElements = [];
+        const rowNodes = document.getElementById('row-list').querySelectorAll('.row-wrapper');
+        const cellNodes = document.getElementById('info-list').querySelectorAll('.info-wrapper');
+        if (cellNodes.length) {
+            oldElements.push(...cellNodes);
+        }
+        if (rowNodes.length) {
+            oldElements.push(...rowNodes);
+        }
+        if (oldElement.length) {
+            oldElements.push(...oldElement);
+        } else if (oldElement.tagName) {
+            oldElements.push(oldElement);
+        }
+        loadElements(oldElements);
+    } else {
+        const transaction = db.transaction(['articles'], 'readonly');
+        const articleStore = transaction.objectStore('articles');
+        
+        articleStore.getAll().onsuccess = function (event) {
+            const articles = event.target.result;
+            console.log(articles);
+            
+            articles.forEach(article => {
+                const template = document.getElementById('article-templete').content.cloneNode(true);
+                template.querySelector('.article-section').dataset.id = article.articleId;
+                template.querySelector('.article-title').textContent = article.data.title;
+                document.getElementById('article-list').appendChild(template);
+            });
+        };
+        
+        articleStore.get(currentArticleId).onsuccess = function(event) {
+            const articleData = event.target.result;
+            
+            if (articleData) {
                 data = articleData.data;
                 rows = articleData.characters || articleData.rows;
                 cells = articleData.cells;
-                const articles = JSON.parse(localStorage.getItem('sections'));
-                console.log(articles);
                 
-                articles.forEach(article => {
-                    const template = document.getElementById('article-templete').content.cloneNode(true);
-                    template.querySelector('.article-section').dataset.id = article.id;
-                    template.querySelector('.article-title').textContent = article.text;
-                    document.getElementById('article-list').appendChild(template);
-                });
                 
                 if (data.id) {
                     updateData(data);
                 } else {
-                    console.log("failed");
+                    console.log("failed to load");
                 }
-            } else {
-                const rowNodes = document.getElementById('row-list').querySelectorAll('.row-wrapper');
-                const cellNodes = document.getElementById('info-list').querySelectorAll('.info-wrapper');
-                if (cellNodes.length) {
-                    oldElements.push(...cellNodes);
-                }
-                if (rowNodes.length) {
-                    oldElements.push(...rowNodes);
-                }
-                if (oldElement.length) {
-                    oldElements.push(...oldElement);
-                } else if (oldElement.tagName) {
-                    oldElements.push(oldElement);
-                }
+                loadElements([]);
             }
-            
-            rows.sort((a, b) => a.position - b.position);
-            
-            rows.forEach(row => {
-                if (!row.type) {
-                  row.type = 'infobox';
-                }
-                let template = oldElements?.find(node => node.dataset.index == row.id);
-                if (template) {
-                    oldElements.splice(oldElements.indexOf(template), 1);
-                } else {
-                    template = document.getElementById(`${row.type}-template`).content.cloneNode(true);
-                }
-                if (row.type === 'category') {
-                  updateCategory(template, row);
-                } else if (row.type === 'sub-category') {
-                  updateSubCategory(template, row);
-                } else if (row.type === 'text-area' || row.type === 'text') {
-                  updateTextArea(template, row);
-                } else if (row.type === 'table') {
-                  updateTable(template, row, oldElements);
-                } else if (row.type === 'infobox') {
-                  updateInfobox(template, row, oldElements);
-                }
-                
-                document.getElementById('row-list').appendChild(template);
-            });
-            
-            cells.sort((a, b) => a.position - b.position);
-            
-            cells.forEach(cell => {
-                let template = oldElements ? oldElements.find(node => node.dataset.index == cell.id && node.classList.contains('info-wrapper')) : null;
-                if (template) {
-                    oldElements.splice(oldElements.indexOf(template), 1);
-                }
-                if (cell.text2) {
-                    template = template ? template : document.getElementById('info-template').content.cloneNode(true);
-                } else {
-                    template = template ? template : document.getElementById('info-template2').content.cloneNode(true);
-                }
-                updateCell(template, cell);
-                document.getElementById('info-list').appendChild(template);
-            });
-            // removing the leftover elements
-            oldElements.forEach(el => el.remove());
-        }
-    };
+        };
+    }
 }
 
 function uploadFile(event) {
