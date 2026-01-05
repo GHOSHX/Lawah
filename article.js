@@ -1939,6 +1939,9 @@ function loadState(oldElement) {
             articles.forEach(article => {
                 const template = document.getElementById('article-templete').content.cloneNode(true);
                 template.querySelector('.article-section').dataset.id = article.articleId;
+                if (article.articleId == currentArticleId) {
+                    template.querySelector('.article-section').style.backgroundColor = '#fff0c7';
+                }
                 template.querySelector('.article-title').textContent = article.data.title;
                 document.getElementById('article-list').appendChild(template);
             });
