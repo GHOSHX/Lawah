@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('home-pic2').style.display = 'none';
         }
     });
-    document.getElementById('create-section-btn').addEventListener('click', () => generateArticle);
+    document.getElementById('create-article-btn').addEventListener('click', generateArticle);
     document.getElementById('article-list').addEventListener('click', handleSectionClick);
     document.getElementById('upload-file-btn').addEventListener('click', () => {
       document.getElementById('upload-input').click();
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function generateArticle() {
     const template = document.getElementById('section-template').content.cloneNode(true);
     const newId = Date.now();
-    const articleNum = sections.length + 1;
+    const articleNum = articles.length + 1;
     
     const newData = {
         id: newId,
