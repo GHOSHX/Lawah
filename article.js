@@ -23,6 +23,7 @@ let cells = [];
 let undoList = [];
 let redoList = [];
 let tempArray = [];
+let previousSaves = [];
 let articleName;
 let currentArticleId;
 let currentTextArea;
@@ -269,10 +270,31 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('main-page-btn').addEventListener('click', () => {
         window.location.href = 'index.html';
     });
+    document.getElementById('articles-toggle-btn').addEventListener('click', function () {
+        const articleList = document.getElementById('article-list');
+        if (articleList.style.display !== 'block') {
+            articleList.style.display = 'block';
+            this.textContent = 'Your Articles 🔼';
+        } else {
+            articleList.style.display = 'none';
+            this.textContent = 'Your Articles 🔽';
+        }
+    });
+    document.getElementById('toggle-saves-btn').addEventListener('click', function () {
+        const saveList = document.getElementById('save-list');
+        if (saveList.style.display !== 'block') {
+            saveList.style.display = 'block';
+            this.textContent = 'Saves 🔼';
+        } else {
+            saveList.style.display = 'none';
+            this.textContent = 'Saves 🔽';
+        }
+    });
     document.getElementById('tutorial-page-btn').addEventListener('click', () => {
         window.location.href = 'tutorial.html';
     });
     document.getElementById('article-list').addEventListener('click', handleArticleClick);
+    document.getElementById('save-list').addEventListener('click', handleSaveClick);
     document.getElementById('info-list').addEventListener('click', handleCellClick);
     document.getElementById('info-list').addEventListener('input', handleCellInput);
     document.getElementById('row-list').addEventListener('click', handleRowClick);
@@ -883,6 +905,18 @@ function handleArticleClick(event) {
     document.getElementById('row-list').innerHTML = '';
     document.getElementById('info-list').innerHTML = '';
     loadState();
+}
+
+function handleSaveClick(event) {
+    console.log('w');
+    const target = event.target;
+    const section = target.closest('.save-state-section');
+    const previousSave = previousSaves.find(save => save.id == section.dataset.id);
+    
+    data = previousSave.data;
+    rows = previousSave.rows;
+    cells = previousSave.cells;
+    loadState(true);
 }
 
 function handleCellClick(event) {
@@ -1866,6 +1900,7 @@ function updateData(data) {
 
 function loadState(oldElement) {
     function loadElements(oldElements) {
+        updateData(data);
         rows.sort((a, b) => a.position - b.position);
             
         rows.forEach(row => {
@@ -1937,7 +1972,7 @@ function loadState(oldElement) {
             console.log(articles);
             
             articles.forEach(article => {
-                const template = document.getElementById('article-templete').content.cloneNode(true);
+                const template = document.getElementById('article-template').content.cloneNode(true);
                 template.querySelector('.article-section').dataset.id = article.articleId;
                 if (article.articleId == currentArticleId) {
                     template.querySelector('.article-section').style.backgroundColor = '#fff0c7';
@@ -1954,13 +1989,17 @@ function loadState(oldElement) {
                 data = articleData.data;
                 rows = articleData.characters || articleData.rows;
                 cells = articleData.cells;
+                previousSaves = articleData.previousSaves || [];
                 
-                
-                if (data.id) {
-                    updateData(data);
-                } else {
-                    console.log("failed to load");
+                if (previousSaves) {
+                    previousSaves.forEach((state, i) => {
+                        const template = document.getElementById('save-state-template').content.cloneNode(true);
+                        template.querySelector('.save-state-section').dataset.id = state.id;
+                        template.querySelector('.state-title').textContent = 'File ' + ( i + 1 );
+                        document.getElementById('save-list').appendChild(template);
+                    });
                 }
+                
                 loadElements([]);
             }
         };
@@ -2001,12 +2040,28 @@ function saveState(trigger) {
     const transaction = db.transaction(['articles'], 'readwrite');
     
     const articleStore = transaction.objectStore('articles');
+    
+    const newId = Date.now();
+    
+    if (trigger === 6) {
+        const previousSave = {
+            id: newId,
+            data: JSON.parse(JSON.stringify(data)),
+            rows: JSON.parse(JSON.stringify(rows)),
+            cells: JSON.parse(JSON.stringify(cells))
+        };
+        previousSaves.push(previousSave);
+        if (previousSaves.length > 5) {
+          previousSaves.shift();
+        }
+    }
 
     const articleData = {
         articleId: currentArticleId,
         data: data,
         rows: rows,
         cells: cells,
+        previousSaves: previousSaves
     };
     articleStore.put(articleData);
 
@@ -2029,7 +2084,6 @@ function resetArticle() {
     data = newData;
     rows = [];
     cells = [];
-    updateData(data);
     loadState(true);
 }
 

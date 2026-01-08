@@ -54,23 +54,26 @@
       </div>
       <button id="enable-preset1"><b>Preset 1</b></button>
       <button id="enable-preset2"><b>Preset 2</b></button>
+      <textarea id="show-code"></textarea>
     </div>
     <div id="container" class="intro-wrapper1">
       <div id="sidebar">
         <div id="sidebar-content">
           <h3 id="main-page-btn">Main Page</h3>
           <hr>
-          <h3>Your Articles</h3>
+          <h3 id="articles-toggle-btn">Your Articles 🔽</h3>
           <div id="article-list"></div>
           <hr>
           <h3 id="tutorial-page-btn">How To Use</h3>
+          <hr>
+          <h3 id="toggle-saves-btn">Saves 🔽</h3>
+          <div id="save-list"></div>
         </div>
         <div id="sidebar-toggle-btn">▶</div>
       </div>
       <div id="content">
         <div id="main-content">
           <div class="description" id="intro-wrapper">
-            <textarea id="show-code"></textarea>
             <p id="intro">Intro</p>
             <div id="intro-input" contenteditable="true" style="display: none;"></div>
           </div>
@@ -333,9 +336,14 @@
         </div>
       </div>
     </template>
-    <template id="article-templete">
+    <template id="article-template">
       <div class="article-section">
         <b class="article-title">title</b>
+      </div>
+    </template>
+    <template id="save-state-template">
+      <div class="save-state-section">
+        <b class="state-title">File</b>
       </div>
     </template>
   </body>

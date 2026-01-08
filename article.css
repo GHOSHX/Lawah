@@ -33,6 +33,10 @@ body {
   pointer-events: auto;
 }
 
+#article-list, #save-list {
+  display: none;
+}
+
 #sidebar-toggle-btn {
   margin-top: 400px;
   width: 7%;
@@ -378,7 +382,7 @@ th, td {
   box-sizing: border-box;
 }
 
-.article-section {
+.article-section, .save-state-section {
   background-color: #f4c458;
   padding: 7px;
   border: 1px solid black;
