@@ -318,17 +318,21 @@ function toggleUpperToolbar() {
 function toggleMainInfobox() {
     const mainInfobox = document.getElementById('infobox');
     const infoboxToggleBtn = document.getElementById('infobox-toggle-btn');
+    const introWrapper = document.getElementById('intro-wrapper');
     const presetBtn1 = document.getElementById('enable-preset1');
     const presetBtn2 = document.getElementById('enable-preset2');
+    
     if (data.infobox) {
         mainInfobox.style.display = 'table';
         presetBtn1.style.display = 'inline';
         presetBtn2.style.display = 'inline';
+        introWrapper.style.width = '';
         infoboxToggleBtn.innerHTML = `<b>Main Infobox: Show</b>`;
     } else {
         mainInfobox.style.display = 'none';
         presetBtn1.style.display = 'none';
         presetBtn2.style.display = 'none';
+        introWrapper.style.width = '100%';
         infoboxToggleBtn.innerHTML = `<b>Main Infobox: Hide</b>`;
     }
 }

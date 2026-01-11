@@ -87,8 +87,13 @@ body {
     background-color: white;
   }
   
-  #intro-wrapper, #main-infobox-wrapper {
-    flex: 1 1 50%;
+  #intro-wrapper {
+    width: 60%;
+    box-sizing: border-box;
+  }
+  
+  #main-infobox-wrapper {
+    flex: 1;
     box-sizing: border-box;
   }
   
