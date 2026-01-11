@@ -39,7 +39,8 @@ let addCell2Btn;
 let editButton;
 let fileUploadBtn;
 let downloadBtn;
-let settingsBtn;
+let settingsBtn
+let content;
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -62,6 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
     addRow3Btn = document.getElementById('add-text-btn');
     addCell1Btn = document.getElementById('add-info-btn1');
     addCell2Btn = document.getElementById('add-info-btn2');
+    content = document.getElementById('content');
+    content.style.display = 'none';
     addCell1Btn.addEventListener('click', () => generateCell('info-template', null));
     addCell2Btn.addEventListener('click', () => generateCell('info-template2', null));
     toggleAddBtn.addEventListener('click', () => {
@@ -90,53 +93,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('enable-preset2').addEventListener('click', () => presetGenerateCell(2));
     document.getElementById('close-settings-btn').addEventListener('click', toggleSettings);
     document.getElementById('upper-toolbar-btn').addEventListener('click', function () {
-        const toolbar = document.getElementById('toolbar');
-        const container = document.getElementById('container');
-        
         if (this.textContent === 'Upper Toolbar: Off') {
-            this.innerHTML = '<b>Upper Toolbar: On</b>';
-            toolbar.classList.toggle('top');
-            toolbar.classList.toggle('bottom');
-            if (toolbar.style.display === 'block') {
-                container.classList.toggle('intro-wrapper1');
-                container.classList.toggle('intro-wrapper2');
-            }
             data.upperToolbar = true;
         } else {
-            this.innerHTML = '<b>Upper Toolbar: Off</b>';
-            toolbar.classList.toggle('top');
-            toolbar.classList.toggle('bottom');
-            if (toolbar.style.display === 'block') {
-                container.classList.toggle('intro-wrapper1');
-                container.classList.toggle('intro-wrapper2');
-            }
             data.upperToolbar = false;
         }
+        toggleUpperToolbar();
         saveState(1);
     });
     document.getElementById('infobox-toggle-btn').addEventListener('click', function () {
-        const mainInfobox = document.getElementById('infobox');
-        const presetBtn1 = document.getElementById('enable-preset1');
-        const presetBtn2 = document.getElementById('enable-preset2');
-        
         if (this.textContent === 'Main Infobox: Hide') {
-            mainInfobox.style.display = 'table';
-            presetBtn1.style.display = 'inline';
-            presetBtn2.style.display = 'inline';
-            this.innerHTML = `<b>Main Infobox: Show</b>`
             data.infobox = true;
         } else {
-            mainInfobox.style.display = 'none';
-            presetBtn1.style.display = 'none';
-            presetBtn2.style.display = 'none';
-            this.innerHTML = `<b>Main Infobox: Hide</b>`
             data.infobox = false;
         }
+        toggleMainInfobox();
         saveState(2);
     });
     document.getElementById('show-code-btn').addEventListener('click', () => {
         document.getElementById('show-code').style.display = 'block';
-        const clone = document.getElementById('content').cloneNode(true);
+        const clone = content.cloneNode(true);
         
         clone.querySelectorAll('img').forEach(img => {
             img.setAttribute('src', '[REDACTED]');
@@ -315,6 +291,48 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+function toggleUpperToolbar() {
+    const upperToolbarBtn = document.getElementById('upper-toolbar-btn');
+    const toolbar = document.getElementById('toolbar');
+    const container = document.getElementById('container');
+    
+    if (data.upperToolbar) {
+        upperToolbarBtn.innerHTML = '<b>Upper Toolbar: On</b>';
+        toolbar.classList.add('top');
+        toolbar.classList.remove('bottom');
+        if (toolbar.style.display !== 'none') {
+            container.classList.toggle('intro-wrapper1');
+            container.classList.toggle('intro-wrapper2');
+        }
+    } else {
+        upperToolbarBtn.innerHTML = '<b>Upper Toolbar: Off</b>';
+        toolbar.classList.remove('top');
+        toolbar.classList.add('bottom');
+        if (toolbar.style.display !== 'none') {
+            container.classList.toggle('intro-wrapper1');
+            container.classList.toggle('intro-wrapper2');
+        }
+    }
+}
+
+function toggleMainInfobox() {
+    const mainInfobox = document.getElementById('infobox');
+    const infoboxToggleBtn = document.getElementById('infobox-toggle-btn');
+    const presetBtn1 = document.getElementById('enable-preset1');
+    const presetBtn2 = document.getElementById('enable-preset2');
+    if (data.infobox) {
+        mainInfobox.style.display = 'table';
+        presetBtn1.style.display = 'inline';
+        presetBtn2.style.display = 'inline';
+        infoboxToggleBtn.innerHTML = `<b>Main Infobox: Show</b>`;
+    } else {
+        mainInfobox.style.display = 'none';
+        presetBtn1.style.display = 'none';
+        presetBtn2.style.display = 'none';
+        infoboxToggleBtn.innerHTML = `<b>Main Infobox: Hide</b>`;
+    }
+}
+
 function actionManager(element, newData, oldData, type) {
     let newAction = {};
     if (type === 'text-change') {
@@ -324,7 +342,6 @@ function actionManager(element, newData, oldData, type) {
         if (elementActions.length) {
             const targetText = `${previousAction.tempText.selectedText} `;
             if (selectedText.replace(/\u00A0/g, ' ') === targetText || previousAction.tempText.selectedText.length > selectedText.length || selectedText.length > targetText.length + 13) {
-                console.log('w');
                 previousAction.newData = previousAction.tempText.newData;
             } else {
                 previousAction.tempText.newData = newData;
@@ -643,7 +660,7 @@ function editArticle() {
                 rowList.classList.toggle('row-list-edit-mode');
             }
             mainInfobox.classList.toggle('cell-edit-mode');
-            toolbar.style.display = 'block';
+            toolbar.style.display = '';
             titleInput.value = title.textContent;
             introInput.innerHTML = introText.innerHTML;
             synopsisInput.innerHTML = synopsisText.innerHTML;
@@ -1888,14 +1905,8 @@ function updateData(data) {
         currentTextArea = event.target;
     });
     document.getElementById('poster').src = data.poster;
-    const toggleToolbarBtn = document.getElementById('upper-toolbar-btn');
-    if (data.upperToolbar && toggleToolbarBtn.textContent !== 'Upper Toolbar: On') {
-        toggleToolbarBtn.click();
-    }
-    const toggleInfoboxBtn = document.getElementById('infobox-toggle-btn');
-    if (data.infobox && toggleInfoboxBtn.textContent !== 'Main Infobox: Show') {
-        toggleInfoboxBtn.click();
-    }
+    toggleUpperToolbar();
+    toggleMainInfobox();
 }
 
 function loadState(oldElement) {
@@ -1999,7 +2010,7 @@ function loadState(oldElement) {
                         document.getElementById('save-list').appendChild(template);
                     });
                 }
-                
+                content.style.display = '';
                 loadElements([]);
             }
         };
