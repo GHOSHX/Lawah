@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tutorial-complete-btn').addEventListener('click', () => {
         localStorage.setItem('tutorial-complete', 'true');
-        window.location.href = 'index.html';
+        window.history.back();
     });
 });
