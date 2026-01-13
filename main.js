@@ -116,6 +116,7 @@ function generateArticle() {
 function updateSection(template, section) {
     template.querySelector('.section-wrapper').setAttribute('data-index', section.articleId);
     template.querySelector('.title').textContent = section.data.title;
+    template.querySelector('.article-poster').src = section.data.poster
 }
 
 function handleSectionClick (event) {

@@ -1,12 +1,28 @@
 html, body { height: 100%; margin: 0; }
 
 #logo {
-  width: 15%;
+  width: 20%;
+}
+
+#home-pic1 {
+  width: 50%;
+}
+
+#home-pic2 {
+  width: 600px;
 }
 
 @media (max-width: 600px) {
   #logo {
     width: 35%;
+  }
+  
+  #home-pic1 {
+    width: 40%;
+  }
+  
+  #home-pic2 {
+    width: 350px;
   }
 }
 
@@ -51,13 +67,20 @@ html, body { height: 100%; margin: 0; }
   padding: 7px 15px;
 }
 
+#article-list {
+  display: flex;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
 .edit-section-btn, .delete-section-btn {
   background-color: #ffe19c;
-  padding: 10px;
+  padding: 5px;
 }
 
 #intro {
-  bottom: 0px;
   right: 0;
   left: 0;
   background-color: #95c6d8;
@@ -71,25 +94,43 @@ html, body { height: 100%; margin: 0; }
 
 #control-room {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
 }
 
 .section-wrapper {
-  font-size: 20px;
+  font-size: 18px;
   background-color: #f4c458;
   display: flex;
+  flex-shrink: 0;
+  min-width: 350px;
+  height: 100px;
+  padding: 2px;
   border: 1px solid black;
+  box-sizing: border-box;
 }
 
 .article-open-btn {
+  display: flex;
   width: 70%;
   overflow: hidden;
   text-align: center;
 }
 
+.article-poster {
+  width: 35%;
+  border: 1px solid black;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.info-wrapper {
+  flex: 1;
+  pointer-events: none;
+}
+
 .btn-wrapper {
-  width: 30%;
+  flex: 1;
   text-align: center;
   display: flex;
   justify-content: center;
