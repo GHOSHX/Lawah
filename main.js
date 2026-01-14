@@ -124,7 +124,7 @@ function handleSectionClick (event) {
     const wrapper = target.closest('.section-wrapper');
     const index = wrapper.dataset.index;
     const section = articles.find(sec => sec.articleId == index);
-    if (target.classList.contains('article-open-btn') || target.classList.contains('title')) {
+    if (target.classList.contains('article-open-btn')) {
         const title = wrapper.querySelector('.title').textContent;
         const sectionsParam = encodeURIComponent(JSON.stringify(sections));
         window.location.href = `article.html?articleId=${index}&articleTitle=${encodeURIComponent(title)}`;
