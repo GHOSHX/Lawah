@@ -1,5 +1,9 @@
 html, body { height: 100%; margin: 0; }
 
+body {
+  background-image: url('https://i.ibb.co/W4KPHw8z/20260115-010547.jpg');
+}
+
 #logo {
   width: 20%;
 }
@@ -72,7 +76,6 @@ html, body { height: 100%; margin: 0; }
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  white-space: nowrap;
 }
 
 .edit-section-btn, .delete-section-btn {
@@ -99,11 +102,10 @@ html, body { height: 100%; margin: 0; }
 }
 
 .section-wrapper {
-  font-size: 18px;
   background-color: #f4c458;
   display: flex;
   flex-shrink: 0;
-  min-width: 350px;
+  width: 350px;
   height: 100px;
   padding: 2px;
   border: 1px solid black;
@@ -127,6 +129,15 @@ html, body { height: 100%; margin: 0; }
 .info-wrapper {
   flex: 1;
   pointer-events: none;
+}
+
+.title, .intro-text {
+  margin: 1%;
+}
+
+.title-input {
+  pointer-events: auto;
+  width: 90%;
 }
 
 .btn-wrapper {
