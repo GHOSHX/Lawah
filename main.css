@@ -81,6 +81,7 @@ body {
 .edit-section-btn, .delete-section-btn {
   background-color: #ffe19c;
   padding: 5px;
+  pointer-events: auto;
 }
 
 #intro {
@@ -105,17 +106,16 @@ body {
   background-color: #f4c458;
   display: flex;
   flex-shrink: 0;
-  width: 330px;
+  width: 270px;
   height: 250px;
-  padding: 4px;
   margin: 10px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 2px solid black;
   box-sizing: border-box;
 }
 
 .article-open-btn {
-  width: 70%;
+  width: 100%;
   overflow: hidden;
   text-align: center;
 }
@@ -125,7 +125,11 @@ body {
   height: 150px;
   border: 1px solid black;
   border-radius: 10px;
+  padding: 4px;
+  text-align: right;
   box-sizing: border-box;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
   pointer-events: none;
 }
 
@@ -144,14 +148,6 @@ body {
 .title-input {
   pointer-events: auto;
   width: 90%;
-}
-
-.btn-wrapper {
-  flex: 1;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 #version {
