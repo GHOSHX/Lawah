@@ -169,15 +169,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('bullet-list-btn').addEventListener('click', () => styleText('ul'));
     editButton.addEventListener('click', editArticle);
     document.getElementById('sidebar-toggle-btn').addEventListener('click', function () {
-        const sidebar = document.getElementById('sidebar-content');
-        if (getComputedStyle(sidebar).display.includes('none')) {
-            sidebar.style.display = 'block';
+        const sidebar = document.getElementById('sidebar');
+        
+        sidebar.classList.toggle('show');
+        
+        if (sidebar.classList.contains('show')) {
             this.innerHTML = '◀';
         } else {
-            sidebar.style.display = 'none';
             this.innerHTML = '▶';
         }
-    })
+    });
     fileUploadBtn.addEventListener('click', () => {
       document.getElementById('upload-input').click();
     });
@@ -1167,7 +1168,7 @@ function generateRow(elementNode, element, type) {
         const clone = JSON.parse(JSON.stringify(element));
         clone.id = newId;
         updateRow(template, clone, type, isClone);
-        if (type === 'category' || 'sub-category') {
+        if (type === 'category' || type === 'sub-category') {
             let childRows;
             let childRowNodes;
             if (type === 'category') {
@@ -1198,7 +1199,6 @@ function generateRow(elementNode, element, type) {
     }
     
     const rowElement = template.querySelector('.row-wrapper');
-    
     if (firstRow) {
         if (clones.length) {
             firstRow.parentNode.insertBefore(template, firstRow.nextElementSibling);
