@@ -78,12 +78,6 @@ body {
   overflow-y: hidden;
 }
 
-.edit-section-btn, .delete-section-btn {
-  background-color: #ffe19c;
-  padding: 5px;
-  pointer-events: auto;
-}
-
 #intro {
   right: 0;
   left: 0;
@@ -135,6 +129,12 @@ body {
 
 .info-wrapper {
   pointer-events: none;
+}
+
+.edit-section-btn, .delete-section-btn {
+  background-color: #ffe19c;
+  padding: 5px;
+  pointer-events: auto;
 }
 
 .title, .intro-text {
