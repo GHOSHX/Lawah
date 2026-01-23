@@ -116,7 +116,13 @@ function generateArticle() {
 function updateSection(template, section) {
     template.querySelector('.section-wrapper').setAttribute('data-index', section.articleId);
     template.querySelector('.title').textContent = section.data.title;
-    template.querySelector('.intro-text').textContent = section.data.intro;
+    let introText;
+    if (section.data.intro.length > 100) {
+        introText = section.data.intro.slice(0, 100);
+    } else {
+        introText = section.data.intro;
+    }
+    template.querySelector('.intro-text').textContent = introText + '...(tap to open)';
     template.querySelector('.article-poster').style.backgroundImage = `url(${section.data.poster})`;
 }
 
