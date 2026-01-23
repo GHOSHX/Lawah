@@ -137,10 +137,18 @@ body {
     margin: 0;
   }
   
+  #sidebar {
+    transform: translateX(-88.5%);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  
   #sidebar-content {
-    display: none;
     width: 93%;
     height: 92vh;
+  }
+  
+  #sidebar.show {
+    transform: translateX(0);
   }
   
   #content {
