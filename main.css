@@ -98,7 +98,6 @@ body {
 
 .section-wrapper {
   background-color: #f4c458;
-  display: flex;
   flex-shrink: 0;
   width: 270px;
   height: 250px;
@@ -106,6 +105,8 @@ body {
   border-radius: 12px;
   border: 2px solid black;
   box-sizing: border-box;
+  overflow: hidden;
+  text-align: center;
 }
 
 .article-open-btn {

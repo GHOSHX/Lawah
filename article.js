@@ -2006,11 +2006,13 @@ function loadState(oldElement) {
                 cells = articleData.cells;
                 previousSaves = articleData.previousSaves || [];
                 
+                previousSaves.sort((a, b) => b.id - a.id);
+                
                 if (previousSaves) {
                     previousSaves.forEach((state, i) => {
                         const template = document.getElementById('save-state-template').content.cloneNode(true);
                         template.querySelector('.save-state-section').dataset.id = state.id;
-                        template.querySelector('.state-title').textContent = 'File ' + ( i + 1 );
+                        template.querySelector('.state-title').textContent = state.name || 'File ' + ( i + 1 );
                         document.getElementById('save-list').appendChild(template);
                     });
                 }
@@ -2057,17 +2059,32 @@ function saveState(trigger) {
     const articleStore = transaction.objectStore('articles');
     
     const newId = Date.now();
+    const currentDate = new Date();
     
     if (trigger === 6) {
+        const template = document.getElementById('save-state-template').content.cloneNode(true);
+        const lastSave = previousSaves.length ? document.querySelector(`.save-state-section[data-id="${previousSaves[0].id}"]`) : null;
+        
         const previousSave = {
             id: newId,
+            name: currentDate.toLocaleString(),
             data: JSON.parse(JSON.stringify(data)),
             rows: JSON.parse(JSON.stringify(rows)),
             cells: JSON.parse(JSON.stringify(cells))
         };
         previousSaves.push(previousSave);
-        if (previousSaves.length > 5) {
-          previousSaves.shift();
+        
+        template.querySelector('.save-state-section').dataset.id = previousSave.id;
+        template.querySelector('.state-title').textContent = previousSave.name;
+        if (lastSave) {
+          lastSave.parentNode.insertBefore(template, lastSave);
+        } else {
+          document.getElementById('save-list').appendChild(template);
+        }
+        previousSaves.sort((a, b) => b.id - a.id);
+        if (previousSaves.length > 6) {
+            const removableSave = previousSaves.pop();
+            document.querySelector(`.save-state-section[data-id="${removableSave.id}"]`).remove();
         }
     }
 
