@@ -1,5 +1,5 @@
 const dbName = 'gameData';
-const dbVersion = 6;
+const dbVersion = 7;
 
 let db;
 
