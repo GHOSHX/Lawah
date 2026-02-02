@@ -1,7 +1,7 @@
 let db;
 
 function openDB() {
-    const request = indexedDB.open('gameData', 6);
+    const request = indexedDB.open('gameData', 7);
 
     request.onupgradeneeded = function(event) {
         db = event.target.result;
