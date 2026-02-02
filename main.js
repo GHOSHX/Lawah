@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('create-article-btn').addEventListener('click', generateArticle);
     document.getElementById('article-list').addEventListener('click', handleSectionClick);
+    document.getElementById('article-list').addEventListener('change', handleSectionChange);
     document.getElementById('upload-file-btn').addEventListener('click', () => {
       document.getElementById('upload-input').click();
     });
@@ -108,7 +109,7 @@ function generateArticle() {
     articles.push(newArticle);
     
     updateSection(template, newArticle);
-    document.getElementById('article-list').appendChild(template);
+    document.getElementById('article-list').prepend(template);
     document.getElementById('clear-all-btn').style.display = 'inline';
     saveState();
 }
@@ -117,8 +118,8 @@ function updateSection(template, section) {
     template.querySelector('.section-wrapper').setAttribute('data-index', section.articleId);
     template.querySelector('.title').textContent = section.data.title;
     let introText;
-    if (section.data.intro.length > 100) {
-        introText = section.data.intro.slice(0, 100);
+    if (section.data.intro.length > 130) {
+        introText = section.data.intro.slice(0, 130);
     } else {
         introText = section.data.intro;
     }
@@ -126,11 +127,12 @@ function updateSection(template, section) {
     template.querySelector('.article-poster').style.backgroundImage = `url(${section.data.poster})`;
 }
 
-function handleSectionClick (event) {
+function handleSectionClick(event) {
     const target = event.target;
     const wrapper = target.closest('.section-wrapper');
     const index = wrapper.dataset.index;
     const section = articles.find(sec => sec.articleId == index);
+    
     if (target.classList.contains('section-wrapper')) {
         const title = wrapper.querySelector('.title').textContent;
         const sectionsParam = encodeURIComponent(JSON.stringify(sections));
@@ -139,6 +141,27 @@ function handleSectionClick (event) {
         editSection(section, wrapper, target);
     } else if (target.classList.contains('delete-section-btn')) {
         deleteSection(wrapper, section);
+    } else if (target.classList.contains('article-poster')) {
+        wrapper.querySelector('.upload-img').click();
+    }
+}
+
+function handleSectionChange(event) {
+    const target = event.target;
+    const wrapper = target.closest('.section-wrapper');
+    const index = wrapper.dataset.index;
+    const section = articles.find(sec => sec.articleId == index);
+    
+    if (target.classList.contains('upload-img')) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          section.data.poster = e.target.result;
+          const poster = wrapper.querySelector('.article-poster');
+          poster.style.backgroundImage = `url(${section.data.poster})`;
+        }
+        
+        reader.readAsDataURL(file);
     }
 }
 
@@ -146,20 +169,23 @@ function editSection(section, element, target) {
     const editMode = target.textContent === '✏️';
     const title = element.querySelector('.title');
     const titleInput = element.querySelector('.title-input');
+    const poster = element.querySelector('.article-poster');
     
     if (editMode) {
         title.style.display = 'none';
         titleInput.style.display = 'inline';
+        poster.style.pointerEvents = 'auto';
         titleInput.value = title.textContent;
         target.textContent = '✔️';
     } else {
         titleInput.style.display = 'none';
         title.style.display = 'block';
         section.data.title = titleInput.value;
+        poster.style.pointerEvents = '';
         title.textContent = section.data.title;
         target.textContent = '✏️';
+        saveState();
     }
-    saveState();
 }
 
 function deleteSection(wrapper, section) {
@@ -198,6 +224,7 @@ function loadState() {
         }
         
         articles = event.target.result;
+        articles.sort((a, b) => b.articleId - a.articleId);
         articles.forEach(article => {
           console.log('Article: ' + article.articleId);
         });

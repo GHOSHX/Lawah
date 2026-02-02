@@ -1122,7 +1122,6 @@ function handleRowChange(event) {
     const row = rows.find(row => row.id == index);
 
     if (target.classList.contains('upload-img')) {
-        const type = target.getAttribute('data-type');
         loadImage(event, row);
     }
 }
@@ -1191,38 +1190,32 @@ function generateRow(elementNode, element, type) {
         
         if (element) {
             firstRow = elementNode.nextElementSibling;
-        } else {
-            firstRow = document.querySelector(`.row-wrapper[data-index="${rows[0]?.id}"]`) || null;
         }
         isClone = false;
         updateRow(template, element, type, isClone);
     }
     
     const rowElement = template.querySelector('.row-wrapper');
-    if (firstRow) {
-        if (clones.length) {
-            firstRow.parentNode.insertBefore(template, firstRow.nextElementSibling);
-            firstRow = rowElement;
-            clones.forEach((clone, i) => {
-                const cloneNode = clone.element.querySelector('.row-wrapper');
-                clone.row.id = newId + i + 1;
-                if (type === 'category') {
-                    clone.row.category = newId;
-                } else if (type === 'sub-category') {
-                    clone.row.subCategory = newId;
-                }
-                updateRow(cloneNode, clone.row, clone.row.type, true);
-                clone.element = cloneNode;
-                firstRow.parentNode.insertBefore(cloneNode, firstRow.nextElementSibling);
-                firstRow = cloneNode;
-            });
-            clones = clones.map(clone => clone.element);
-            clones.push(rowElement);
-        } else {
-            firstRow.parentNode.insertBefore(template, firstRow);
-        }
+    if (clones.length) {
+        firstRow.parentNode.insertBefore(template, firstRow.nextElementSibling);
+        firstRow = rowElement;
+        clones.forEach((clone, i) => {
+            const cloneNode = clone.element.querySelector('.row-wrapper');
+            clone.row.id = newId + i + 1;
+            if (type === 'category') {
+                clone.row.category = newId;
+            } else if (type === 'sub-category') {
+                clone.row.subCategory = newId;
+            }
+            updateRow(cloneNode, clone.row, clone.row.type, true);
+            clone.element = cloneNode;
+            firstRow.parentNode.insertBefore(cloneNode, firstRow.nextElementSibling);
+            firstRow = cloneNode;
+        });
+        clones = clones.map(clone => clone.element);
+        clones.push(rowElement);
     } else {
-        document.getElementById('row-list').appendChild(template);
+        document.getElementById('row-list').prepend(template);
     }
     allignRows();
     if (!clones.length) {
@@ -1984,7 +1977,7 @@ function loadState(oldElement) {
         
         articleStore.getAll().onsuccess = function (event) {
             const articles = event.target.result;
-            console.log(articles);
+            articles.sort((a, b) => b.articleId - a.articleId);
             
             articles.forEach(article => {
                 const template = document.getElementById('article-template').content.cloneNode(true);
@@ -2063,7 +2056,6 @@ function saveState(trigger) {
     
     if (trigger === 6) {
         const template = document.getElementById('save-state-template').content.cloneNode(true);
-        const lastSave = previousSaves.length ? document.querySelector(`.save-state-section[data-id="${previousSaves[0].id}"]`) : null;
         
         const previousSave = {
             id: newId,
@@ -2076,12 +2068,7 @@ function saveState(trigger) {
         
         template.querySelector('.save-state-section').dataset.id = previousSave.id;
         template.querySelector('.state-title').textContent = previousSave.name;
-        if (lastSave) {
-          lastSave.parentNode.insertBefore(template, lastSave);
-        } else {
-          document.getElementById('save-list').appendChild(template);
-        }
-        previousSaves.sort((a, b) => b.id - a.id);
+        document.getElementById('save-list').prepend(template);
         if (previousSaves.length > 6) {
             const removableSave = previousSaves.pop();
             document.querySelector(`.save-state-section[data-id="${removableSave.id}"]`).remove();
