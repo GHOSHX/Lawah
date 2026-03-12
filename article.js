@@ -1182,15 +1182,10 @@ function generateRow(elementNode, element, type) {
                 const cloneTemplate = document.getElementById(`${row.type}-template`).content.cloneNode(true);
                 clones.push({ element: cloneTemplate, row: JSON.parse(JSON.stringify (row)) });
             });
-        } else {
-            firstRow = elementNode.nextElementSibling;
         }
     } else {
         template = document.getElementById(`${type}-template`).content.cloneNode(true);
         
-        if (element) {
-            firstRow = elementNode.nextElementSibling;
-        }
         isClone = false;
         updateRow(template, element, type, isClone);
     }
@@ -1215,7 +1210,7 @@ function generateRow(elementNode, element, type) {
         clones = clones.map(clone => clone.element);
         clones.push(rowElement);
     } else {
-        document.getElementById('row-list').prepend(template);
+        elementNode ? elementNode.parentNode.insertBefore(template, elementNode.nextElementSibling) : document.getElementById('row-list').prepend(template);
     }
     allignRows();
     if (!clones.length) {
@@ -2121,6 +2116,14 @@ function deleteElement(row, element, array, type) {
             }
             if (type === 'category') {
                 const filteredRows = rows.filter(arr => arr.category === element.id);
+                filteredRows.forEach(arr => {
+                    const childNode = document.querySelector(`.row-wrapper[data-index="${arr.id}"]`);
+                    childNode.remove();
+                    rows.splice(rows.indexOf(arr), 1);
+                    elements.push(childNode);
+                });
+            } else if (type === 'sub-category') {
+                const filteredRows = rows.filter(arr => arr.subCategory === element.id);
                 filteredRows.forEach(arr => {
                     const childNode = document.querySelector(`.row-wrapper[data-index="${arr.id}"]`);
                     childNode.remove();
