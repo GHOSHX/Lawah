@@ -930,14 +930,13 @@ function handleArticleClick(event) {
 }
 
 function handleSaveClick(event) {
-    console.log('w');
     const target = event.target;
     const section = target.closest('.save-state-section');
     const previousSave = previousSaves.find(save => save.id == section.dataset.id);
     
-    data = previousSave.data;
-    rows = previousSave.rows;
-    cells = previousSave.cells;
+    data = JSON.parse(JSON.stringify(previousSave.data));
+    rows = JSON.parse(JSON.stringify(previousSave.rows));
+    cells = JSON.parse(JSON.stringify(previousSave.cells));
     loadState(true);
 }
 
@@ -1994,14 +1993,14 @@ function loadState(oldElement) {
                 cells = articleData.cells;
                 previousSaves = articleData.previousSaves || [];
                 
-                previousSaves.sort((a, b) => b.id - a.id);
+                previousSaves.sort((a, b) => a.id - b.id);
                 
                 if (previousSaves) {
                     previousSaves.forEach((state, i) => {
                         const template = document.getElementById('save-state-template').content.cloneNode(true);
                         template.querySelector('.save-state-section').dataset.id = state.id;
                         template.querySelector('.state-title').textContent = state.name || 'File ' + ( i + 1 );
-                        document.getElementById('save-list').appendChild(template);
+                        document.getElementById('save-list').prepend(template);
                     });
                 }
                 content.style.display = '';
@@ -2065,7 +2064,7 @@ function saveState(trigger) {
         template.querySelector('.state-title').textContent = previousSave.name;
         document.getElementById('save-list').prepend(template);
         if (previousSaves.length > 6) {
-            const removableSave = previousSaves.pop();
+            const removableSave = previousSaves.shift();
             document.querySelector(`.save-state-section[data-id="${removableSave.id}"]`).remove();
         }
     }
