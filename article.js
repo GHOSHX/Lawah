@@ -1506,6 +1506,7 @@ function generateMiniRow(row, table) {
         newRow = JSON.parse(JSON.stringify(miniRows[miniRows.length - 1]));
         newRow.id = newId;
         newRow.parentId = table.id;
+        newRow.position = newPosition;
     }
     miniRows.push(newRow);
     
@@ -1912,7 +1913,9 @@ function updateData(data) {
 
 function loadState(oldElement) {
     function loadElements(oldElements) {
-        updateData(data);
+        if (!oldElement) {
+            updateData(data);
+        }
         rows.sort((a, b) => a.position - b.position);
             
         rows.forEach(row => {
