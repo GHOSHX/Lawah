@@ -380,6 +380,7 @@ function actionManager(element, newData, oldData, type) {
         newAction = {
           newData,
           oldData,
+          mainArray: null,
           type,
           element
         };
@@ -420,11 +421,14 @@ function undoManager() {
     } else if (type === 'element-change') {
         const newArray = previousAction.newData;
         const oldArray = previousAction.oldData;
-        previousAction.newData = JSON.parse(JSON.stringify(newArray));
-        previousAction.oldData = newArray;
+        if (!previousAction.mainArray) {
+            previousAction.mainArray = newArray;
+            previousAction.newData = JSON.parse(JSON.stringify(newArray));
+        }
+        const mainArray = previousAction.mainArray;
         
-        newArray.length = 0;
-        newArray.push(...oldArray);
+        mainArray.length = 0;
+        mainArray.push(...oldArray);
         if (element) {
             loadState(element);
         } else {
@@ -447,11 +451,10 @@ function redoManager() {
     } else if (type === 'element-change') {
         const newArray = previousAction.newData;
         const oldArray = previousAction.oldData;
-        previousAction.oldData = JSON.parse(JSON.stringify(oldArray));
-        previousAction.newData = oldArray;
+        const mainArray = previousAction.mainArray;
         
-        oldArray.length = 0;
-        oldArray.push(...newArray);
+        mainArray.length = 0;
+        mainArray.push(...newArray);
         if (element) {
             loadState(element);
         } else {
