@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const element = event.target;
         const elementActions = undoList.filter(undo => undo.element === element);
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : document.getElementById('synopsis-text').innerHTML;
-        actionManager(element, element.innerHTML, lastText, 'text-change');
+        actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
     });
 });
 
@@ -347,7 +347,7 @@ function toggleMainInfobox() {
     }
 }
 
-function actionManager(element, newData, oldData, type) {
+function actionManager(element, object, parentNode, newData, oldData, type) {
     let newAction = {};
     if (type === 'text-change') {
         const selectedText = selectedTextBeforeCursor(element);
@@ -376,14 +376,6 @@ function actionManager(element, newData, oldData, type) {
           type,
           element
         };
-    } else if (type === 'element-change') {
-        newAction = {
-          newData,
-          oldData,
-          mainArray: null,
-          type,
-          element
-        };
     } else if (type === 'image-change') {
         newAction = {
           newData,
@@ -391,7 +383,17 @@ function actionManager(element, newData, oldData, type) {
           type,
           element
         };
-    };
+    } else {
+        newAction = {
+          newData,
+          oldData,
+          mainArray: null,
+          type,
+          element,
+          object,
+          parentNode
+        };
+    }
     undoList.push(newAction);
     
     redoList = [];
@@ -418,7 +420,11 @@ function undoManager() {
     
     if (type === 'text-change') {
         element.innerHTML = previousAction.oldData;
-    } else if (type === 'element-change') {
+    } else if (type === 'image-change') {
+        element.src = previousAction.oldData;
+    } else {
+        const elementObj = previousAction.object;
+        const parentNode = previousAction.parentNode;
         const newArray = previousAction.newData;
         const oldArray = previousAction.oldData;
         if (!previousAction.mainArray) {
@@ -426,16 +432,27 @@ function undoManager() {
             previousAction.newData = JSON.parse(JSON.stringify(newArray));
         }
         const mainArray = previousAction.mainArray;
+        let oldElements = [];
         
-        mainArray.length = 0;
-        mainArray.push(...oldArray);
-        if (element) {
-            loadState(element);
-        } else {
-            loadState(true);
+        if (element?.length) {
+            mainArray.push(...elementObj);
+            oldElements.push(...element);
+        } else if (element?.classList.length) {
+            mainArray.push(elementObj);
+            oldElements.push(element);
         }
-    } else if (type === 'image-change') {
-            element.src = previousAction.oldData;
+        oldElements.push(...parentNode.children);
+        
+        reAlignRows(mainArray, oldElements, oldArray, parentNode);
+        
+        if (undoList.length) {
+            if (parentNode.classList.contains('mini-row-wrapper') && type === undoList[undoList.length - 1].type) {
+                updateRowDelete2Btn(parentNode.parentNode, mainArray);
+                redoList.push(previousAction);
+                undoManager();
+                return;
+            }
+        }
     }
     redoList.push(previousAction);
 }
@@ -448,22 +465,62 @@ function redoManager() {
     
     if (type === 'text-change') {
         element.innerHTML = previousAction.newData;
-    } else if (type === 'element-change') {
-        const newArray = previousAction.newData;
-        const oldArray = previousAction.oldData;
-        const mainArray = previousAction.mainArray;
-        
-        mainArray.length = 0;
-        mainArray.push(...newArray);
-        if (element) {
-            loadState(element);
-        } else {
-            loadState(true);
-        }
     } else if (type === 'image-change') {
         element.src = previousAction.newData;
+    } else {
+        const elementObj = previousAction.object;
+        const parentNode = previousAction.parentNode;
+        const newArray = previousAction.newData;
+        const mainArray = previousAction.mainArray;
+        let oldElements = [];
+        
+        if (element?.length) {
+            mainArray.push(...elementObj);
+            oldElements.push(...element);
+        } else if (element?.classList.length) {
+            mainArray.push(elementObj);
+            oldElements.push(element);
+        }
+        oldElements.push(...parentNode.children);
+        
+        reAlignRows(mainArray, oldElements, newArray, parentNode);
+        
+        if (redoList.length) {
+            if (parentNode.classList.contains('mini-row-wrapper') && type === redoList[redoList.length - 1].type) {
+                updateRowDelete2Btn(parentNode.parentNode, mainArray);
+                undoList.push(previousAction);
+                redoManager();
+                return;
+            }
+        }
     }
     undoList.push(previousAction);
+}
+
+function reAlignRows(mainArray, oldElements, savedArray, parentNode) {
+    let filteredRows = [];
+    
+    savedArray.forEach(newObj => {
+        const object = mainArray.find(obj => obj.id == newObj.id);
+        
+        if (object) {
+            object.position = newObj.position;
+            filteredRows.push(object)
+        }
+        const node = oldElements.find(node => node.dataset.index == newObj.id);
+        oldElements.splice(oldElements.indexOf(node), 1);
+        parentNode.appendChild(node);
+    });
+    mainArray.length = 0;
+    mainArray.push(...filteredRows);
+    
+    mainArray.sort((a, b) => a.position - b.position);
+    
+    oldElements.forEach(node => {
+        if (!node.classList.contains('row-delete-wrapper') && !node.classList.contains('row2-wrapper')) {
+            node.remove();
+        }
+    });
 }
 
 function toggleTable(tableId, button) {
@@ -616,7 +673,7 @@ function generateCell(templateId, text) {
     updateCell(template, newCell);
     const element = template.querySelector('.info-wrapper');
     document.getElementById('info-list').appendChild(template);
-    actionManager(element, cells, oldCells, 'element-change');
+    actionManager(element, newCell, document.getElementById('info-list'), cells, oldCells, 'element-change');
 }
 
 function updateCell(template, cell) {
@@ -928,7 +985,6 @@ function editMainInfobox(editMode) {
 function handleArticleClick(event) {
     const target = event.target;
     const article = target.closest('.article-section');
-    console.log(target);
     
     if (editButton.textContent === '✔️') {
         editButton.click();
@@ -980,13 +1036,13 @@ function handleCellInput(event) {
         const elementActions = undoList.filter(undo => undo.element === element);
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoText.innerHTML;
         
-        actionManager(element, element.innerHTML, lastText, 'text-change');
+        actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
     } else if (element.classList.contains('value-input')) {
         const valueText = cellNode.querySelector('.value-cell');
         const elementActions = undoList.filter(undo => undo.element === element);
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : valueText.innerHTML;
         
-        actionManager(element, element.innerHTML, lastText, 'text-change');
+        actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
     }
 }
 
@@ -1091,7 +1147,7 @@ function handleRowClick(event) {
     }
 }
 
-function allignRows() {
+function alignRows() {
     const rowNodes = document.querySelectorAll('.row-wrapper');
           
     rowNodes.forEach((node, i) => {
@@ -1112,19 +1168,19 @@ function handleRowInput(event) {
         const elementActions = undoList.filter(undo => undo.element === element);
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : bio.innerHTML;
         
-        actionManager(element, element.innerHTML, lastText, 'text-change');
+        actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
     } else if (element.classList.contains('info-input')) {
         const infoText = element.parentNode.parentNode.querySelector('.info-title');
         const elementActions = undoList.filter(undo => undo.element === element);
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoText.innerHTML;
         
-        actionManager(element, element.innerHTML, lastText, 'text-change');
+        actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
     } else if (element.classList.contains('value-input')) {
         const valueText = element.parentNode.parentNode.querySelector('.value-cell');
         const elementActions = undoList.filter(undo => undo.element === element);
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : valueText.innerHTML;
         
-        actionManager(element, element.innerHTML, lastText, 'text-change');
+        actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
     }
 }
 
@@ -1171,6 +1227,7 @@ function generateRow(elementNode, element, type) {
     let isClone;
     let firstRow;
     let clones = [];
+    let objects = [];
     const oldRows = JSON.parse(JSON.stringify(rows));
     const newId = Date.now();
     if (type === 'copy') {
@@ -1179,7 +1236,7 @@ function generateRow(elementNode, element, type) {
         template = document.getElementById(`${type}-template`).content.cloneNode(true);
         const clone = JSON.parse(JSON.stringify(element));
         clone.id = newId;
-        updateRow(template, clone, type, isClone);
+        objects.push(updateRow(template, clone, type, isClone));
         if (type === 'category' || type === 'sub-category') {
             let childRows;
             let childRowNodes;
@@ -1200,7 +1257,7 @@ function generateRow(elementNode, element, type) {
         template = document.getElementById(`${type}-template`).content.cloneNode(true);
         
         isClone = false;
-        updateRow(template, element, type, isClone);
+        objects.push(updateRow(template, element, type, isClone));
     }
     
     const rowElement = template.querySelector('.row-wrapper');
@@ -1215,7 +1272,7 @@ function generateRow(elementNode, element, type) {
             } else if (type === 'sub-category') {
                 clone.row.subCategory = newId;
             }
-            updateRow(cloneNode, clone.row, clone.row.type, true);
+            objects.push(updateRow(cloneNode, clone.row, clone.row.type, true));
             clone.element = cloneNode;
             firstRow.parentNode.insertBefore(cloneNode, firstRow.nextElementSibling);
             firstRow = cloneNode;
@@ -1225,11 +1282,11 @@ function generateRow(elementNode, element, type) {
     } else {
         elementNode ? elementNode.parentNode.insertBefore(template, elementNode.nextElementSibling) : document.getElementById('row-list').prepend(template);
     }
-    allignRows();
+    alignRows();
     if (!clones.length) {
-        actionManager(rowElement, rows, oldRows, 'element-change');
+        actionManager(rowElement, objects[0], document.getElementById('row-list'), rows, oldRows, 'element-change');
     } else {
-        actionManager(clones, rows, oldRows, 'element-change');
+        actionManager(clones, objects, document.getElementById('row-list'), rows, oldRows, 'element-change');
     }
 } 
 
@@ -1292,7 +1349,7 @@ function updateRow(template, row, type, isClone) {
             };
         }
         rows.push(newRow);
-        updateInfobox(template, newRow, []);
+        updateInfobox(template, newRow);
     } else if (type === 'text-area') {
         if (isClone) {
             newRow = row;
@@ -1328,8 +1385,9 @@ function updateRow(template, row, type, isClone) {
             };
         }
         rows.push(newRow);
-        updateTable(template, newRow, []);
+        updateTable(template, newRow);
     }
+    return newRow;
 }
 
 function updateCategory(row, category) {
@@ -1372,7 +1430,7 @@ function updateSubCategory(row, subCategory) {
     }
 }
 
-function updateInfobox(row, infobox, oldElements) {
+function updateInfobox(row, infobox) {
     const infoboxNode = row.querySelector('.row-wrapper') || row;
     
     if (!infoboxNode.dataset.index) {
@@ -1397,23 +1455,16 @@ function updateInfobox(row, infobox, oldElements) {
             bio.innerHTML = infobox.bio;
         }
         infoboxNode.querySelector('.infobox-img').src = infobox.imgSrc;
-    } else {
-        const sectionNodes = infoboxNode.querySelectorAll('.section-wrapper');
-        oldElements.push(...sectionNodes);
     }
     const sections = infobox.sections;
     if (sections) {
         sections.sort((a, b) => a.position - b.position);
         sections.forEach(section => {
-            let template = oldElements.find(node => node.dataset.index == section.id && node.dataset.parentId == section.parentId);
-            if (template) {
-                oldElements.splice(oldElements.indexOf(template), 1);
+            let template;
+            if (section.text2) {
+                template = document.getElementById('section-template').content.cloneNode(true);
             } else {
-                if (section.text2) {
-                    template = document.getElementById('section-template').content.cloneNode(true);
-                } else {
-                    template = document.getElementById('section-template2').content.cloneNode(true);
-                }
+                template = document.getElementById('section-template2').content.cloneNode(true);
             }
             updateSection(template, section);
             const rowDeleteCell = template.querySelector('.row-delete-cell');
@@ -1426,67 +1477,62 @@ function updateTextArea(row, textArea) {
     const editMode = editButton.textContent === '✔️';
     const textAreaNode = row.querySelector('.row-wrapper') || row;
     
-    if (!textAreaNode.dataset.index) {
-        textAreaNode.dataset.index = textArea.id;
-        textAreaNode.dataset.category = textArea.category;
-        textAreaNode.dataset.subCategory = textArea.subCategory;
-        const editorWrapper = textAreaNode.querySelector('.row-controls');
-        const bio = row.querySelector('.infobox-bio-text');
-        const bioInput = textAreaNode.querySelector('.bio-input');
-        if (editMode) {
-            textAreaNode.classList.add('row-edit-mode');
-            bioInput.innerHTML = textArea.bio;
-        } else {
-            textAreaNode.classList.remove('row-edit-mode');
-            bio.innerHTML = textArea.bio;
-        }
+    textAreaNode.dataset.index = textArea.id;
+    textAreaNode.dataset.category = textArea.category;
+    textAreaNode.dataset.subCategory = textArea.subCategory;
+    const editorWrapper = textAreaNode.querySelector('.row-controls');
+    const bio = row.querySelector('.infobox-bio-text');
+    const bioInput = textAreaNode.querySelector('.bio-input');
+    if (editMode) {
+        textAreaNode.classList.add('row-edit-mode');
+        bioInput.innerHTML = textArea.bio;
+    } else {
+        textAreaNode.classList.remove('row-edit-mode');
+        bio.innerHTML = textArea.bio;
     }
 }
 
-function updateTable(template, table, oldElements) {
+function updateTable(template, table) {
     const tableNode = template.querySelector('.row-wrapper') || template;
     
-    if (!tableNode.dataset.index) {
-        tableNode.dataset.index = table.id;
-        tableNode.dataset.category = table.category;
-        tableNode.dataset.subCategory = table.subCategory;
-        
-        const editMode = editButton.textContent === '✔️';
-        
-        if (editMode) {
-            tableNode.classList.add('row-edit-mode');
-        } else {
-            tableNode.classList.remove('row-edit-mode');
-        }
-        const rowDelete2Template = document.getElementById('row2-template').content.cloneNode(true);
-        tableNode.querySelector('.table-body').appendChild(rowDelete2Template);
+    tableNode.dataset.index = table.id;
+    tableNode.dataset.category = table.category;
+    tableNode.dataset.subCategory = table.subCategory;
+    
+    const editMode = editButton.textContent === '✔️';
+    
+    if (editMode) {
+        tableNode.classList.add('row-edit-mode');
     } else {
-        const rowNodes = tableNode.querySelectorAll('.mini-row-wrapper');
-        oldElements.push(...rowNodes);
+        tableNode.classList.remove('row-edit-mode');
     }
+    const rowDelete2Template = document.getElementById('row2-template').content.cloneNode(true);
+    tableNode.querySelector('.table-body').appendChild(rowDelete2Template);
+    
     const miniRows = table.miniRows;
     let firstRow = true;
     if (miniRows) {
         miniRows.sort((a, b) => a.position - b.position);
         miniRows.forEach(row => {
-            let template = oldElements ? oldElements.find(node => node.dataset.index == row.id && node.dataset.parentId == table.id) : null;
-            if (template) {
-                oldElements.splice(oldElements.indexOf(template), 1);
-            } else {
-                template = document.getElementById('row-template').content.cloneNode(true);
-            }
-            updateMiniRow(template, row, oldElements);
+            template = document.getElementById('row-template').content.cloneNode(true);
+            updateMiniRow(template, row);
             tableNode.querySelector('.table-body').appendChild(template);
         });
-        const rowDelete2Wrapper = tableNode?.querySelector('.row2-wrapper');
-        const rowDelete2Btns = rowDelete2Wrapper?.querySelectorAll('.row-delete2-wrapper');
-        rowDelete2Btns?.forEach(btn => btn.remove());
-        miniRows[0]?.data?.forEach(cell => {
-            const rowDelete2Btn = document.getElementById('row-delete2-template').content.cloneNode(true);
-            rowDelete2Btn.querySelector('.row-delete2-btn').setAttribute('data-index', cell.position);
-            rowDelete2Wrapper.appendChild(rowDelete2Btn);
-        });
+        if (miniRows[0]?.data?.length) {
+            updateRowDelete2Btn(tableNode, miniRows[0].data);
+        }
     }
+}
+
+function updateRowDelete2Btn(tableNode, dataCells) {
+    const rowDelete2Wrapper = tableNode?.querySelector('.row2-wrapper');
+    const rowDelete2Btns = rowDelete2Wrapper?.querySelectorAll('.row-delete2-wrapper');
+    rowDelete2Btns?.forEach(btn => btn.remove());
+    dataCells?.forEach(cell => {
+        const rowDelete2Btn = document.getElementById('row-delete2-template').content.cloneNode(true);
+        rowDelete2Btn.querySelector('.row-delete2-btn').dataset.index = cell.position;
+        rowDelete2Wrapper.appendChild(rowDelete2Btn);
+    });
 }
 
 function generateMiniRow(row, table) {
@@ -1494,7 +1540,7 @@ function generateMiniRow(row, table) {
     const isClone = miniRows.length ? true : false;
     const newId = Date.now();
     const newPosition = miniRows.length ? miniRows[miniRows.length - 1].position + 1 : 0;
-    const oldRows = JSON.parse(JSON.stringify(rows));
+    const oldRows = JSON.parse(JSON.stringify(miniRows));
     const template = document.getElementById('row-template').content.cloneNode(true);
     let newRow;
     if (!isClone) {
@@ -1513,35 +1559,22 @@ function generateMiniRow(row, table) {
     }
     miniRows.push(newRow);
     
-    updateMiniRow(template, newRow, []);
+    updateMiniRow(template, newRow);
     const element = template.querySelector('.mini-row-wrapper') || template;
     row.querySelector('.table-body').appendChild(template);
-    actionManager(element, rows, oldRows, 'element-change');
+    actionManager(element, newRow, row.querySelector('.table-body'), miniRows, oldRows, 'element-change');
 }
 
-function updateMiniRow(template, row, oldElements) {
+function updateMiniRow(template, row) {
     const rowElement = template.querySelector('.mini-row-wrapper') || template;
     
-    if (!rowElement.dataset.index) {
-        rowElement.dataset.index = row.id;
-        rowElement.dataset.parentId = row.parentId;
-    } else {
-        const dataElements = rowElement.querySelectorAll('.data-wrapper');
-        if (dataElements.length) {
-            oldElements.push(...dataElements);
-        }
-    }
+    rowElement.dataset.index = row.id;
+    rowElement.dataset.parentId = row.parentId;
     const tableData = row.data;
     if (tableData) {
         tableData.sort((a, b) => a.position - b.position);
         tableData.forEach(cell => {
-            let template;
-            template = oldElements ? oldElements.find(el => el.dataset.index == cell.id && el.dataset.parentId == cell.parentId) : null;
-            if (template) {
-                oldElements.splice(oldElements.indexOf(template), 1);
-            } else {
-                template = document.getElementById('data-template').content.cloneNode(true);
-            }
+            const template = document.getElementById('data-template').content.cloneNode(true);
             updateTableData(template, cell);
             rowElement.appendChild(template);
         });
@@ -1551,14 +1584,14 @@ function updateMiniRow(template, row, oldElements) {
 function generateTableData(tableElement, table) {
     const miniRows = table.miniRows;
     let previousPosition;
-    let elements = [];
-    const oldCells = JSON.parse(JSON.stringify(rows));
+    const undoId = 'element-change ' + Date.now();
     
     miniRows.forEach(row => {
         const rowElement = tableElement.querySelector(`.mini-row-wrapper[data-index="${row.id}"]`);
         const template = document.getElementById('data-template').content.cloneNode(true);
         const newId = Date.now();
         const tableData = row.data;
+        const oldTableData = JSON.parse(JSON.stringify(tableData));
         const newPosition = tableData.length ? tableData[tableData.length - 1].position + 1 : 0;
       
         const newTableData = {
@@ -1578,13 +1611,12 @@ function generateTableData(tableElement, table) {
         const element = template.querySelector('.data-wrapper');
         rowElement.appendChild(template);
         previousPosition = newPosition;
-        elements.push(element);
+        actionManager(element, newTableData, rowElement, tableData, oldTableData, undoId);
     });
     const rowDelete2Btn = document.getElementById('row-delete2-template').content.cloneNode(true);
     const rowDelete2Wrapper = tableElement.querySelector('.row2-wrapper');
-    rowDelete2Btn.querySelector('.row-delete2-btn').setAttribute('data-index', previousPosition)
+    rowDelete2Btn.querySelector('.row-delete2-btn').dataset.index = previousPosition;
     rowDelete2Wrapper.appendChild(rowDelete2Btn);
-    actionManager(elements, rows, oldCells, 'element-change');
 }
 
 function updateTableData(template, tableData) {
@@ -1627,7 +1659,7 @@ function moveSection(row, infobox, direction) {
     const index = row.getAttribute('data-index');
     const sections = infobox.sections;
     const currentSection = sections.find(sec => sec.id == index);
-    const oldRows = JSON.parse(JSON.stringify(rows));
+    const oldRows = JSON.parse(JSON.stringify(sections));
     
     if (direction === 'up' && previousRow) {
         const previousIndex = Number(previousRow.dataset.index);
@@ -1658,7 +1690,7 @@ function moveSection(row, infobox, direction) {
         });
     }
     sections.sort((a, b) => a.position - b.position);
-    actionManager(null, rows, oldRows, 'element-change');
+    actionManager(null, null, row.parentNode, sections, oldRows, 'element-change');
 }
 
 // moves mini rows inside the table row
@@ -1667,7 +1699,7 @@ function moveMiniRow(row, table, direction) {
     const nextRowElement = row.nextElementSibling;
     const index = row.dataset.index;
     const miniRows = table.miniRows;
-    const oldRows = JSON.parse(JSON.stringify(rows));
+    const oldRows = JSON.parse(JSON.stringify(miniRows));
     const currentRow = miniRows.find(r => r.id == index);
     if (direction === 'up' && previousRowElement) {
         const previousIndex = Number(previousRowElement.dataset.index);
@@ -1695,15 +1727,16 @@ function moveMiniRow(row, table, direction) {
         });
     }
     miniRows.sort((a, b) => a.position - b.position);
-    actionManager(null, rows, oldRows, 'element-change');
+    actionManager(null, null, row.parentNode, miniRows, oldRows, 'element-change');
 }
 
 function moveTableData(tableNode, table, position, direction) {
     const miniRows = table.miniRows;
-    const oldRows = JSON.parse(JSON.stringify(rows));
+    const undoId = 'element-change ' + Date.now();
     miniRows.forEach(row => {
         const tableData = row.data;
-        const rowElement = tableNode.querySelector(`.mini-row-wrapper[data-index="${row.id}"]`);
+        const oldTableData = JSON.parse(JSON.stringify(tableData));
+        const rowElement = tableNode.querySelector(`.mini-row-wrapper[data-index="${row.id}"][data-parent-id="${row.parentId}"]`);
         tableData.forEach(cell => {
             if (cell.position == position) {
                 const dataElement = rowElement.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
@@ -1732,8 +1765,8 @@ function moveTableData(tableNode, table, position, direction) {
             }
             tableData.sort((a, b) => a.position - b.position);
         });
+        actionManager(null, null, rowElement, tableData, oldTableData, undoId);
     });
-    actionManager(null, rows, oldRows, 'element-change');
 }
 
 function moveCell(row, currentCell, direction) {
@@ -1770,7 +1803,7 @@ function moveCell(row, currentCell, direction) {
         });
     }
     cells.sort((a, b) => a.position - b.position);
-    actionManager(null, cells, oldRows, 'element-change');
+    actionManager(null, null, row.parentNode, cells, oldRows, 'element-change');
 }
 
 // moves infobox rows up and down
@@ -1804,7 +1837,7 @@ function moveInfobox(row, infobox, direction) {
         row.parentNode.insertBefore(row, previousRow);
         
         if (infobox.type === 'category') {
-            allignCategory(row, infobox);
+            alignCategory(row, infobox);
         } else {
             const currentPosition = infobox.position;
             infobox.position = previousInfobox.position;
@@ -1814,8 +1847,8 @@ function moveInfobox(row, infobox, direction) {
         row.parentNode.insertBefore(nextRow, row);
         
         if (infobox.type === 'category') {
-            allignCategory(nextRow, nextInfobox);
-            allignCategory(row, infobox);
+            alignCategory(nextRow, nextInfobox);
+            alignCategory(row, infobox);
         } else {
             const currentPosition = infobox.position;
             infobox.position = nextInfobox.position;
@@ -1823,10 +1856,10 @@ function moveInfobox(row, infobox, direction) {
         }
     }
     rows.sort((a, b) => a.position - b.position);
-    actionManager(null, rows, oldRows, 'element-change');
+    actionManager(null, null, row.parentNode, rows, oldRows, 'element-change');
 }
 
-function allignCategory(catNode, category) {
+function alignCategory(catNode, category) {
     let id = category.id;
     const childRows = document.querySelectorAll(`.row-wrapper[data-category="${id}"]`);
     let previousRow = catNode;
@@ -1838,7 +1871,7 @@ function allignCategory(catNode, category) {
             previousRow = row;
         });
     }
-    allignRows();
+    alignRows();
 }
 
 function toggleBio(row) {
@@ -1876,7 +1909,7 @@ function generateSection(templateId, row, infobox, text) {
     const bioElement = row.querySelector('.infobox-bio');
     const element = template.querySelector('.section-wrapper');
     row.querySelector('.section-lists').appendChild(template);
-    actionManager(element, sections, oldSections, 'element-change');
+    actionManager(element, newSection, row.querySelector('.section-lists'), sections, oldSections, 'element-change');
     bioElement.style.maxHeight = bioElement.scrollHeight + 'px';
 }
 
@@ -1914,9 +1947,9 @@ function updateData(data) {
     toggleMainInfobox();
 }
 
-function loadState(oldElement) {
-    function loadElements(oldElements) {
-        if (!oldElement) {
+function loadState(reload) {
+    function loadElements() {
+        if (!reload) {
             updateData(data);
         }
         rows.sort((a, b) => a.position - b.position);
@@ -1925,12 +1958,7 @@ function loadState(oldElement) {
             if (!row.type) {
               row.type = 'infobox';
             }
-            let template = oldElements?.find(node => node.dataset.index == row.id);
-            if (template) {
-                oldElements.splice(oldElements.indexOf(template), 1);
-            } else {
-                template = document.getElementById(`${row.type}-template`).content.cloneNode(true);
-            }
+            const template = document.getElementById(`${row.type}-template`).content.cloneNode(true);
             if (row.type === 'category') {
               updateCategory(template, row);
             } else if (row.type === 'sub-category') {
@@ -1938,9 +1966,9 @@ function loadState(oldElement) {
             } else if (row.type === 'text-area' || row.type === 'text') {
               updateTextArea(template, row);
             } else if (row.type === 'table') {
-              updateTable(template, row, oldElements);
+              updateTable(template, row);
             } else if (row.type === 'infobox') {
-              updateInfobox(template, row, oldElements);
+              updateInfobox(template, row);
             }
             
             document.getElementById('row-list').appendChild(template);
@@ -1949,10 +1977,7 @@ function loadState(oldElement) {
         cells.sort((a, b) => a.position - b.position);
         
         cells.forEach(cell => {
-            let template = oldElements ? oldElements.find(node => node.dataset.index == cell.id && node.classList.contains('info-wrapper')) : null;
-            if (template) {
-                oldElements.splice(oldElements.indexOf(template), 1);
-            }
+            let template;
             if (cell.text2) {
                 template = template ? template : document.getElementById('info-template').content.cloneNode(true);
             } else {
@@ -1961,26 +1986,10 @@ function loadState(oldElement) {
             updateCell(template, cell);
             document.getElementById('info-list').appendChild(template);
         });
-        // removing the leftover elements
-        oldElements.forEach(el => el.remove());
     }
     
-    if (oldElement) {
-        let oldElements = [];
-        const rowNodes = document.getElementById('row-list').querySelectorAll('.row-wrapper');
-        const cellNodes = document.getElementById('info-list').querySelectorAll('.info-wrapper');
-        if (cellNodes.length) {
-            oldElements.push(...cellNodes);
-        }
-        if (rowNodes.length) {
-            oldElements.push(...rowNodes);
-        }
-        if (oldElement.length) {
-            oldElements.push(...oldElement);
-        } else if (oldElement.tagName) {
-            oldElements.push(oldElement);
-        }
-        loadElements(oldElements);
+    if (reload) {
+        loadElements();
     } else {
         const transaction = db.transaction(['articles'], 'readonly');
         const articleStore = transaction.objectStore('articles');
@@ -2020,7 +2029,7 @@ function loadState(oldElement) {
                     });
                 }
                 content.style.display = '';
-                loadElements([]);
+                loadElements();
             }
         };
     }
@@ -2096,7 +2105,6 @@ function saveState(trigger) {
 
     transaction.oncomplete = function() {
         console.log('Data saved to IndexedDB');
-        console.log(trigger)
     };
 }
 
@@ -2118,19 +2126,13 @@ function resetArticle() {
 
 function deleteElement(row, element, array, type) {
     let elements = [];
+    let objects = [];
     if (type !== 'table data') {
         if (confirm(`Are you sure you want to delete this ${type}?`)) {
-            let oldRows;
-            let newRows;
-            if (cells === array) {
-                oldRows = JSON.parse(JSON.stringify(array));
-                newRows = array;
-            } else {
-                oldRows = JSON.parse(JSON.stringify(rows));
-                newRows = rows;
-            }
+            const oldArray  = JSON.parse(JSON.stringify(array));
             if (type === 'category' || type === 'sub-category') {
                 const filteredRows = type === 'category' ? rows.filter(arr => arr.category === element.id) : rows.filter(arr => arr.subCategory === element.id);
+                objects.push(...filteredRows);
                 filteredRows.forEach(arr => {
                     const childNode = document.querySelector(`.row-wrapper[data-index="${arr.id}"]`);
                     childNode.remove();
@@ -2139,39 +2141,35 @@ function deleteElement(row, element, array, type) {
                 });
             }
             
+            const parentNode = row.parentNode;
             row.remove();
             array.splice(array.indexOf(element), 1);
             array.forEach((el, index) => el.position = index);
             elements.push(row);
+            objects.push(element);
             
-            actionManager(elements, newRows, oldRows, 'element-change');
+            actionManager(elements, objects,parentNode, array, oldArray, 'element-change');
         }
     } else {
         const target = row;
         const index = target.dataset.index;
         const parentRow = target.closest('.table-body');
-        const rowDelete2Wrapper = target.closest('.row2-wrapper');
-        target.parentNode.remove();
-        const rowDelete2Btns = rowDelete2Wrapper.querySelectorAll('.row-delete2-btn');
         const miniRows = element.miniRows;
-        const oldRows = JSON.parse(JSON.stringify(rows));
         
-        rowDelete2Btns.forEach((btn, i) => {
-            btn.dataset.index = i;
-        });
-        
+        const undoId = 'element-change ' + Date.now();
         miniRows.forEach(miniRow => {
+            const rowNode = parentRow.querySelector(`.mini-row-wrapper[data-index="${miniRow.id}"]`);
             const tableData = miniRow.data;
+            const oldRows = JSON.parse(JSON.stringify(tableData));
             const cell = tableData.find(a => a.position == index);
-            const dataElement = parentRow.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
+            const dataElement = rowNode.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
             
             dataElement.remove();
-            elements.push(dataElement);
             tableData.splice(miniRow.data.indexOf(cell), 1);
-            
             tableData.forEach((cell, i) => cell.position = i);
+            actionManager(dataElement, cell, rowNode, tableData, oldRows, undoId);
         });
-        actionManager(elements, rows, oldRows, 'element-change');
+        updateRowDelete2Btn(parentRow, miniRows[0]?.data);
     }
 }
 
