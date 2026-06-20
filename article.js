@@ -9,7 +9,7 @@ function openDB() {
 
     request.onsuccess = function(event) {
         db = event.target.result;
-        loadState(false);
+        loadState();
     };
 
     request.onerror = function(event) {
@@ -258,22 +258,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('articles-toggle-btn').addEventListener('click', function () {
         const articleList = document.getElementById('article-list');
+        const toggleBtnImg = this.querySelector('.toggle-btn-img');
         if (articleList.style.display !== 'block') {
             articleList.style.display = 'block';
-            this.textContent = 'Your Articles 🔼';
+            toggleBtnImg.src = 'https://i.ibb.co/s91K27m8/20251024-091953.png';
         } else {
             articleList.style.display = 'none';
-            this.textContent = 'Your Articles 🔽';
+            toggleBtnImg.src = 'https://i.ibb.co/6q919Xb/20251024-055350.png';
         }
     });
     document.getElementById('toggle-saves-btn').addEventListener('click', function () {
         const saveList = document.getElementById('save-list');
+        const toggleBtnImg = this.querySelector('.toggle-btn-img');
         if (saveList.style.display !== 'block') {
             saveList.style.display = 'block';
-            this.textContent = 'Saves 🔼';
+            toggleBtnImg.src = 'https://i.ibb.co/s91K27m8/20251024-091953.png';
         } else {
             saveList.style.display = 'none';
-            this.textContent = 'Saves 🔽';
+            toggleBtnImg.src = 'https://i.ibb.co/6q919Xb/20251024-055350.png';
         }
     });
     document.getElementById('tutorial-page-btn').addEventListener('click', () => {
@@ -1952,6 +1954,9 @@ function loadState(reload) {
         if (!reload) {
             updateData(data);
         }
+        undoList.length = 0;
+        redoList.length = 0;
+        
         rows.sort((a, b) => a.position - b.position);
             
         rows.forEach(row => {
@@ -2053,8 +2058,7 @@ function uploadFile(event) {
         updateData(data);
         document.getElementById('row-list').innerHTML = '';
         document.getElementById('info-list').innerHTML = '';
-        saveState(3); // persist back to IndexedDB
-        loadState(); // reload saved structures
+        loadState(true); // reload saved structures
   
         alert('File uploaded and data restored ✅');
       } catch (err) {
