@@ -687,9 +687,6 @@ function editArticle() {
         editRow(editMode);
         editMainInfobox(editMode);
         if (editMode) {
-            if (toggleSynopsisBtn.textContent === 'show more') {
-                toggleSynopsisBtn.click();
-            }
             if (getComputedStyle(toggleInfoboxBtn).backgroundImage.includes('https://i.ibb.co/6q919Xb/20251024-055350.png')) {
                 toggleInfoboxBtn.click();
             }
@@ -708,6 +705,9 @@ function editArticle() {
             titleInput.value = title.textContent;
             synopsisInput.innerHTML = data.intro + '<br>' + data.synopsis;
             synopsisInput.style.display = 'block';
+            if (toggleSynopsisBtn.textContent === 'show more') {
+                toggleSynopsisBtn.click();
+            }
             introWrapper.style.display = 'none';
             synopsisText.style.display = 'none';
             editButton.textContent = '✔️';
