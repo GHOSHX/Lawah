@@ -209,10 +209,6 @@ th, td {
 
 .category-wrapper {
   width: 100%;
-  background-color: #f4c458;
-  border-top: 2px solid black;
-  border-bottom: 2px solid black;
-  padding: 5px;
   box-sizing: border-box;
 }
 
@@ -225,11 +221,17 @@ th, td {
   box-sizing: border-box;
 }
 
+.category-profile {
+  background-color: #f4c458;
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
 .sub-category-wrapper h4 {
   margin: 1%;
 }
-
-
 
 .infobox-wrapper h4 {
   margin: 1%;

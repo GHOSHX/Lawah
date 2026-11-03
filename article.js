@@ -79,10 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-    addRow1Btn.addEventListener('click', () => generateRow(null, null, 'infobox'));
-    document.getElementById('add-table-btn').addEventListener('click', () => generateRow(null, null, 'table'));
-    addRow2Btn.addEventListener('click', () => generateRow(null, null, 'category'));
-    addRow3Btn.addEventListener('click', () => generateRow(null, null, 'text-area'));
+    addRow1Btn.addEventListener('click', () => generateRow(null, null, rows, document.getElementById('row-list'), 'infobox'));
+    document.getElementById('add-table-btn').addEventListener('click', () => generateRow(null, null, rows, document.getElementById('row-list'), 'table'));
+    addRow2Btn.addEventListener('click', () => generateRow(null, null, rows, document.getElementById('row-list'), 'category'));
+    addRow3Btn.addEventListener('click', () => generateRow(null, null, rows, document.getElementById('row-list'), 'text-area'));
     toggleInfoboxBtn.addEventListener('click', toggleRowList);
     document.getElementById('reset-article-btn').addEventListener('click', () => {
         if (confirm('Are you sure you want to reset this article?')) {
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
       data.poster = url;
       const poster = document.getElementById('poster');
       poster.src = data.poster;
-      actionManager(poster, null, null, data.poster, oldPoster, 'image-change');
+      actionManager(poster, null, data.poster, oldPoster, 'image-change');
     });
     inputPoster.addEventListener('change', function () {
       const reader = new FileReader();
@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data.poster = e.target.result;
         const poster = document.getElementById('poster');
         poster.src = data.poster;
-        actionManager(poster, null, null, data.poster, oldPoster, 'image-change');
+        actionManager(poster, null, data.poster, oldPoster, 'image-change');
       }
       
       reader.readAsDataURL(this.files[0]);
@@ -264,7 +264,7 @@ function handleTextInput(event) {
     const elementActions = undoList.filter(undo => undo.element === element);
     const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : data.intro + '<br>' + data.synopsis;
     
-    actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
+    actionManager(element, null, element.innerHTML, lastText, 'text-change');
 }
 
 function toggleUpperToolbar() {
@@ -327,7 +327,7 @@ function toggleList(event) {
     }
 }
 
-function actionManager(element, object, parentNode, newData, oldData, type) {
+function actionManager(element, object, newData, oldData, type) {
     let newAction = {};
     if (type === 'text-change') {
         const selectedText = textBeforeCursor(element);
@@ -363,16 +363,19 @@ function actionManager(element, object, parentNode, newData, oldData, type) {
           type,
           element
         };
-    } else {
+    } else if (type === 'element-delete') {
         newAction = {
-          mainArray: newData,
-          newData: JSON.parse(JSON.stringify(newData)),
-          oldData,
-          type,
-          element,
           object,
-          parentNode
-        };
+          type
+        }
+    } else if (type === 'element-move') {
+        if (newData[0].position === oldData[0].position && newData[0].parentArray === oldData[0].parentArray) return;
+        newAction = {
+          object,
+          newData,
+          oldData,
+          type
+        }
     }
     undoList.push(newAction);
     
@@ -407,10 +410,11 @@ function undoManager() {
         element.innerHTML = previousAction.oldData;
     } else if (type === 'image-change') {
         element.src = previousAction.oldData;
-    } else {
-        const oldArray = previousAction.oldData;
-        
-        if (reAlignRows(element, previousAction, oldArray, undoList, type)) undoManager();
+    } else if (type === 'element-delete') {
+        reAlignRows(previousAction.object, null);
+        previousAction.object.reverse();
+    } else if (type === 'element-move') {
+        reAlignRows(previousAction.object, previousAction.oldData);
     }
     redoList.push(previousAction);
 }
@@ -425,55 +429,59 @@ function redoManager() {
         element.innerHTML = previousAction.newData;
     } else if (type === 'image-change') {
         element.src = previousAction.newData;
-    } else {
-        const newArray = previousAction.newData;
-        
-        if (reAlignRows(element, previousAction, newArray, redoList, type)) redoManager();
+    } else if (type === 'element-delete') {
+        reAlignRows(previousAction.object, null);
+        previousAction.object.reverse();
+    } else if (type === 'element-move') {
+        reAlignRows(previousAction.object, previousAction.newData);
     }
     undoList.push(previousAction);
 }
 
-function reAlignRows(element, previousAction, savedArray, doList, type) {
-    const mainArray = previousAction.mainArray;
-    const elementObj = previousAction.object;
-    const parentNode = previousAction.parentNode;
-    let oldElements = [];
-
-    if (element?.length) {
-        mainArray.push(...elementObj);
-        oldElements.push(...element);
-    } else if (element?.classList.length) {
-        mainArray.push(elementObj);
-        oldElements.push(element);
-    }
-    oldElements.push(...Array.from(parentNode.children).filter(node => !node.classList.contains('row-delete-wrapper') && !node.classList.contains('row2-wrapper')));
-  
-    let filteredRows = [];
-    
-    savedArray.forEach(savedObj => {
-        const object = mainArray.find(obj => obj.id == savedObj.id);
-        object.position = savedObj.position;
-        filteredRows.push(object)
-        
-        const node = oldElements.find(node => node.dataset.index == savedObj.id);
-        oldElements.splice(oldElements.indexOf(node), 1);
-        parentNode.appendChild(node);
-    });
-    mainArray.length = 0;
-    mainArray.push(...filteredRows);
-    
-    mainArray.sort((a, b) => a.position - b.position);
-    
-    oldElements.forEach(node => {
-        node.remove();
-    });
-    
-    if (doList.length) {
-        if (parentNode.classList.contains('mini-row-wrapper') && type === doList[doList.length - 1].type) {
-            updateRowDelete2Btn(parentNode.parentNode, mainArray);
-            return true;
+function reAlignRows(objects, savedObjects) {
+    objects.forEach((object, i) => {
+        if (savedObjects) {
+            const savedObject = savedObjects[i];
+            if (object.parentArray !== savedObject.parentArray) {
+              object.parentArray.splice(object.parentArray.indexOf(object), 1);
+              object.parentArray.forEach((obj, index) => {
+                obj.position = index;
+              });
+            }
+            object.parentArray = savedObject.parentArray;
+            object.parentNode = savedObject.parentNode;
+            object.position = savedObject.position;
         }
-    }
+        
+        const parentArray = object.parentArray;
+        const node = object.node;
+        const parentNode = object.parentNode;
+        const className = node.classList.contains('row-wrapper') ? node.classList[1] : node.classList[0];
+        
+        if (!node.isConnected || savedObjects) {
+            if (parentArray.includes(object)) {
+                parentArray.splice(parentArray.indexOf(object), 1);
+            }
+
+            parentArray.splice(object.position, 0, object);
+            const nextNode = parentArray[object.position + 1]?.node;
+            if (nextNode) {
+                parentNode.insertBefore(node, nextNode);
+            } else {
+                parentNode.appendChild(node);
+            }
+        } else {
+            node.remove();
+            parentArray.splice(parentArray.indexOf(object), 1);
+        }
+        parentArray.forEach((obj, index) => {
+          obj.position = index;
+        });
+        console.log(rows.map(row => row.type), rows.flatMap(row => row.categoryRows ?? []).map(row => row.type))
+        if (node.classList.contains('data-wrapper')) {
+            updateRowDelete2Btn(parentNode.closest('.table-body'), parentArray);
+        }
+    });
 }
 
 function toggleSynopsisBio(event) {
@@ -493,21 +501,19 @@ function toggleRowList(event) {
     const button = event.target;
     const isVisible = getComputedStyle(button).backgroundImage.includes('https://i.ibb.co/s91K27m8/20251024-091953.png');
     const table = document.getElementById('row-list');
-    const rowNodes = document.querySelectorAll('.row-wrapper');
+    const rowNodes = document.querySelectorAll('.category-wrapper');
   
     if (!isVisible) {
         table.style.display = 'block';
         button.style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
-        let toggleCategoryBtn;
         
         rowNodes.forEach(node => {
             const index = node.getAttribute('data-index');
             const row = rows.find(row => row.id == index);
+            const toggleCategoryBtn = getComputedStyle(node.querySelector('.toggle-category-btn')).backgroundImage;
             
-            if (row.type === 'category') {
-                toggleCategoryBtn = getComputedStyle(node.querySelector('.toggle-category-btn')).backgroundImage;
-            } else if (toggleCategoryBtn && toggleCategoryBtn.includes('https://i.ibb.co/6q919Xb/20251024-055350.png')) {
-                node.style.display = 'none';
+            if (toggleCategoryBtn && toggleCategoryBtn.includes('https://i.ibb.co/6q919Xb/20251024-055350.png')) {
+                node.querySelector('.category-row-list').style.display = 'none';
             }
         });
     } else {
@@ -640,7 +646,8 @@ function generateCell(templateId, text) {
     updateCell(template, newCell);
     const element = template.querySelector('.info-wrapper');
     document.getElementById('info-list').appendChild(template);
-    actionManager(element, newCell, document.getElementById('info-list'), cells, oldCells, 'element-change');
+    asignProperties(newCell, element, cells)
+    actionManager(null, [newCell], null, null, 'element-delete');
 }
 
 function updateCell(template, cell) {
@@ -749,25 +756,21 @@ function editArticle() {
 }
 
 function assignCategoriesToRows() {
-  let currentCategoryId = null;
+  let previousParentNode = null;
   let currentSubCategoryId = null;
-  const rowNodes = document.querySelectorAll('.row-wrapper');
   rows.sort((a, b) => a.position - b.position);
 
-  rows.forEach((row, i) => {
-      if (row.type === "category") {
-          currentCategoryId = row.id;
-          currentSubCategoryId = null;
-      } else if (row.type === "sub-category") {
+  rows.flatMap(row => row.categoryRows ?? []).forEach((row, i) => {
+      const rowNode = row.node;
+      if (row.type === "sub-category") {
           currentSubCategoryId = row.id;
-          row.category = currentCategoryId;
-          rowNodes[i].dataset.category = currentCategoryId;
-      } else {
-          row.category = currentCategoryId;
+      } else if (previousParentNode === rowNode.parentNode) {
           row.subCategory = currentSubCategoryId;
-          rowNodes[i].dataset.category = currentCategoryId;
-          rowNodes[i].dataset.subCategory = currentSubCategoryId;
+          rowNode.dataset.subCategory = currentSubCategoryId;
+      } else {
+          currentSubCategoryId = null;
       }
+      previousParentNode = rowNode.parentNode;
   });
 }
 
@@ -783,7 +786,7 @@ function editRow(editMode) {
         const bioInput = node.querySelector('.bio-input');
         const presetBtn = node.querySelector('.generate-preset-btn');
         const index = node.getAttribute('data-index');
-        const row = rows.find(row => row.id == index);
+        const row = [...rows, ...rows.flatMap(row => row.categoryRows ?? [])].find(row => row.id == index);
         const toggleCategoryBtn = node.querySelector('.toggle-category-btn');
         const isCategoryVisible = toggleCategoryBtn ? getComputedStyle(toggleCategoryBtn).backgroundImage.includes('https://i.ibb.co/s91K27m8/20251024-091953.png') : null;
           
@@ -794,36 +797,36 @@ function editRow(editMode) {
                 }
             }
             node.classList.toggle('row-edit-mode');
-            if (nameText) {
+            if (row.type === 'infobox' || row.type === 'sub-category' || row.type === 'category') {
               nameInput.value = nameText.textContent;
             }
             
-            if (bioText) {
+            if (row.type === 'infobox' || row.type === 'text-area') {
               bioInput.innerHTML = bioText.innerHTML;
             }
-            if (presetBtn) {
+            if (row.type === 'infobox') {
                 editSection(node, row, editMode);
             }
         } else {
             node.classList.toggle('row-edit-mode');
-            if (nameText) {
+            if (row.type === 'infobox' || row.type === 'sub-category' || row.type === 'category') {
                 if (nameInput.value.trim()) {
                     row.name = nameInput.value;
                     nameText.textContent = nameInput.value;
                 }
             }
             
-            if (infoboxImg) {
+            if (row.type === 'infobox') {
                 row.imgSrc = infoboxImg.src;
             }
             
-            if (bioText) {
+            if (row.type === 'infobox' || row.type === 'text-area') {
                 if (bioInput.innerHTML.trim()) {
                     row.bio = bioInput.innerHTML;
                     bioText.innerHTML = bioInput.innerHTML;
                 }
             }
-            if (presetBtn) {
+            if (row.type === 'infobox') {
                 editSection(node, row, editMode);
             }
         }
@@ -876,7 +879,6 @@ function editSection(row, infobox, editMode) {
     
     if (sectionWrappers) {
         sectionWrappers.forEach(section => {
-            const rowDeleteCell = section.querySelector('.row-delete-cell');
             const rowCell1 = section.querySelector('.infobox-cell1');
             const rowCell3 = section.querySelector('.infobox-cell3');
             const infoTitle = section.querySelector('.info-title');
@@ -1008,13 +1010,13 @@ function handleCellInput(event) {
         const elementActions = undoList.filter(undo => undo.element === element);
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoText.innerHTML;
         
-        actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
+        actionManager(element, null, element.innerHTML, lastText, 'text-change');
     } else if (element.classList.contains('value-input')) {
         const valueText = cellNode.querySelector('.value-cell');
         const elementActions = undoList.filter(undo => undo.element === element);
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : valueText.innerHTML;
         
-        actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
+        actionManager(element, null, element.innerHTML, lastText, 'text-change');
     }
 }
 
@@ -1022,7 +1024,7 @@ function handleRowClick(event) {
     const target = event.target;
     const rowNode = target.closest('.row-wrapper');
     const index = rowNode ? rowNode.dataset.index : null;
-    const row = rows.find(char => char.id == index);
+    const row = [...rows, ...rows.flatMap(row => row.categoryRows ?? [])].find(char => char.node === rowNode);
 
     if (target.classList.contains('upload-img-btn')) {
         const imgBtn = rowNode.querySelectorAll('.infobox-img-btn');
@@ -1043,9 +1045,9 @@ function handleRowClick(event) {
     } else if (target.classList.contains('img-link-btn')) {
         loadImage(null, row);
     } else if (target.classList.contains('move-up-btn')) {
-        moveInfobox(rowNode, row, 'up');
+        moveRow(rowNode, row, 'up');
     } else if (target.classList.contains('move-down-btn')) {
-        moveInfobox(rowNode, row, 'down');
+        moveRow(rowNode, row, 'down');
     } else if (target.classList.contains('cell-up-btn')) {
         const section = target.closest('.section-wrapper');
         moveSection(section, row, 'up');
@@ -1055,11 +1057,11 @@ function handleRowClick(event) {
     } else if (target.classList.contains('see-more-btn')) {
         toggleBio(rowNode, target);
     } else if (target.classList.contains('copy-row-btn')) {
-        generateRow(rowNode, row, 'copy');
+        generateRow(rowNode, row, row.parentArray, rowNode.parentNode, 'copy');
     } else if (target.classList.contains('delete-btn')) {
         const className = rowNode.classList[0];
         const type = className.replace('-wrapper', '');
-        deleteElement(rowNode, row, rows, type);
+        deleteElement(rowNode, row, row.parentArray, type);
     } else if (target.classList.contains('add-section-btn')) {
         generateSection('section-template', rowNode, row, null);
     } else if (target.classList.contains('add-section-btn2')) {
@@ -1069,13 +1071,21 @@ function handleRowClick(event) {
     } else if (target.classList.contains('toggle-category-btn')) {
         toggleCategory(rowNode, row);
     } else if (target.classList.contains('add-sub-cat-btn')) {
-        generateRow(rowNode, row, 'sub-category');
+        const rowList = rowNode.querySelector('.category-row-list');
+        const rowArray = row.categoryRows;
+        generateRow(rowNode, row, rowArray, rowList, 'sub-category');
     } else if (target.classList.contains('add-infobox-btn2')) {
-        generateRow(rowNode, row, 'infobox');
+        const rowList = row.type === 'category' ? rowNode.querySelector('.category-row-list') : rowNode.parentNode;
+        const rowArray = row.type === 'category' ? row.categoryRows : row.parentArray;
+        generateRow(rowNode, row, rowArray, rowList, 'infobox');
     } else if (target.classList.contains('add-text-btn2')) {
-        generateRow(rowNode, row, 'text-area');
+        const rowList = row.type === 'category' ? rowNode.querySelector('.category-row-list') : rowNode.parentNode;
+        const rowArray = row.type === 'category' ? row.categoryRows : row.parentArray;
+        generateRow(rowNode, row, rowArray, rowList, 'text-area');
     } else if (target.classList.contains('add-table-btn2')) {
-        generateRow(rowNode, row, 'table');
+        const rowList = row.type === 'category' ? rowNode.querySelector('.category-row-list') : rowNode.parentNode;
+        const rowArray = row.type === 'category' ? row.categoryRows : row.parentArray;
+        generateRow(rowNode, row, rowArray, rowList, 'table');
     }else if (target.classList.contains('add-row-btn')) {
         generateMiniRow(rowNode, row);
     } else if (target.classList.contains('add-data-btn')) {
@@ -1111,7 +1121,8 @@ function handleRowClick(event) {
         const index = rowDelete2Btn.dataset.index;
         moveTableData(rowNode, row, index, 'right');
     } else if (target.classList.contains('toggle-add-btn2')) {
-        const addBtn = rowNode.querySelectorAll('.row-add-btn2');
+        console.log(rowNode.children[0].classList)
+        const addBtn = rowNode.children[0].querySelectorAll('.row-add-btn2');
         
         addBtn.forEach(button => {
             if (getComputedStyle(button).display.includes('none')) {
@@ -1125,14 +1136,12 @@ function handleRowClick(event) {
     }
 }
 
-function alignRows() {
-    const rowNodes = document.querySelectorAll('.row-wrapper');
-          
+function alignRows(rowNodes, array) {
     rowNodes.forEach((node, i) => {
-        const row = rows.find(row => row.id == node.dataset.index);
+        const row = array.find(row => row.node == node);
         row.position = i;
     });
-    rows.sort((a, b) => a.position - b.position);
+    array.sort((a, b) => a.position - b.position);
 }
 
 function handleRowInput(event) {
@@ -1146,19 +1155,19 @@ function handleRowInput(event) {
         const elementActions = undoList.filter(undo => undo.element === element);
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : bio.innerHTML;
         
-        actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
+        actionManager(element, null, element.innerHTML, lastText, 'text-change');
     } else if (element.classList.contains('info-input')) {
         const infoText = element.parentNode.parentNode.querySelector('.info-title');
         const elementActions = undoList.filter(undo => undo.element === element);
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : infoText.innerHTML;
         
-        actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
+        actionManager(element, null, element.innerHTML, lastText, 'text-change');
     } else if (element.classList.contains('value-input')) {
         const valueText = element.parentNode.parentNode.querySelector('.value-cell');
         const elementActions = undoList.filter(undo => undo.element === element);
         const lastText = elementActions.length ? elementActions[elementActions.length - 1].newData : valueText.innerHTML;
         
-        actionManager(element, null, null, element.innerHTML, lastText, 'text-change');
+        actionManager(element, null, element.innerHTML, lastText, 'text-change');
     }
 }
 
@@ -1166,7 +1175,7 @@ function handleRowChange(event) {
     const target = event.target;
     const rowNode = target.closest('.row-wrapper');
     const index = rowNode ? rowNode.dataset.index : null;
-    const row = rows.find(row => row.id == index);
+    const row = [...rows, ...rows.flatMap(row => row.categoryRows ?? [])].find(row => row.node === rowNode);
 
     if (target.classList.contains('upload-img')) {
         loadImage(event, row);
@@ -1174,40 +1183,25 @@ function handleRowChange(event) {
 }
 
 function toggleCategory(catNode, category) {
-    let id = category.id;
     let toggleButton = catNode.querySelector('.toggle-category-btn');
     let isVisible = getComputedStyle(toggleButton).backgroundImage.includes('https://i.ibb.co/s91K27m8/20251024-091953.png');
-    const rowNodes = document.querySelectorAll('.row-wrapper');
-    
-    rowNodes.forEach(node => {
-        const index = node.dataset.index;
-        const row = rows.find(row => row.id == index);
-        
-        if (row.category === id) {
-            if (isVisible) {
-                node.style.display = 'none';
-            } else {
-                node.style.display = '';
-            }
-        }
-    });
+    const rowList = catNode.querySelector('.category-row-list');
     
     if (isVisible) {
         toggleButton.style.backgroundImage = 'url(https://i.ibb.co/6q919Xb/20251024-055350.png)';
+        rowList.style.display = 'none';
     } else {
         toggleButton.style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
+        rowList.style.display = 'block';
     }
 }
 
 // generates rows
-function generateRow(elementNode, element, type) {
+function generateRow(elementNode, element, rowArray, rowList, type) {
     let template;
     let isClone;
     let firstRow;
-    let clones = [];
     let objects = [];
-    const rowList = document.getElementById('row-list');
-    const oldRows = JSON.parse(JSON.stringify(rows));
     const newId = Date.now();
     if (type === 'copy') {
         type = element.type;
@@ -1216,66 +1210,46 @@ function generateRow(elementNode, element, type) {
         
         const clone = JSON.parse(JSON.stringify(element));
         clone.id = newId;
-        objects.push(updateRow(template, clone, type, isClone));
+        objects.push(updateRow(template, clone, element.parentArray, element.parentNode, type, isClone));
         const rowElement = template.querySelector('.row-wrapper');
         if (type === 'category' || type === 'sub-category') {
-            let childRows;
             let childRowNodes;
             if (type === 'category') {
-                childRows = rows.filter(row => row.category === element.id);
-                childRowNodes = rowList.querySelectorAll(`.row-wrapper[data-category="${element.id}"]`);
+                rowList.insertBefore(clone.node, elementNode.nextElementSibling);
             } else {
-                childRows = rows.filter(row => row.subCategory === element.id);
-                childRowNodes = rowList.querySelectorAll(`.row-wrapper[data-sub-category="${element.id}"]`);
-                console.log(Array.from(childRowNodes).map(obj => obj.dataset.subCategory))
-            }
-            firstRow = childRowNodes[childRowNodes.length - 1];
-            rowList.insertBefore(template, firstRow.nextElementSibling);
-            firstRow = rowElement;
-            let subCategoryId = null;
-            childRows.forEach((row, i) => {
-                const cloneTemplate = document.getElementById(`${row.type}-template`).content.cloneNode(true);
-                const object = JSON.parse(JSON.stringify(row));
-                const cloneNode = cloneTemplate.querySelector('.row-wrapper');
-                object.id = newId + i + 1;
-                
-                if (type === 'category') {
-                    object.category = newId;
-                    if (object.type === 'sub-category') {
-                        subCategoryId = object.id;
-                    } else {
-                        object.subCategory = subCategoryId;
-                    }
-                } else if (type === 'sub-category') {
+                childRows = rowArray.filter(row => row.subCategory === element.id);
+                childRowNodes = elementNode.closest('.category-wrapper').querySelectorAll(`.row-wrapper[data-sub-category="${element.id}"]`);
+                firstRow = childRowNodes.length ? childRowNodes[childRowNodes.length - 1] : elementNode;
+                rowList.insertBefore(template, firstRow.nextElementSibling);
+                firstRow = rowElement;
+                let subCategoryId = null;
+                childRows.forEach((row, i) => {
+                    const cloneTemplate = document.getElementById(`${row.type}-template`).content.cloneNode(true);
+                    const object = JSON.parse(JSON.stringify(row));
+                    const cloneNode = cloneTemplate.querySelector('.row-wrapper');
+                    object.id = newId + i + 1;
                     object.subCategory = newId;
-                }
-                
-                clones.push(cloneNode);
-                objects.push(updateRow(cloneNode, object, object.type, true));
-                rowList.insertBefore(cloneNode, firstRow.nextElementSibling);
-                firstRow = cloneNode;
-            });
-            clones.push(rowElement);
-            alignRows();
-            actionManager(clones, objects, rowList, rows, oldRows, 'element-change');
+                    
+                    objects.push(updateRow(cloneNode, object, rowArray, rowList, object.type, true));
+                    rowList.insertBefore(cloneNode, firstRow.nextElementSibling);
+                    firstRow = cloneNode;
+                });
+            }
         } else {
             rowList.insertBefore(template, elementNode.nextElementSibling);
-            alignRows();
-            actionManager(rowElement, objects[0], rowList, rows, oldRows, 'element-change');
         }
     } else {
         template = document.getElementById(`${type}-template`).content.cloneNode(true);
         
         isClone = false;
-        objects.push(updateRow(template, element, type, isClone));
-        const rowElement = template.querySelector('.row-wrapper');
-        elementNode ? rowList.insertBefore(template, elementNode.nextElementSibling) : document.getElementById('row-list').prepend(template);
-        alignRows();
-        actionManager(rowElement, objects[0], rowList, rows, oldRows, 'element-change');
+        objects.push(updateRow(template, element, rowArray, rowList, type, isClone));
+        element?.type === 'sub-category' ? rowList.insertBefore(template, elementNode.nextElementSibling) : rowList.prepend(template);
     }
+    alignRows([...rowList.children], rowArray);
+    actionManager(null, objects, null, null, 'element-delete');
 } 
 
-function updateRow(template, row, type, isClone) {
+function updateRow(template, row, parentArray, parentNode, type, isClone) {
     const newId = Date.now();
     let newRow;
     let categoryId = null;
@@ -1298,7 +1272,7 @@ function updateRow(template, row, type, isClone) {
                 position: 0
             };
         }
-        rows.push(newRow);
+        parentArray.push(newRow);
         updateCategory(template, newRow);
     } else if (type === 'sub-category') {
         if (isClone) {
@@ -1312,7 +1286,7 @@ function updateRow(template, row, type, isClone) {
                 position: 0
             };
         }
-        rows.push(newRow);
+        parentArray.push(newRow);
         updateSubCategory(template, newRow);
     } else if (type === 'infobox') {
         if (isClone) {
@@ -1333,7 +1307,7 @@ function updateRow(template, row, type, isClone) {
                 position: 0
             };
         }
-        rows.push(newRow);
+        parentArray.push(newRow);
         updateInfobox(template, newRow);
     } else if (type === 'text-area') {
         if (isClone) {
@@ -1348,7 +1322,7 @@ function updateRow(template, row, type, isClone) {
                 position: 0
             };
         }
-        rows.push(newRow);
+        parentArray.push(newRow);
         updateTextArea(template, newRow);
     } else if (type === 'table') {
         if (isClone) {
@@ -1369,9 +1343,29 @@ function updateRow(template, row, type, isClone) {
                 position: 0
             };
         }
-        rows.push(newRow);
+        parentArray.push(newRow);
         updateTable(template, newRow);
     }
+    Object.defineProperties(newRow, {
+        parentArray: {
+            value: parentArray ?? rows,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        },
+        parentNode: {
+            value: parentNode,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        },
+        node: {
+            value: template.querySelector('.row-wrapper') ?? template,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        }
+    });
     return newRow;
 }
 
@@ -1392,6 +1386,33 @@ function updateCategory(row, category) {
             name.textContent = category.name;
         }
     }
+    category.categoryRows = category.categoryRows ? category.categoryRows : rows.filter(miniRow => miniRow.category === category.id);
+    const categoryRows = category.categoryRows;
+    
+    categoryRows.forEach((miniRow, i) => {
+        if (!miniRow.type) {
+            miniRow.type = 'infobox';
+        }
+        if (rows.includes(miniRow)) {
+            rows.splice(rows.indexOf(miniRow), 1);
+        }
+        miniRow.position = i;
+        
+        const template = document.getElementById(`${miniRow.type}-template`).content.cloneNode(true);
+        const childNode = template.children[0];
+        if (miniRow.type === 'sub-category') {
+          updateSubCategory(template, miniRow);
+        } else if (miniRow.type === 'text-area' || miniRow.type === 'text') {
+          updateTextArea(template, miniRow);
+        } else if (miniRow.type === 'table') {
+          updateTable(template, miniRow);
+        } else if (miniRow.type === 'infobox') {
+          updateInfobox(template, miniRow);
+        }
+        
+        row.querySelector('.category-row-list').appendChild(template);
+        asignProperties(miniRow, childNode, categoryRows);
+    });
 }
 
 function updateSubCategory(row, subCategory) {
@@ -1450,8 +1471,9 @@ function updateInfobox(row, infobox) {
                 template = document.getElementById('section-template2').content.cloneNode(true);
             }
             updateSection(template, section);
-            const rowDeleteCell = template.querySelector('.row-delete-cell');
+            const sectionNode = template.querySelector('.section-wrapper');
             row.querySelector('.section-lists').appendChild(template);
+            asignProperties(section, sectionNode, sections);
         });
     }
 }
@@ -1498,7 +1520,9 @@ function updateTable(template, table) {
         miniRows.forEach(row => {
             template = document.getElementById('row-template').content.cloneNode(true);
             updateMiniRow(template, row);
+            const miniRowNode = template.children[0];
             tableNode.querySelector('.table-body').appendChild(template);
+            asignProperties(row, miniRowNode, miniRows);
         });
         if (miniRows[0]?.data?.length) {
             updateRowDelete2Btn(tableNode, miniRows[0].data);
@@ -1522,7 +1546,6 @@ function generateMiniRow(row, table) {
     const isClone = miniRows.length ? true : false;
     const newId = Date.now();
     const newPosition = miniRows.length ? miniRows[miniRows.length - 1].position + 1 : 0;
-    const oldRows = JSON.parse(JSON.stringify(miniRows));
     const template = document.getElementById('row-template').content.cloneNode(true);
     let newRow;
     if (!isClone) {
@@ -1544,7 +1567,8 @@ function generateMiniRow(row, table) {
     updateMiniRow(template, newRow);
     const element = template.querySelector('.mini-row-wrapper') || template;
     row.querySelector('.table-body').appendChild(template);
-    actionManager(element, newRow, row.querySelector('.table-body'), miniRows, oldRows, 'element-change');
+    asignProperties(newRow, element, miniRows);
+    actionManager(null, [newRow], null, null, 'element-delete');
 }
 
 function updateMiniRow(template, row) {
@@ -1557,8 +1581,10 @@ function updateMiniRow(template, row) {
         tableData.sort((a, b) => a.position - b.position);
         tableData.forEach(cell => {
             const template = document.getElementById('data-template').content.cloneNode(true);
-            updateTableData(template, cell);
+            updateTableData(template, cell, tableData, rowElement);
+            const dataElement = template.children[0];
             rowElement.appendChild(template);
+            asignProperties(cell, dataElement, tableData);
         });
     }
 }
@@ -1566,14 +1592,13 @@ function updateMiniRow(template, row) {
 function generateTableData(tableElement, table) {
     const miniRows = table.miniRows;
     let previousPosition;
-    const undoId = 'element-change ' + Date.now();
+    let generatedObjs = [];
     
     miniRows.forEach(row => {
         const rowElement = tableElement.querySelector(`.mini-row-wrapper[data-index="${row.id}"]`);
         const template = document.getElementById('data-template').content.cloneNode(true);
         const newId = Date.now();
         const tableData = row.data;
-        const oldTableData = JSON.parse(JSON.stringify(tableData));
         const newPosition = tableData.length ? tableData[tableData.length - 1].position + 1 : 0;
       
         const newTableData = {
@@ -1584,7 +1609,7 @@ function generateTableData(tableElement, table) {
         };
         row.data.push(newTableData);
         
-        updateTableData(template, newTableData);
+        updateTableData(template, newTableData, row.data, rowElement);
         const infoTitle = template.querySelector('.info-title');
         const inputWrapper = template.querySelector('.cell-input-wrapper');
         
@@ -1593,15 +1618,18 @@ function generateTableData(tableElement, table) {
         const element = template.querySelector('.data-wrapper');
         rowElement.appendChild(template);
         previousPosition = newPosition;
-        actionManager(element, newTableData, rowElement, tableData, oldTableData, undoId);
+
+        asignProperties(newTableData, element, row.data);
+        generatedObjs.push(newTableData);
     });
+    actionManager(null, generatedObjs, null, null, 'element-delete');
     const rowDelete2Btn = document.getElementById('row-delete2-template').content.cloneNode(true);
     const rowDelete2Wrapper = tableElement.querySelector('.row2-wrapper');
     rowDelete2Btn.querySelector('.row-delete2-btn').dataset.index = previousPosition;
     rowDelete2Wrapper.appendChild(rowDelete2Btn);
 }
 
-function updateTableData(template, tableData) {
+function updateTableData(template, tableData, parentArray, parentNode) {
     const dataNode = template.querySelector('.data-wrapper') || template;
     
     if (!dataNode.dataset.index) {
@@ -1620,7 +1648,7 @@ function loadImage(event, element) {
         const infoboxImg = document.querySelector(`.row-wrapper[data-index="${element.id}"]`).querySelector('.infobox-img');
         element.imgSrc = src;
         infoboxImg.src = src;
-        actionManager(infoboxImg, null, null, src, oldSrc, 'image-change');
+        actionManager(infoboxImg, null, src, oldSrc, 'image-change');
     }
     
     if (event) {
@@ -1641,7 +1669,7 @@ function moveSection(row, infobox, direction) {
     const index = row.getAttribute('data-index');
     const sections = infobox.sections;
     const currentSection = sections.find(sec => sec.id == index);
-    const oldRows = JSON.parse(JSON.stringify(sections));
+    const oldSections = [reAsignProperties(JSON.parse(JSON.stringify(currentSection)), currentSection)];
     
     if (direction === 'up' && previousRow) {
         const previousIndex = Number(previousRow.dataset.index);
@@ -1672,7 +1700,7 @@ function moveSection(row, infobox, direction) {
         });
     }
     sections.sort((a, b) => a.position - b.position);
-    actionManager(null, null, row.parentNode, sections, oldRows, 'element-change');
+    actionManager(null, [currentSection], [reAsignProperties(JSON.parse(JSON.stringify(currentSection)), currentSection)], oldSections, 'element-move');
 }
 
 // moves mini rows inside the table row
@@ -1681,8 +1709,8 @@ function moveMiniRow(row, table, direction) {
     const nextRowElement = row.nextElementSibling;
     const index = row.dataset.index;
     const miniRows = table.miniRows;
-    const oldRows = JSON.parse(JSON.stringify(miniRows));
     const currentRow = miniRows.find(r => r.id == index);
+    const oldRows = [reAsignProperties(JSON.parse(JSON.stringify(currentRow)), currentRow)];
     if (direction === 'up' && previousRowElement) {
         const previousIndex = Number(previousRowElement.dataset.index);
         const previousRow = miniRows.find(sec => sec.id === previousIndex);
@@ -1709,21 +1737,25 @@ function moveMiniRow(row, table, direction) {
         });
     }
     miniRows.sort((a, b) => a.position - b.position);
-    actionManager(null, null, row.parentNode, miniRows, oldRows, 'element-change');
+    actionManager(null, [currentRow], [reAsignProperties(JSON.parse(JSON.stringify(currentRow)), currentRow)], oldRows, 'element-move');
 }
 
 function moveTableData(tableNode, table, position, direction) {
     const miniRows = table.miniRows;
-    const undoId = 'element-change ' + Date.now();
+    let oldCells = [];
+    let newCells = [];
     miniRows.forEach(row => {
         const tableData = row.data;
-        const oldTableData = JSON.parse(JSON.stringify(tableData));
-        const rowElement = tableNode.querySelector(`.mini-row-wrapper[data-index="${row.id}"][data-parent-id="${row.parentId}"]`);
+        const rowElement = row.node;
+        
         tableData.forEach(cell => {
             if (cell.position == position) {
-                const dataElement = rowElement.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
+                const dataElement = cell.node;
                 const previousCell = dataElement.previousElementSibling;
                 const nextCell = dataElement.nextElementSibling;
+
+                const oldCell = JSON.parse(JSON.stringify(cell));
+                oldCells.push(reAsignProperties(oldCell, cell));
                 
                 if (direction === 'left' && previousCell && previousCell.classList.contains('data-wrapper')) {
                     const previousIndex = Number(previousCell.dataset.index);
@@ -1744,17 +1776,21 @@ function moveTableData(tableNode, table, position, direction) {
                     
                     dataElement.parentNode.insertBefore(nextCell, dataElement);
                 }
+                
+                newCells.push(cell);
             }
             tableData.sort((a, b) => a.position - b.position);
         });
-        actionManager(null, null, rowElement, tableData, oldTableData, undoId);
     });
+    if (oldCells[0].position !== newCells[0].position) {
+        actionManager(null, newCells, newCells.map(cell => reAsignProperties(JSON.parse(JSON.stringify(cell)), cell)), oldCells, 'element-move');
+    }
 }
 
 function moveCell(row, currentCell, direction) {
     const previousRow = row.previousElementSibling;
     const nextRow = row.nextElementSibling;
-    const oldRows = JSON.parse(JSON.stringify(cells));
+    const oldCells = [reAsignProperties(JSON.parse(JSON.stringify(currentCell)), currentCell)];
     
     if (direction === 'up' && previousRow) {
         const previousIndex = Number(previousRow.dataset.index);
@@ -1785,75 +1821,152 @@ function moveCell(row, currentCell, direction) {
         });
     }
     cells.sort((a, b) => a.position - b.position);
-    actionManager(null, null, row.parentNode, cells, oldRows, 'element-change');
+    actionManager(null, [currentCell], [reAsignProperties(JSON.parse(JSON.stringify(currentCell)), currentCell)], oldCells, 'element-move');
 }
 
-// moves infobox rows up and down
-function moveInfobox(row, infobox, direction) {
+// moves rows up and down
+function moveRow(row, infobox, direction) {
+    const sibling = findSiblingNodes(row, infobox);
+    let previousInfobox = sibling.previousInfobox;
+    let nextInfobox = sibling.nextInfobox;
+    let previousRow = sibling.previousRow;
+    let nextRow = sibling.nextRow;
+    let previousParentArray = sibling.previousParentArray;
+    let nextParentArray = sibling.nextParentArray;
+    let previousParentNode = sibling.previousParentNode;
+    let nextParentNode = sibling.nextParentNode;
+    
+    const oldRows = [reAsignProperties(JSON.parse(JSON.stringify(infobox)), infobox)];
+    
+    if (direction === 'up' && previousRow || direction === 'up' && previousParentNode) {
+        previousParentNode ? previousParentNode.appendChild(row) : previousRow.parentNode.insertBefore(row, previousRow);
+            
+        if (infobox.parentArray === previousParentArray) {
+            const currentPosition = infobox.position;
+            infobox.position = previousInfobox.position;
+            previousInfobox.position = currentPosition;
+        } else {
+            infobox.parentArray.splice(infobox.parentArray.indexOf(infobox), 1);
+            previousInfobox ? previousParentArray.splice(previousParentArray.indexOf(previousInfobox), 0, infobox) : previousParentArray.push(infobox);
+            if (infobox.subCategory) {
+              delete infobox.subCategory
+            }
+            infobox.parentArray.forEach((rowObj, i) => {
+              rowObj.position = i;
+            });
+            previousParentArray.forEach((rowObj, i) => {
+              rowObj.position = i;
+            });
+            console.log(previousInfobox)
+            infobox.parentArray.sort((a, b) => a.position - b.position);
+            infobox.parentArray = previousParentArray;
+        }
+    } else if (direction === 'down' && nextRow || direction === 'down' && nextParentNode) {
+        nextParentNode ? nextParentNode.prepend(row) : nextRow.parentNode.insertBefore(row, nextRow.nextElementSibling);
+        if (infobox.parentArray === nextParentArray) {
+            const currentPosition = infobox.position;
+            infobox.position = nextInfobox.position;
+            nextInfobox.position = currentPosition;
+        } else {
+            infobox.parentArray.splice(infobox.parentArray.indexOf(infobox), 1);
+            nextInfobox ? nextParentArray.splice(nextParentArray.indexOf(nextInfobox) + 1, 0, infobox) : nextParentArray.unshift(infobox);
+            if (infobox.subCategory) {
+              delete infobox.subCategory
+            }
+            infobox.parentArray.forEach((rowObj, i) => {
+              rowObj.position = i;
+            });
+            nextParentArray.forEach((rowObj, i) => {
+              rowObj.position = i;
+            });
+            infobox.parentArray.sort((a, b) => a.position - b.position);
+            infobox.parentArray = nextParentArray;
+        }
+    }
+    infobox.parentNode = row.parentNode;
+    infobox.parentArray.sort((a, b) => a.position - b.position);
+    console.log(rows.map(row => row.type), rows.flatMap(row => row.categoryRows ?? []).map(row => row.type))
+    actionManager(null, [infobox], [reAsignProperties(JSON.parse(JSON.stringify(infobox)), infobox)], oldRows, 'element-move');
+}
+
+function findSiblingNodes(row, infobox) {
     let previousInfobox;
     let nextInfobox;
     let previousRow;
     let nextRow;
-    if (infobox.type === 'category') {
-        const categories = rows.filter(box => box.type == 'category');
-        categories.sort((a, b) => a.position - b.position);
-        previousInfobox = categories[categories.indexOf(infobox) - 1];
-        nextInfobox = categories[categories.indexOf(infobox) + 1];
-        previousRow = previousInfobox ? document.querySelector(`.row-wrapper[data-index="${previousInfobox.id}"]`) : null;
-        nextRow = nextInfobox ? document.querySelector(`.row-wrapper[data-index="${nextInfobox.id}"]`) : null;
-    } else {
+    let previousParentArray;
+    let nextParentArray;
+    let previousParentNode;
+    let nextParentNode;
+    
+    if (infobox.type === 'category' || infobox.type === 'sub-category') {
         previousRow = row.previousElementSibling;
         nextRow = row.nextElementSibling;
         if (previousRow) {
             const previousIndex = Number(previousRow.dataset.index);
-            previousInfobox = rows.find(char => char.id === previousIndex);
+            previousInfobox = infobox.parentArray.find(char => char.id === previousIndex);
+            previousParentArray = previousInfobox.parentArray;
         }
         if (nextRow) {
             const nextIndex = Number(nextRow.dataset.index);
-            nextInfobox = rows.find(char => char.id === nextIndex);
+            nextInfobox = infobox.parentArray.find(char => char.id === nextIndex);
+            nextParentArray = nextInfobox.parentArray;
+        }
+    } else {
+        previousRow = row.previousElementSibling;
+        nextRow = row.nextElementSibling;
+        if (previousRow) {
+            if (previousRow.classList.contains('category-wrapper')) {
+                previousParentNode = previousRow.querySelector('.category-row-list');
+                previousParentArray = rows.find(item => item.node === previousRow).categoryRows;
+            } else {
+                const previousIndex = Number(previousRow.dataset.index);
+                previousInfobox = infobox.parentArray.find(char => char.id === previousIndex);
+                previousParentArray = previousInfobox.parentArray;
+            }
+        } else if (row.closest('.category-wrapper')) {
+            if (row.closest('.category-wrapper').previousElementSibling?.classList.contains('category-wrapper')) {
+                previousRow = row.closest('.category-wrapper').previousElementSibling;
+                previousParentNode = previousRow.querySelector('.category-row-list');
+                previousParentArray = rows.find(obj => obj.node === previousRow).categoryRows;
+            } else {
+                previousRow = row.closest('.category-wrapper');
+                previousInfobox = rows.find(obj => obj.node === previousRow);
+                previousParentArray = previousInfobox.parentArray;
+            }
+        }
+        if (nextRow) {
+            if (nextRow.classList.contains('category-wrapper')) {
+                nextParentNode = nextRow.querySelector('.category-row-list');
+                nextParentArray = rows.find(item => item.node === nextRow).categoryRows;
+            } else {
+                const nextIndex = Number(nextRow.dataset.index);
+                nextInfobox = infobox.parentArray.find(char => char.id === nextIndex);
+                nextParentArray = nextInfobox.parentArray;
+            }
+        } else if (row.closest('.category-wrapper')) {
+            if (row.closest('.category-wrapper').nextElementSibling?.classList.contains('category-wrapper')) {
+                nextRow = row.closest('.category-wrapper').nextElementSibling;
+                nextParentNode = nextRow.querySelector('.category-row-list');
+                nextParentArray = rows.find(item => item.node === nextRow).categoryRows;
+            } else if (row.closest('.category-wrapper').nextElementSibling) {
+                nextRow = row.closest('.category-wrapper');
+                nextInfobox = rows.find(obj => obj.node === nextRow);
+                nextParentArray = nextInfobox.parentArray;
+            }
         }
     }
-    const oldRows = JSON.parse(JSON.stringify(rows));
-    
-    if (direction === 'up' && previousRow) {
-        row.parentNode.insertBefore(row, previousRow);
-        
-        if (infobox.type === 'category') {
-            alignCategory(row, infobox);
-        } else {
-            const currentPosition = infobox.position;
-            infobox.position = previousInfobox.position;
-            previousInfobox.position = currentPosition;
-        }
-    } else if (direction === 'down' && nextRow) {
-        row.parentNode.insertBefore(nextRow, row);
-        
-        if (infobox.type === 'category') {
-            alignCategory(nextRow, nextInfobox);
-            alignCategory(row, infobox);
-        } else {
-            const currentPosition = infobox.position;
-            infobox.position = nextInfobox.position;
-            nextInfobox.position = currentPosition;
-        }
-    }
-    rows.sort((a, b) => a.position - b.position);
-    actionManager(null, null, row.parentNode, rows, oldRows, 'element-change');
-}
 
-function alignCategory(catNode, category) {
-    let id = category.id;
-    const childRows = document.querySelectorAll(`.row-wrapper[data-category="${id}"]`);
-    let previousRow = catNode;
-    
-    if (childRows.length) {
-        childRows.forEach(row => {
-            row.style.display = 'block';
-            row.parentNode.insertBefore(row, previousRow.nextElementSibling);
-            previousRow = row;
-        });
-    }
-    alignRows();
+    return {
+        previousInfobox,
+        nextInfobox,
+        previousRow,
+        nextRow,
+        previousParentArray,
+        nextParentArray,
+        previousParentNode,
+        nextParentNode
+    };
 }
 
 function toggleBio(row, btnElement) {
@@ -1866,6 +1979,54 @@ function toggleBio(row, btnElement) {
         bioElement.style.maxHeight = bioElement.scrollHeight + 'px';
         btnElement.textContent = 'show less';
     }
+}
+
+function asignProperties(object, node, parentArray) {
+    Object.defineProperties(object, {
+        parentArray: {
+            value: parentArray,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        },
+        parentNode: {
+            value: node.parentNode,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        },
+        node: {
+            value: node,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        }
+    });
+}
+
+function reAsignProperties(newObject, oldObject) {
+    Object.defineProperties(newObject, {
+        parentArray: {
+            value: oldObject.parentArray,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        },
+        parentNode: {
+            value: oldObject.parentNode,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        },
+        node: {
+            value: oldObject.node,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        }
+    });
+
+    return newObject;
 }
 
 // generates info cells for the infoboxes
@@ -1890,7 +2051,8 @@ function generateSection(templateId, row, infobox, text) {
     const bioElement = row.querySelector('.infobox-bio');
     const element = template.querySelector('.section-wrapper');
     row.querySelector('.section-lists').appendChild(template);
-    actionManager(element, newSection, row.querySelector('.section-lists'), sections, oldSections, 'element-change');
+    asignProperties(newSection, element, infobox.sections);
+    actionManager(null, [newSection], null, null, 'element-delete');
     bioElement.style.maxHeight = bioElement.scrollHeight + 'px';
 }
 
@@ -1939,11 +2101,13 @@ function loadState(reload) {
         
         rows.sort((a, b) => a.position - b.position);
             
-        rows.forEach(row => {
+        rows.forEach((row, i) => {
             if (!row.type) {
               row.type = 'infobox';
             }
+            row.position = i;
             const template = document.getElementById(`${row.type}-template`).content.cloneNode(true);
+            const rowNode = template.children[0];
             if (row.type === 'category') {
               updateCategory(template, row);
             } else if (row.type === 'sub-category') {
@@ -1957,7 +2121,9 @@ function loadState(reload) {
             }
             
             document.getElementById('row-list').appendChild(template);
+            asignProperties(row, rowNode, rows);
         });
+        console.log(rows)
         
         cells.sort((a, b) => a.position - b.position);
         
@@ -1969,7 +2135,9 @@ function loadState(reload) {
                 template = template ? template : document.getElementById('info-template2').content.cloneNode(true);
             }
             updateCell(template, cell);
+            const cellNode = template.children[0];
             document.getElementById('info-list').appendChild(template);
+            asignProperties(cell, cellNode, cells);
         });
     }
     
@@ -2154,30 +2322,28 @@ function resetArticle() {
 }
 
 function deleteElement(row, element, array, type) {
-    let elements = [];
     let objects = [];
     if (type !== 'table data') {
         if (confirm(`Are you sure you want to delete this ${type}?`)) {
             const oldArray  = JSON.parse(JSON.stringify(array));
-            if (type === 'category' || type === 'sub-category') {
-                const filteredRows = type === 'category' ? rows.filter(arr => arr.category === element.id) : rows.filter(arr => arr.subCategory === element.id);
+            if (type === 'sub-category') {
+                const filteredRows = array.filter(arr => arr.subCategory === element.id);
                 objects.push(...filteredRows);
                 filteredRows.forEach(arr => {
                     const childNode = document.querySelector(`.row-wrapper[data-index="${arr.id}"]`);
                     childNode.remove();
-                    rows.splice(rows.indexOf(arr), 1);
-                    elements.push(childNode);
+                    array.splice(array.indexOf(arr), 1);
                 });
             }
             
             const parentNode = row.parentNode;
             row.remove();
             array.splice(array.indexOf(element), 1);
-            array.forEach((el, index) => el.position = index);
-            elements.push(row);
-            objects.push(element);
+            alignRows([...element.parentNode.children], element.parentArray);
+            console.log(objects)
+            objects.unshift(element);
             
-            actionManager(elements, objects,parentNode, array, oldArray, 'element-change');
+            actionManager(null, objects.reverse(), null, null, 'element-delete');
         }
     } else {
         const target = row;
@@ -2185,19 +2351,18 @@ function deleteElement(row, element, array, type) {
         const parentRow = target.closest('.table-body');
         const miniRows = element.miniRows;
         
-        const undoId = 'element-change ' + Date.now();
         miniRows.forEach(miniRow => {
             const rowNode = parentRow.querySelector(`.mini-row-wrapper[data-index="${miniRow.id}"]`);
             const tableData = miniRow.data;
-            const oldRows = JSON.parse(JSON.stringify(tableData));
             const cell = tableData.find(a => a.position == index);
             const dataElement = rowNode.querySelector(`.data-wrapper[data-index="${cell.id}"]`);
-            
+
+            objects.push(cell);
             dataElement.remove();
             tableData.splice(miniRow.data.indexOf(cell), 1);
             tableData.forEach((cell, i) => cell.position = i);
-            actionManager(dataElement, cell, rowNode, tableData, oldRows, undoId);
         });
+        actionManager(null, objects, null, null, 'element-delete');
         updateRowDelete2Btn(parentRow, miniRows[0]?.data);
     }
 }
