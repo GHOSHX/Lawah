@@ -456,7 +456,6 @@ function reAlignRows(objects, savedObjects) {
         const parentArray = object.parentArray;
         const node = object.node;
         const parentNode = object.parentNode;
-        const className = node.classList.contains('row-wrapper') ? node.classList[1] : node.classList[0];
         
         if (!node.isConnected || savedObjects) {
             if (parentArray.includes(object)) {
@@ -508,8 +507,6 @@ function toggleRowList(event) {
         button.style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
         
         rowNodes.forEach(node => {
-            const index = node.getAttribute('data-index');
-            const row = rows.find(row => row.id == index);
             const toggleCategoryBtn = getComputedStyle(node.querySelector('.toggle-category-btn')).backgroundImage;
             
             if (toggleCategoryBtn && toggleCategoryBtn.includes('https://i.ibb.co/6q919Xb/20251024-055350.png')) {
@@ -632,7 +629,6 @@ function generateCell(templateId, text) {
     const template = document.getElementById(templateId).content.cloneNode(true);
     const newId = Date.now();
     const newPosition = cells.length ? cells[cells.length - 1].position + 1 : 0;
-    const oldCells = JSON.parse(JSON.stringify(cells));
 
     const newCell = {
         id: newId,
@@ -652,24 +648,20 @@ function generateCell(templateId, text) {
 
 function updateCell(template, cell) {
     const cellNode = template.querySelector('.info-wrapper') || template;
-    if (!cellNode.dataset.index) {
-        cellNode.setAttribute('data-index', cell.id);
-        cellNode.querySelector('.info-title').innerHTML = cell.text1;
-        cellNode.querySelector('.info-input').innerHTML = cell.text1;
-        const infoTitle = cellNode.querySelector('.info-title');
-        const infoInput = cellNode.querySelector('.info-input');
-        infoInput.addEventListener('focus', function(event) {
+    cellNode.setAttribute('data-index', cell.id);
+    cellNode.querySelector('.info-title').innerHTML = cell.text1;
+    cellNode.querySelector('.info-input').innerHTML = cell.text1;
+    const infoInput = cellNode.querySelector('.info-input');
+    infoInput.addEventListener('focus', function(event) {
+        currentTextArea = event.target;
+    });
+    if (cell.text2) {
+        cellNode.querySelector('.value-cell').innerHTML = cell.text2;
+        cellNode.querySelector('.value-input').innerHTML = cell.text2;
+        const valueInput = cellNode.querySelector('.value-input');
+        valueInput.addEventListener('focus', function(event) {
             currentTextArea = event.target;
         });
-        if (cell.text2) {
-            cellNode.querySelector('.value-cell').innerHTML = cell.text2;
-            cellNode.querySelector('.value-input').innerHTML = cell.text2;
-            const valueCell = cellNode.querySelector('.value-cell');
-            const valueInput = cellNode.querySelector('.value-input');
-            valueInput.addEventListener('focus', function(event) {
-                currentTextArea = event.target;
-            });
-        }
     }
 }
 
@@ -760,7 +752,7 @@ function assignCategoriesToRows() {
   let currentSubCategoryId = null;
   rows.sort((a, b) => a.position - b.position);
 
-  rows.flatMap(row => row.categoryRows ?? []).forEach((row, i) => {
+  rows.flatMap(row => row.categoryRows ?? []).forEach(row => {
       const rowNode = row.node;
       if (row.type === "sub-category") {
           currentSubCategoryId = row.id;
@@ -769,7 +761,10 @@ function assignCategoriesToRows() {
           rowNode.dataset.subCategory = currentSubCategoryId;
       } else {
           currentSubCategoryId = null;
+          row.subCategory = currentSubCategoryId;
+          rowNode.dataset.subCategory = currentSubCategoryId;
       }
+      console.log(row?.subCategory);
       previousParentNode = rowNode.parentNode;
   });
 }
@@ -784,7 +779,6 @@ function editRow(editMode) {
         const infoboxImg = node.querySelector('.infobox-img');
         const bioText = node.querySelector('.infobox-bio-text');
         const bioInput = node.querySelector('.bio-input');
-        const presetBtn = node.querySelector('.generate-preset-btn');
         const index = node.getAttribute('data-index');
         const row = [...rows, ...rows.flatMap(row => row.categoryRows ?? [])].find(row => row.id == index);
         const toggleCategoryBtn = node.querySelector('.toggle-category-btn');
@@ -798,11 +792,11 @@ function editRow(editMode) {
             }
             node.classList.toggle('row-edit-mode');
             if (row.type === 'infobox' || row.type === 'sub-category' || row.type === 'category') {
-              nameInput.value = nameText.textContent;
+                nameInput.value = nameText.textContent;
             }
             
             if (row.type === 'infobox' || row.type === 'text-area') {
-              bioInput.innerHTML = bioText.innerHTML;
+                bioInput.innerHTML = bioText.innerHTML;
             }
             if (row.type === 'infobox') {
                 editSection(node, row, editMode);
@@ -844,13 +838,11 @@ function editRow(editMode) {
 
 function editTableData(rowElement, row, editMode) {
     const dataWrappers = rowElement.querySelectorAll('.data-wrapper');
-    const rowDeleteBtns = rowElement.querySelectorAll('.row-delete-wrapper')
     const tableData = row.data;
     
     if (dataWrappers) {
         dataWrappers.forEach(wrapper => {
             const infoTitle = wrapper.querySelector('.info-title');
-            const inputWrapper = wrapper.querySelector('.cell-input-wrapper');
             const infoInput = wrapper.querySelector('.info-input');
             const index = wrapper.dataset.index;
             const currentData = tableData.find(el => el.id == index);
@@ -879,12 +871,9 @@ function editSection(row, infobox, editMode) {
     
     if (sectionWrappers) {
         sectionWrappers.forEach(section => {
-            const rowCell1 = section.querySelector('.infobox-cell1');
             const rowCell3 = section.querySelector('.infobox-cell3');
             const infoTitle = section.querySelector('.info-title');
             const valueCell = section.querySelector('.value-cell');
-            const inputWrapper = section.querySelectorAll('.cell-input-wrapper');
-            const textWrapper = section.querySelectorAll('.cell-text');
             const infoInput = section.querySelector('.info-input');
             const valueInput = section.querySelector('.value-input');
             const index = infoTitle.closest('.section-wrapper').getAttribute('data-index');
@@ -914,10 +903,6 @@ function editMainInfobox(editMode) {
         infoWrappers.forEach(info => {
             const infoTitle = info.querySelector('.info-title');
             const valueCell = info.querySelector('.value-cell');
-            const inputWrapper = info.querySelectorAll('.cell-input-wrapper');
-            const textWrapper = info.querySelectorAll('.cell-text');
-            const cell1 = info.querySelector('.cell1');
-            const cell2 = info.querySelector('.cell2');
             const cell3 = info.querySelector('.cell3');
             const infoInput = info.querySelector('.info-input');
             const valueInput = info.querySelector('.value-input');
@@ -1002,8 +987,6 @@ function handleCellClick(event) {
 function handleCellInput(event) {
     const element = event.target;
     const cellNode = element.closest('.info-wrapper');
-    const index = cellNode.dataset.index;
-    const cell = cells.find(cell => cell.id == index);
     
     if (element.classList.contains('info-input')) {
         const infoText = cellNode.querySelector('.info-title');
@@ -1023,7 +1006,6 @@ function handleCellInput(event) {
 function handleRowClick(event) {
     const target = event.target;
     const rowNode = target.closest('.row-wrapper');
-    const index = rowNode ? rowNode.dataset.index : null;
     const row = [...rows, ...rows.flatMap(row => row.categoryRows ?? [])].find(char => char.node === rowNode);
 
     if (target.classList.contains('upload-img-btn')) {
@@ -1069,7 +1051,7 @@ function handleRowClick(event) {
     } else if (target.classList.contains('generate-preset-btn')) {
         presetGenerateSection(rowNode, row);
     } else if (target.classList.contains('toggle-category-btn')) {
-        toggleCategory(rowNode, row);
+        toggleCategory(rowNode);
     } else if (target.classList.contains('add-sub-cat-btn')) {
         const rowList = rowNode.querySelector('.category-row-list');
         const rowArray = row.categoryRows;
@@ -1115,11 +1097,11 @@ function handleRowClick(event) {
     } else if (target.classList.contains('row-left-btn')) {
         const rowDelete2Btn = target.parentNode.querySelector('.row-delete2-btn');
         const index = rowDelete2Btn.dataset.index;
-        moveTableData(rowNode, row, index, 'left');
+        moveTableData(row, index, 'left');
     } else if (target.classList.contains('row-right-btn')) {
         const rowDelete2Btn = target.parentNode.querySelector('.row-delete2-btn');
         const index = rowDelete2Btn.dataset.index;
-        moveTableData(rowNode, row, index, 'right');
+        moveTableData(row, index, 'right');
     } else if (target.classList.contains('toggle-add-btn2')) {
         console.log(rowNode.children[0].classList)
         const addBtn = rowNode.children[0].querySelectorAll('.row-add-btn2');
@@ -1146,9 +1128,6 @@ function alignRows(rowNodes, array) {
 
 function handleRowInput(event) {
     const element = event.target;
-    const rowNode = element.closest('.row-wrapper');
-    const index = rowNode.dataset.index;
-    const row = rows.find(row => row.id == index);
     
     if (element.classList.contains('bio-input')) {
         const bio = element.parentNode.querySelector('.infobox-bio-text');
@@ -1174,7 +1153,6 @@ function handleRowInput(event) {
 function handleRowChange(event) {
     const target = event.target;
     const rowNode = target.closest('.row-wrapper');
-    const index = rowNode ? rowNode.dataset.index : null;
     const row = [...rows, ...rows.flatMap(row => row.categoryRows ?? [])].find(row => row.node === rowNode);
 
     if (target.classList.contains('upload-img')) {
@@ -1182,7 +1160,7 @@ function handleRowChange(event) {
     }
 }
 
-function toggleCategory(catNode, category) {
+function toggleCategory(catNode) {
     let toggleButton = catNode.querySelector('.toggle-category-btn');
     let isVisible = getComputedStyle(toggleButton).backgroundImage.includes('https://i.ibb.co/s91K27m8/20251024-091953.png');
     const rowList = catNode.querySelector('.category-row-list');
@@ -1222,7 +1200,6 @@ function generateRow(elementNode, element, rowArray, rowList, type) {
                 firstRow = childRowNodes.length ? childRowNodes[childRowNodes.length - 1] : elementNode;
                 rowList.insertBefore(template, firstRow.nextElementSibling);
                 firstRow = rowElement;
-                let subCategoryId = null;
                 childRows.forEach((row, i) => {
                     const cloneTemplate = document.getElementById(`${row.type}-template`).content.cloneNode(true);
                     const object = JSON.parse(JSON.stringify(row));
@@ -1257,7 +1234,6 @@ function updateRow(template, row, parentArray, parentNode, type, isClone) {
     if (row?.type === 'category') {
         categoryId = row.id;
     } else if (row?.type === 'sub-category') {
-        categoryId = row.category;
         subCategoryId = row.id;
     }
     
@@ -1301,7 +1277,6 @@ function updateRow(template, row, parentArray, parentNode, type, isClone) {
                 bio: 'Write description about the subject here...',
                 imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/660px-No-Image-Placeholder.svg.png?20200912122019',
                 type: 'infobox',
-                category: categoryId,
                 subCategory: subCategoryId,
                 sections: [],
                 position: 0
@@ -1317,7 +1292,6 @@ function updateRow(template, row, parentArray, parentNode, type, isClone) {
                 id: newId,
                 bio: 'Write description about the subject here...',
                 type: 'text-area',
-                category: categoryId,
                 subCategory: subCategoryId,
                 position: 0
             };
@@ -1337,7 +1311,6 @@ function updateRow(template, row, parentArray, parentNode, type, isClone) {
             newRow = {
                 id: newId,
                 type: 'table',
-                category: categoryId,
                 subCategory: subCategoryId,
                 miniRows: [],
                 position: 0
@@ -1373,25 +1346,27 @@ function updateCategory(row, category) {
     const editMode = editButton.textContent === '✔️';
     const categoryNode = row.querySelector('.row-wrapper') || row;
     
-    if (!categoryNode.dataset.index) {
-        row.querySelector('.row-wrapper').dataset.index = category.id;
-        const name = categoryNode.querySelector('.infobox-name');
-        const nameInput = categoryNode.querySelector('.name-input');
-        if (editMode) {
-            categoryNode.querySelector('.toggle-category-btn').style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
-            categoryNode.classList.add('row-edit-mode');
-            nameInput.value = category.name;
-        } else {
-            categoryNode.classList.remove('row-edit-mode');
-            name.textContent = category.name;
-        }
+    row.querySelector('.row-wrapper').dataset.index = category.id;
+    const name = categoryNode.querySelector('.infobox-name');
+    const nameInput = categoryNode.querySelector('.name-input');
+    if (editMode) {
+        categoryNode.querySelector('.toggle-category-btn').style.backgroundImage = 'url(https://i.ibb.co/s91K27m8/20251024-091953.png)';
+        categoryNode.classList.add('row-edit-mode');
+        nameInput.value = category.name;
+    } else {
+        categoryNode.classList.remove('row-edit-mode');
+        name.textContent = category.name;
     }
+    
     category.categoryRows = category.categoryRows ? category.categoryRows : rows.filter(miniRow => miniRow.category === category.id);
     const categoryRows = category.categoryRows;
     
     categoryRows.forEach((miniRow, i) => {
         if (!miniRow.type) {
             miniRow.type = 'infobox';
+        }
+        if (miniRow.category) {
+            delete miniRow.category;
         }
         if (rows.includes(miniRow)) {
             rows.splice(rows.indexOf(miniRow), 1);
@@ -1419,47 +1394,42 @@ function updateSubCategory(row, subCategory) {
     const editMode = editButton.textContent === '✔️';
     const subCatNode = row.querySelector('.row-wrapper') || row;
     
-    if (!subCatNode.dataset.index) {
-        subCatNode.dataset.index = subCategory.id;
-        subCatNode.dataset.category = subCategory.category;
-        const name = subCatNode.querySelector('.infobox-name');
-        const nameInput = subCatNode.querySelector('.name-input');
-        if (editMode) {
-            subCatNode.classList.add('row-edit-mode');
-            nameInput.value = subCategory.name;
-        } else {
-            subCatNode.classList.remove('row-edit-mode');
-            name.textContent = subCategory.name;
-        }
+    subCatNode.dataset.index = subCategory.id;
+    const name = subCatNode.querySelector('.infobox-name');
+    const nameInput = subCatNode.querySelector('.name-input');
+    if (editMode) {
+        subCatNode.classList.add('row-edit-mode');
+        nameInput.value = subCategory.name;
+    } else {
+        subCatNode.classList.remove('row-edit-mode');
+        name.textContent = subCategory.name;
     }
 }
 
 function updateInfobox(row, infobox) {
     const infoboxNode = row.querySelector('.row-wrapper') || row;
     
-    if (!infoboxNode.dataset.index) {
-        infoboxNode.dataset.index = infobox.id;
-        infoboxNode.dataset.category = infobox.category;
-        infoboxNode.dataset.subCategory = infobox.subCategory;
-        const name = infoboxNode.querySelector('.infobox-name');
-        const bio = infoboxNode.querySelector('.infobox-bio-text');
-        const nameInput = infoboxNode.querySelector('.name-input');
-        const bioInput = infoboxNode.querySelector('.bio-input');
-        
-        const editMode = editButton.textContent === '✔️';
-        
-        if (editMode) {
-            infoboxNode.querySelector('.control-room').style.display = 'block';
-            infoboxNode.classList.add('row-edit-mode');
-            nameInput.value = infobox.name;
-            bioInput.innerHTML = infobox.bio;
-        } else {
-            infoboxNode.classList.remove('row-edit-mode');
-            name.textContent = infobox.name;
-            bio.innerHTML = infobox.bio;
-        }
-        infoboxNode.querySelector('.infobox-img').src = infobox.imgSrc;
+    infoboxNode.dataset.index = infobox.id;
+    infoboxNode.dataset.subCategory = infobox.subCategory;
+    const name = infoboxNode.querySelector('.infobox-name');
+    const bio = infoboxNode.querySelector('.infobox-bio-text');
+    const nameInput = infoboxNode.querySelector('.name-input');
+    const bioInput = infoboxNode.querySelector('.bio-input');
+    
+    const editMode = editButton.textContent === '✔️';
+    
+    if (editMode) {
+        infoboxNode.querySelector('.control-room').style.display = 'block';
+        infoboxNode.classList.add('row-edit-mode');
+        nameInput.value = infobox.name;
+        bioInput.innerHTML = infobox.bio;
+    } else {
+        infoboxNode.classList.remove('row-edit-mode');
+        name.textContent = infobox.name;
+        bio.innerHTML = infobox.bio;
     }
+    infoboxNode.querySelector('.infobox-img').src = infobox.imgSrc;
+    
     const sections = infobox.sections;
     if (sections) {
         sections.sort((a, b) => a.position - b.position);
@@ -1483,7 +1453,6 @@ function updateTextArea(row, textArea) {
     const textAreaNode = row.querySelector('.row-wrapper') || row;
     
     textAreaNode.dataset.index = textArea.id;
-    textAreaNode.dataset.category = textArea.category;
     textAreaNode.dataset.subCategory = textArea.subCategory;
     const bio = row.querySelector('.infobox-bio-text');
     const bioInput = textAreaNode.querySelector('.bio-input');
@@ -1500,7 +1469,6 @@ function updateTable(template, table) {
     const tableNode = template.querySelector('.row-wrapper') || template;
     
     tableNode.dataset.index = table.id;
-    tableNode.dataset.category = table.category;
     tableNode.dataset.subCategory = table.subCategory;
     
     const editMode = editButton.textContent === '✔️';
@@ -1514,7 +1482,6 @@ function updateTable(template, table) {
     tableNode.querySelector('.table-body').appendChild(rowDelete2Template);
     
     const miniRows = table.miniRows;
-    let firstRow = true;
     if (miniRows) {
         miniRows.sort((a, b) => a.position - b.position);
         miniRows.forEach(row => {
@@ -1581,7 +1548,7 @@ function updateMiniRow(template, row) {
         tableData.sort((a, b) => a.position - b.position);
         tableData.forEach(cell => {
             const template = document.getElementById('data-template').content.cloneNode(true);
-            updateTableData(template, cell, tableData, rowElement);
+            updateTableData(template, cell);
             const dataElement = template.children[0];
             rowElement.appendChild(template);
             asignProperties(cell, dataElement, tableData);
@@ -1609,7 +1576,7 @@ function generateTableData(tableElement, table) {
         };
         row.data.push(newTableData);
         
-        updateTableData(template, newTableData, row.data, rowElement);
+        updateTableData(template, newTableData);
         const infoTitle = template.querySelector('.info-title');
         const inputWrapper = template.querySelector('.cell-input-wrapper');
         
@@ -1629,7 +1596,7 @@ function generateTableData(tableElement, table) {
     rowDelete2Wrapper.appendChild(rowDelete2Btn);
 }
 
-function updateTableData(template, tableData, parentArray, parentNode) {
+function updateTableData(template, tableData) {
     const dataNode = template.querySelector('.data-wrapper') || template;
     
     if (!dataNode.dataset.index) {
@@ -1740,13 +1707,12 @@ function moveMiniRow(row, table, direction) {
     actionManager(null, [currentRow], [reAsignProperties(JSON.parse(JSON.stringify(currentRow)), currentRow)], oldRows, 'element-move');
 }
 
-function moveTableData(tableNode, table, position, direction) {
+function moveTableData(table, position, direction) {
     const miniRows = table.miniRows;
     let oldCells = [];
     let newCells = [];
     miniRows.forEach(row => {
         const tableData = row.data;
-        const rowElement = row.node;
         
         tableData.forEach(cell => {
             if (cell.position == position) {
@@ -2035,8 +2001,7 @@ function generateSection(templateId, row, infobox, text) {
     const newId = Date.now();
     const sections = infobox.sections;
     const newPosition = sections.length ? sections[sections.length - 1].position + 1 : 0;
-    const oldSections = JSON.parse(JSON.stringify(sections));
-
+    
     const newSection = {
         id: newId,
         text1: text ? text : 'Write here',
@@ -2059,19 +2024,17 @@ function generateSection(templateId, row, infobox, text) {
 function updateSection(template, section) {
     const sectionNode = template.querySelector('.section-wrapper') || template;
     
-    if (!sectionNode.dataset.index) {
-        sectionNode.dataset.index = section.id;
-        sectionNode.dataset.parentId = section.parentId;
-        const infoText = template.querySelector('.info-title');
-        const infoInput = sectionNode.querySelector('.info-input');
-        infoText.innerHTML = section.text1;
-        infoInput.innerHTML = section.text1;
-        if (section.text2) {
-            const valueText = sectionNode.querySelector('.value-cell');
-            const valueInput = sectionNode.querySelector('.value-input');
-            valueText.innerHTML = section.text2;
-            valueInput.innerHTML = section.text2;
-        }
+    sectionNode.dataset.index = section.id;
+    sectionNode.dataset.parentId = section.parentId;
+    const infoText = template.querySelector('.info-title');
+    const infoInput = sectionNode.querySelector('.info-input');
+    infoText.innerHTML = section.text1;
+    infoInput.innerHTML = section.text1;
+    if (section.text2) {
+        const valueText = sectionNode.querySelector('.value-cell');
+        const valueInput = sectionNode.querySelector('.value-input');
+        valueText.innerHTML = section.text2;
+        valueInput.innerHTML = section.text2;
     }
 }
 
@@ -2325,7 +2288,6 @@ function deleteElement(row, element, array, type) {
     let objects = [];
     if (type !== 'table data') {
         if (confirm(`Are you sure you want to delete this ${type}?`)) {
-            const oldArray  = JSON.parse(JSON.stringify(array));
             if (type === 'sub-category') {
                 const filteredRows = array.filter(arr => arr.subCategory === element.id);
                 objects.push(...filteredRows);
@@ -2336,7 +2298,6 @@ function deleteElement(row, element, array, type) {
                 });
             }
             
-            const parentNode = row.parentNode;
             row.remove();
             array.splice(array.indexOf(element), 1);
             alignRows([...element.parentNode.children], element.parentArray);
